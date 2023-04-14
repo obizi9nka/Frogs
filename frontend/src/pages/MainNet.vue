@@ -212,15 +212,15 @@ import axios from 'axios';
 import AppHeader from '@/components/AppHeader';
 import Modal from "@/components/UI/Modal";
 import BtnPrimary from "@/components/UI/BtnPrimary";
-import constants from "../../../frogs-contract/scripts/json/constants.json"
+import constants from "../../../blockchain/scripts/json/constants.json"
 
-import cakeAbi from '../../../frogs-contract/artifacts/contracts/pancekeswap-fork/utils/CakeToken.sol/CakeToken.json'
-import bnbAbi from '../../../frogs-contract/artifacts/contracts/ERC20.sol/ERC20Token.json'
-import lotteryAbi from '../../../frogs-contract/artifacts/contracts/FrogLottery.sol/FrogLottery.json'
-import factoryAbi from '../../../frogs-contract/artifacts/contracts/Factory.sol/Factory.json'
-import referalAbi from "../../../frogs-contract/artifacts/contracts/FrogReferal.sol/FrogReferal.json"
-import routerAbi from "../../../frogs-contract/artifacts/contracts/pancekeswap-fork/router.sol/PancakeRouter.json"
-import pairAbi from "../../../frogs-contract/artifacts/contracts/pancekeswap-fork/pancakepair.sol/PancakePair.json"
+import cakeAbi from '../../../blockchain/artifacts/contracts/pancekeswap-fork/utils/CakeToken.sol/CakeToken.json'
+import bnbAbi from '../../../blockchain/artifacts/contracts/ERC20.sol/ERC20Token.json'
+import lotteryAbi from '../../../blockchain/artifacts/contracts/FrogLottery.sol/FrogLottery.json'
+import factoryAbi from '../../../blockchain/artifacts/contracts/Factory.sol/Factory.json'
+import referalAbi from "../../../blockchain/artifacts/contracts/FrogReferal.sol/FrogReferal.json"
+import routerAbi from "../../../blockchain/artifacts/contracts/pancekeswap-fork/router.sol/PancakeRouter.json"
+import pairAbi from "../../../blockchain/artifacts/contracts/pancekeswap-fork/pancakepair.sol/PancakePair.json"
 
 const bnbChainId = '0x38';
 const bnbRpcUrl = 'https://bsc-dataseed.binance.org';
