@@ -261,8 +261,8 @@ contract FrogLottery is Random, Ownable{
             if(withdrawOf[participants[i]] > 0){
                 if(withdrawOf[participants[i]] <= balanceOf[participants[i]]){
                     balanceOf[participants[i]] -= withdrawOf[participants[i]];
-                    if(balanceFromPreviousDraws >= withdrawOf[participants[i]])
-                        balanceFromPreviousDraws -= withdrawOf[participants[i]];
+                    // if(balanceFromPreviousDraws >= withdrawOf[participants[i]])
+                    //     balanceFromPreviousDraws -= withdrawOf[participants[i]];
                     IMasterChef(pancakeMCAddress).withdraw(pancakePID, withdrawOf[participants[i]]);
 
                     IPancakePair(pancakePairAddress).approve(pancakeRouterAddress, withdrawOf[participants[i]]);
