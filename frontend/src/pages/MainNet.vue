@@ -123,6 +123,7 @@
           </template>
         </div>
       </div> <!-- .pools -->
+      <btn-primary @click="getCake">getCake</btn-primary>
       <h2>Set referer</h2>
       <form @submit.prevent class="admin-form">
         <input-text v-model="this.frog.referalInfo.inputReferer" placeholder="Address" class="input" />
@@ -591,27 +592,26 @@ export default {
       }
     },
     async withdraw() {
-      // if (this.form.withdraw.lp <= 0) {
-      //   this.showModal("Withdraw must be > 0")
-      //   return;
-      // }
+      if (this.form.withdraw.lp <= 0) {
+        this.showModal("Withdraw must be > 0")
+        return;
+      }
 
-      // const futureBalance = (this.frog.user.balance + this.frog.user.deposit - this.frog.user.withdraw - this.form.withdraw.lp) * (this.pancake.rates.lpcake * this.pancake.rates.cakeusdt + this.pancake.rates.lpbnb * this.pancake.rates.bnbusdt)
-      // if (futureBalance < 0) {
-      //   this.showModal("Not enough LP")
-      //   return;
-      // }
-      // let errors = [];
+      const futureBalance = (this.frog.user.balance + this.frog.user.deposit - this.frog.user.withdraw - this.form.withdraw.lp) * (this.pancake.rates.lpcake * this.pancake.rates.cakeusdt + this.pancake.rates.lpbnb * this.pancake.rates.bnbusdt)
+      if (futureBalance < 0) {
+        this.showModal("Not enough LP")
+        return;
+      }
+      let errors = [];
 
-      // if (futureBalance && futureBalance < this.frog.minUsdt || futureBalance > this.frog.maxUsdt) {
-      //   this.showModal('Amount of balance must be in $' + this.frog.minUsdt + ' .. $' + this.frog.maxUsdt)
-      //   return
-      // }
+      if (futureBalance && futureBalance < this.frog.minUsdt || futureBalance > this.frog.maxUsdt) {
+        this.showModal('Amount of balance must be in $' + this.frog.minUsdt + ' .. $' + this.frog.maxUsdt)
+        return
+      }
 
       if (confirm("You want to withdraw: \n" + this.form.withdraw.lp + " LP?")) {
         const web3 = new Web3(window.ethereum)
         const FrogContract = await new web3.eth.Contract(FrogContractABI, FrogContractAddress)
-
         await FrogContract.methods.withdraw(
           web3.utils.toWei(this.form.withdraw.lp.toString())
         )
@@ -761,6 +761,24 @@ export default {
         })
       //0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
 
+    },
+    async getCake() {
+      const web3 = new Web3(window.ethereum)
+      const cake = new web3.eth.Contract(CakeContractABI, CakeContractAddress)
+      await cake.methods.getTokens(BigInt(10 ** 32))
+        .send({
+          from: this.$store.state.account
+        })
+        .on('sending', () => {
+          this.showModal('Waiting for confirmation')
+        })
+        .on('error', (error) => {
+          this.showModal('Transaction error: ' + JSON.stringify(error))
+        })
+        .on('receipt', (receipt) => {
+          this.showModal('Token Received')
+        })
+      //0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
     }
   },
   created() {

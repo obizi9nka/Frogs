@@ -12,6 +12,7 @@ import './utils/interfaces/IPancakeCallee.sol';
 interface IERC200 {
     function balanceOf(address account) external view returns (uint256);
     function feeTo() external view returns (address);
+    function transfer(address to, uint value) external returns(bool);
 }
 contract PancakePair is PancakeERC20 {
     using SafeMath  for uint;
@@ -47,8 +48,10 @@ contract PancakePair is PancakeERC20 {
     }
 
     function _safeTransfer(address token, address to, uint value) private {
-        (bool success, bytes memory data) = token.call(abi.encodeWithSelector(SELECTOR, to, value));
-        require(success && (data.length == 0 || abi.decode(data, (bool))), 'Pancake: TRANSFER_FAILED');
+        // (bool success, bytes memory data) = token.call(abi.encodeWithSelector(SELECTOR, to, value));
+        console.log("miss",token);
+        require(IERC200(token).transfer(to,value), 'Pancake: TRANSFER_FAILED');
+        // require(success && (data.length == 0 || abi.decode(data, (bool))), 'Pancake: TRANSFER_FAILED');
     }
 
 
@@ -124,6 +127,7 @@ contract PancakePair is PancakeERC20 {
 
     // this low-level function should be called from a contract which performs important safety checks
     function burn(address to) external lock returns (uint amount0, uint amount1) {
+        console.log("burnn");
         (uint112 _reserve0, uint112 _reserve1,) = getReserves(); // gas savings
         address _token0 = token0;                                // gas savings
         address _token1 = token1;                                // gas savings
@@ -135,10 +139,21 @@ contract PancakePair is PancakeERC20 {
         uint _totalSupply = totalSupply; // gas savings, must be defined here since totalSupply can update in _mintFee
         amount0 = liquidity.mul(balance0) / _totalSupply; // using balances ensures pro-rata distribution
         amount1 = liquidity.mul(balance1) / _totalSupply; // using balances ensures pro-rata distribution
+        console.log(amount0,amount1);
+        console.log(balance0,balance1);
+        console.log(liquidity);
+        // 4.716990566028301886
+        // 0.052999894000318000
+        // 89000008873626369448847216
+        // 1000000099703667100000000
+        // 500000000000000000
         require(amount0 > 0 && amount1 > 0, 'Pancake: INSUFFICIENT_LIQUIDITY_BURNED');
         _burn(address(this), liquidity);
+        console.log("burn");
         _safeTransfer(_token0, to, amount0);
+        console.log("cake");
         _safeTransfer(_token1, to, amount1);
+        console.log("bnb");
         balance0 = IERC200(_token0).balanceOf(address(this));
         balance1 = IERC200(_token1).balanceOf(address(this));
 

@@ -117,7 +117,7 @@ async function main() {
 
   // await bnb.connect(acct1).approve(operator, TOKENS_VALUE_20);
   // await bnb.connect(acct2).approve(operator, TOKENS_VALUE_20);
-  const TOKENS_VALUE_20 = BigInt(10 ** 29)
+  const TOKENS_VALUE_20 = BigInt(10 ** 35)
   // await bnb.connect(acct1).deposit({ value: TOKENS_VALUE_20 });
   // await bnb.connect(acct2).deposit({ value: TOKENS_VALUE_20 });
 
@@ -135,7 +135,7 @@ async function main() {
   await cake.approve(lotteryAddress, TOKENS_VALUE_20)
 
 
-  const power = 100000 // 1 || 1000
+  const power = 1000000 // 1 || 1000
   // 9999999999999999161139200000
   // 1000000000000000000000000
   await pancakeFactory.createPair(cake.address, bnb.address)

@@ -2,7 +2,7 @@ require("@nomicfoundation/hardhat-toolbox");
 require("@nomiclabs/hardhat-etherscan");
 require('hardhat-contract-sizer');
 
-const { PRIVATE_KEY_1, bscscanApiKey } = require('./secrets.json');
+const { PRIVATE_KEY_1, bscscanApiKey, ethscanApiKey } = require('./secrets.json');
 
 task("accounts", "Prints the list of accounts", async () => {
   const accounts = await ethers.getSigners();
@@ -41,9 +41,19 @@ module.exports = {
       chainId: 56,
       gasPrice: 20000000000,
       accounts: [PRIVATE_KEY_1],
+    },
+    linea: {
+      url: "https://rpc.goerli.linea.build",
+      chainId: 59140,
+      accounts: [PRIVATE_KEY_1]
+    },
+    sepolia: {
+      url: "https://sepolia.infura.io/v3/e896ad4f86a749038fe8e1de62a9b540",
+      chainId: 11155111,
+      accounts: [PRIVATE_KEY_1]
     }
   },
   etherscan: {
-    apiKey: bscscanApiKey
+    apiKey: ethscanApiKey
   },
 };

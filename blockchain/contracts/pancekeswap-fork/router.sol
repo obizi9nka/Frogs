@@ -15,7 +15,7 @@ import 'hardhat/console.sol';
 
 interface IWETH {
     function deposit() external payable;
-    function transfer(address to, uint value) external returns(bool,uint);
+    function transfer(address to, uint value) external returns(bool);
     function withdraw(uint) external;
 }
 
@@ -32,7 +32,7 @@ contract PancakeRouter is IPancakeRouter02 {
     address public immutable WETH;
     uint power;
     modifier ensure(uint deadline) {
-        require(deadline >= block.timestamp, 'PancakeRouter: EXPIRED');
+        // require(deadline >= block.timestamp, 'PancakeRouter: EXPIRED');
         _;
     }
 
@@ -101,27 +101,22 @@ contract PancakeRouter is IPancakeRouter02 {
         address to,
         uint deadline
     ) external virtual override payable ensure(deadline) returns (uint amountToken, uint amountETH, uint liquidity){
-        console.log(2);
+        console.log("ethadd");
         (amountToken, amountETH) = _addLiquidity(
             token,
             WETH,
             amountTokenDesired,
-            msg.value * 100000,
+            msg.value * 100000000,
             amountTokenMin,
             amountETHMin
         );
-        console.log(1);
         address pair = PancakeLibrary.pairFor(factory, token, WETH);
-        console.log(1);
         TransferHelper.safeTransferFrom(token, msg.sender, pair, amountToken);
         bool succses;
-        //1000
-        console.log(amountETH);
         uint amountETHDesired;
-        (bool sent,) = WETH.call{value: amountETH/100000}("");
-        console.log(sent);
-        (succses, amountETHDesired) = IWETH(WETH).transfer(pair, amountETH/100000);
-        assert(succses);
+        (bool sent,) = WETH.call{value: amountETH/100000000}("");
+        succses = IWETH(WETH).transfer(pair, amountETH/100000000);
+        require(succses, "no suc");
         liquidity = IPancakePair(pair).mint(to);
         // refund dust eth, if any
         // if (msg.value > amountETH) TransferHelper.safeTransferETH(msg.sender, msg.value - amountETH);
@@ -154,6 +149,10 @@ contract PancakeRouter is IPancakeRouter02 {
         address to,
         uint deadline
     ) public virtual override ensure(deadline) returns (uint amountToken, uint amountETH) {
+        console.log(liquidity, amountTokenMin, amountETHMin);
+        // 0.500000000000000000 
+        // 4.669780500000000000
+        //0.052420500000000000
         (amountToken, amountETH) = removeLiquidity(
             token,
             WETH,
@@ -241,7 +240,8 @@ contract PancakeRouter is IPancakeRouter02 {
     function _swap(uint[] memory amounts, address[] memory path, address _to) internal virtual {
         for (uint i; i < path.length - 1; i++) {
             (address input, address output) = (path[i], path[i + 1]);
-            (address token0,) = PancakeLibrary.sortTokens(input, output);
+            // (address token0,) = PancakeLibrary.sortTokens(input, output);
+            address token0 = input;
             uint amountOut = amounts[i + 1];
             (uint amount0Out, uint amount1Out) = input == token0 ? (uint(0), amountOut) : (amountOut, uint(0));
             address to = i < path.length - 2 ? PancakeLibrary.pairFor(factory, output, path[i + 2]) : _to;
@@ -292,7 +292,7 @@ contract PancakeRouter is IPancakeRouter02 {
         IWETH(WETH).deposit{value: amounts[0]}();
         bool succses;
         uint amountETHDesired;
-        (succses,amountETHDesired) = IWETH(WETH).transfer(PancakeLibrary.pairFor(factory, path[0], path[1]), amounts[0]);
+        succses = IWETH(WETH).transfer(PancakeLibrary.pairFor(factory, path[0], path[1]), amounts[0]);
         assert(succses);
         _swap(amounts, path, to);
     }
@@ -344,7 +344,7 @@ contract PancakeRouter is IPancakeRouter02 {
         IWETH(WETH).deposit{value: amounts[0]}();
         bool succses;
         uint amountETHDesired;
-        (succses,amountETHDesired) = IWETH(WETH).transfer(PancakeLibrary.pairFor(factory, path[0], path[1]), amounts[0]);
+        succses = IWETH(WETH).transfer(PancakeLibrary.pairFor(factory, path[0], path[1]), amounts[0]);
         assert(succses);
         _swap(amounts, path, to);
         // refund dust eth, if any
@@ -356,7 +356,9 @@ contract PancakeRouter is IPancakeRouter02 {
     function _swapSupportingFeeOnTransferTokens(address[] memory path, address _to) internal virtual {
         for (uint i; i < path.length - 1; i++) {
             (address input, address output) = (path[i], path[i + 1]);
-            (address token0,) = PancakeLibrary.sortTokens(input, output);
+            // (address token0,) = PancakeLibrary.sortTokens(input, output);
+             address token0 = input;
+
             IPancakePair pair = IPancakePair(PancakeLibrary.pairFor(factory, input, output));
             uint amountInput;
             uint amountOutput;
@@ -405,7 +407,7 @@ contract PancakeRouter is IPancakeRouter02 {
         IWETH(WETH).deposit{value: amountIn}();
         bool succses;
         uint amountETHDesired;
-        (succses,amountETHDesired) = IWETH(WETH).transfer(PancakeLibrary.pairFor(factory, path[0], path[1]), amountIn);
+        succses = IWETH(WETH).transfer(PancakeLibrary.pairFor(factory, path[0], path[1]), amountIn);
         assert(succses);
         uint balanceBefore = IERC20(path[path.length - 1]).balanceOf(to);
         _swapSupportingFeeOnTransferTokens(path, to);

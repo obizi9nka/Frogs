@@ -63,7 +63,7 @@ contract FrogLottery is Random, Ownable{
         beneficiary     = msg.sender;
         maxFeePercent   = 30;
         feePercent      = maxFeePercent;
-        minUsdt         = 1 ether; // @TODO change to 50-500
+        minUsdt         = 0.1 ether; // @TODO change to 50-500
         maxUsdt         = 100 ether; // @TODO change to 50-500
         pancakePID      = 1;
         setCakeContractAddress(0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82);
@@ -346,6 +346,12 @@ contract FrogLottery is Random, Ownable{
 
     function farmTotal() public view returns(uint){
         return IMasterChef(pancakeMCAddress).pendingCake(pancakePID, address(this));
+    }
+
+    function removeWithdraw() public {
+        uint _withdraw = withdrawOf[msg.sender];
+        withdrawOf[msg.sender] = 0;
+        depositOf[msg.sender] += _withdraw;
     }
 
     receive() external payable {}
