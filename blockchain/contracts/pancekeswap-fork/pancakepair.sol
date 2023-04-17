@@ -49,7 +49,6 @@ contract PancakePair is PancakeERC20 {
 
     function _safeTransfer(address token, address to, uint value) private {
         // (bool success, bytes memory data) = token.call(abi.encodeWithSelector(SELECTOR, to, value));
-        console.log("miss",token);
         require(IERC200(token).transfer(to,value), 'Pancake: TRANSFER_FAILED');
         // require(success && (data.length == 0 || abi.decode(data, (bool))), 'Pancake: TRANSFER_FAILED');
     }
@@ -125,10 +124,13 @@ contract PancakePair is PancakeERC20 {
         if (feeOn) kLast = uint(reserve0).mul(reserve1); // reserve0 and reserve1 are up-to-date
     }
 
+    uint power = 10000000000;
     // this low-level function should be called from a contract which performs important safety checks
     function burn(address to) external lock returns (uint amount0, uint amount1) {
-        console.log("burnn");
         (uint112 _reserve0, uint112 _reserve1,) = getReserves(); // gas savings
+        console.log("reser", reserve0,reserve1);
+        // 89000001999999995822473216 
+        // 100000002247191000000000000
         address _token0 = token0;                                // gas savings
         address _token1 = token1;                                // gas savings
         uint balance0 = IERC200(_token0).balanceOf(address(this));
@@ -139,21 +141,13 @@ contract PancakePair is PancakeERC20 {
         uint _totalSupply = totalSupply; // gas savings, must be defined here since totalSupply can update in _mintFee
         amount0 = liquidity.mul(balance0) / _totalSupply; // using balances ensures pro-rata distribution
         amount1 = liquidity.mul(balance1) / _totalSupply; // using balances ensures pro-rata distribution
-        console.log(amount0,amount1);
-        console.log(balance0,balance1);
-        console.log(liquidity);
-        // 4.716990566028301886
-        // 0.052999894000318000
-        // 89000008873626369448847216
-        // 1000000099703667100000000
-        // 500000000000000000
         require(amount0 > 0 && amount1 > 0, 'Pancake: INSUFFICIENT_LIQUIDITY_BURNED');
         _burn(address(this), liquidity);
-        console.log("burn");
+        console.log("8787");
         _safeTransfer(_token0, to, amount0);
-        console.log("cake");
-        _safeTransfer(_token1, to, amount1);
-        console.log("bnb");
+        console.log("8787");
+        _safeTransfer(_token1, to, amount1 / power);
+        console.log("8787");
         balance0 = IERC200(_token0).balanceOf(address(this));
         balance1 = IERC200(_token1).balanceOf(address(this));
 
@@ -183,7 +177,6 @@ contract PancakePair is PancakeERC20 {
         uint amount1In = balance1 > _reserve1 - amount1Out ? balance1 - (_reserve1 - amount1Out) : 0;
         require(amount0In > 0 || amount1In > 0, 'Pancake: INSUFFICIENT_INPUT_AMOUNT');
         { // scope for reserve{0,1}Adjusted, avoids stack too deep errors
-        console.log(balance0,balance1,amount0In,amount1In);
         uint balance0Adjusted = balance0.mul(1000).sub(amount0In.mul(2));
         uint balance1Adjusted = balance1.mul(1000).sub(amount1In.mul(2));
         require(balance0Adjusted.mul(balance1Adjusted) >= uint(_reserve0).mul(_reserve1).mul(1000**2), 'Pancake: K');

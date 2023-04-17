@@ -26,7 +26,7 @@ interface IFrogReferal {
 
     // зарегестрированная лотерея во время розыгрыша вызывает эту функцию и изменяет состояния баланса на данном контракте на основе выбранных победителей 
     // по хорошему сделать параметры массивами, что бы сократить количество вызовов данной функции до константной единицы с целью сохранения газа 
-    function recieveRewardFromReferalVictory(address referal, uint reward) external;
+    function recieveRewardFromReferalVictory(address token,address referal, uint reward) external;
 
     function claimReward(address token) external;
 }

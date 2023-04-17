@@ -168,6 +168,7 @@ async function main() {
 
   await referal.connect(acct2).add(acct1.address)
   // await lottery.deposit(BigInt(5000000000000039000000))
+
 }
 
 main().catch((error) => {

@@ -15,7 +15,7 @@ contract FrogReferal is Ownable{
     mapping(address => ReferalInfo) public refererOf;
     mapping(address => ReferalInfo[]) public referalsOf;
 
-    mapping(address => uint) public balance; // реферальные балансы участников лотерей
+    mapping(address => mapping(address => uint)) public balance; // реферальные балансы участников лотерей
 
     mapping(address => bool) public isLottery; // адреса зарегестрированных лотерей (регестрировать лотереи может только фабрика лотерей)
 
@@ -82,15 +82,15 @@ contract FrogReferal is Ownable{
 
     // зарегестрированная лотерея во время розыгрыша вызывает эту функцию и изменяет состояния баланса на данном контракте на основе выбранных победителей 
     // по хорошему сделать параметры массивами, что бы сократить количество вызовов данной функции до константной единицы с целью сохранения газа 
-    function recieveRewardFromReferalVictory(address referal, uint reward) public{
+    function recieveRewardFromReferalVictory(address token,address referal, uint reward) public{
         ReferalInfo memory temp = refererOf[referal];
         require(isLottery[msg.sender], 'recieveRewardFromReferalVictory: you are not a lottery');
-        balance[temp.participant] += reward;
+        balance[token][temp.participant] += reward;
         emit ReferalReward(referal,temp.participant,msg.sender,reward);
     }
 
     function claimReward(address token) public {
-        require(IERC20(token).transfer(msg.sender, balance[msg.sender]), 'claimReward: transfer faild');
-        balance[msg.sender] = 0;
+        require(IERC20(token).transfer(msg.sender, balance[token][msg.sender]), 'claimReward: transfer faild');
+        balance[token][msg.sender] = 0;
     }
 }

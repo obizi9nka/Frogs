@@ -10,7 +10,6 @@ import "./utils/interfaces/SafeERC20.sol";
 import 'hardhat/console.sol';
 import "./utils/SyrupBar.sol";
 
-// import "@nomiclabs/buidler/console.sol";
 
 interface IMigratorChef {
     // Perform LP token migration from legacy PancakeSwap to CakeSwap.
@@ -227,39 +226,29 @@ contract MasterChef is Ownable {
 
     // Deposit LP tokens to MasterChef for CAKE allocation.
     function deposit(uint256 _pid, uint256 _amount) public {
-        console.log(3);
         require(_pid != 0, "deposit CAKE by staking");
-        console.log(3);
 
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
-        console.log(3);
 
         updatePool(_pid);
-        console.log(3);
 
         if (user.amount > 0) {
-        console.log(5);
 
             uint256 pending = user.amount.mul(pool.accCakePerShare).div(1e12).sub(user.rewardDebt);
             if (pending > 0) {
                 safeCakeTransfer(msg.sender, pending);
             }
-        console.log(5);
 
         }
         if (_amount > 0) {
-        console.log(6);
 
             pool.lpToken.safeTransferFrom(address(msg.sender), address(this), _amount);
             user.amount = user.amount.add(_amount);
-        console.log(6);
 
         }
-        console.log(3);
 
         user.rewardDebt = user.amount.mul(pool.accCakePerShare).div(1e12);
-        console.log(3);
 
         emit Deposit(msg.sender, _pid, _amount);
     }
