@@ -53,16 +53,17 @@ contract PancakePair is PancakeERC20 {
         // require(success && (data.length == 0 || abi.decode(data, (bool))), 'Pancake: TRANSFER_FAILED');
     }
 
-
+    bool isEthPair;
     constructor() {
         factory = msg.sender;
     }
 
     // called once by the factory at time of deployment
-    function initialize(address _token0, address _token1) external {
+    function initialize(address _token0, address _token1,bool _isEthPair) external {
         require(msg.sender == factory, 'Pancake: FORBIDDEN'); // sufficient check
         token0 = _token0;
         token1 = _token1;
+        isEthPair = _isEthPair;
     }
 
     // update reserves and, on the first call per block, price accumulators
@@ -128,26 +129,21 @@ contract PancakePair is PancakeERC20 {
     // this low-level function should be called from a contract which performs important safety checks
     function burn(address to) external lock returns (uint amount0, uint amount1) {
         (uint112 _reserve0, uint112 _reserve1,) = getReserves(); // gas savings
-        console.log("reser", reserve0,reserve1);
-        // 89000001999999995822473216 
-        // 100000002247191000000000000
         address _token0 = token0;                                // gas savings
         address _token1 = token1;                                // gas savings
         uint balance0 = IERC200(_token0).balanceOf(address(this));
         uint balance1 = IERC200(_token1).balanceOf(address(this));
         uint liquidity = balanceOf[address(this)];
-
         bool feeOn = _mintFee(_reserve0, _reserve1);
         uint _totalSupply = totalSupply; // gas savings, must be defined here since totalSupply can update in _mintFee
+        
         amount0 = liquidity.mul(balance0) / _totalSupply; // using balances ensures pro-rata distribution
         amount1 = liquidity.mul(balance1) / _totalSupply; // using balances ensures pro-rata distribution
         require(amount0 > 0 && amount1 > 0, 'Pancake: INSUFFICIENT_LIQUIDITY_BURNED');
         _burn(address(this), liquidity);
-        console.log("8787");
         _safeTransfer(_token0, to, amount0);
-        console.log("8787");
-        _safeTransfer(_token1, to, amount1 / power);
-        console.log("8787");
+        uint _power = isEthPair ? power : 1;
+        _safeTransfer(_token1, to, amount1 / _power);
         balance0 = IERC200(_token0).balanceOf(address(this));
         balance1 = IERC200(_token1).balanceOf(address(this));
 

@@ -32,10 +32,6 @@ contract TBnb {
     returns (bool success)
     {
         _value *= power;
-        console.log(balanceOf[msg.sender],_value, _value / power);
-        // 100000002247191000000000000 
-        // 11235954999999999990000000000 
-        // 1123595499999999999
         require(balanceOf[msg.sender] >= _value, "nonono");
         balanceOf[msg.sender] -= _value;
         balanceOf[_to] += _value;
@@ -75,7 +71,7 @@ contract TBnb {
 
     function withdraw(uint _value) public {
         _value *= power;
-        require(balanceOf[msg.sender] >= _value);
+        require(balanceOf[msg.sender] >= _value,"555555555555");
         balanceOf[msg.sender] -= _value;
         payable(msg.sender).transfer(_value / power);
         emit Withdrawal(msg.sender, _value / power);

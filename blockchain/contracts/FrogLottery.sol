@@ -17,13 +17,12 @@ pragma solidity ^0.8.0;
    * @dev FrogLottery
    */
 contract FrogLottery is Random, Ownable{
-
     uint public drawNumber = 0;
     uint public lpDecimals = 10000;
 
-    address token0;
-    address token1;
-    address usdtContractAddress;
+    address public token0;
+    address public token1;
+    address stableCoinAddress;
     address pancakeRouterAddress;
     address pancakeMCAddress;
     address pancakePairAddress;
@@ -40,8 +39,8 @@ contract FrogLottery is Random, Ownable{
     address[] public participants;
     mapping (address => bool) public alreadyParticipant;
 
-    uint public minUsdt;
-    uint public maxUsdt;
+    uint public minUsd;
+    uint public maxUsd;
     uint feePercent;
     uint maxFeePercent;
     uint balanceFromPreviousDraws;
@@ -60,17 +59,17 @@ contract FrogLottery is Random, Ownable{
         _;
     }
 
-    constructor(address _token0, address _token1, address _frogReferalAddress, bool _isEthLottery, address _beneficiary) {
+    constructor(address _token0, address _token1, address _frogReferalAddress, bool _isEthLottery, address _beneficiary, uint _pancakePID) {
         beneficiary     = _beneficiary;
         maxFeePercent   = 3000; // 30%
         feePercent      = maxFeePercent;
-        minUsdt         = 0.1 ether; // @TODO change to 50-500
-        maxUsdt         = 100 ether; // @TODO change to 50-500
-        pancakePID      = 1;
+        minUsd         = 0.1 ether; // @TODO change to 50-500
+        maxUsd         = 100 ether; // @TODO change to 50-500
+        pancakePID      = _pancakePID;
         isEthLottery    = _isEthLottery;
         setToken0ContractAddress(_token0); // setToken0ContractAddress(0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82);
         setToken1ContractAddress(_token1); // setToken1ContractAddress(0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c);       
-        setUsdtContractAddress(0x55d398326f99059fF775485246999027B3197955);
+        setUsdContractAddress(0x55d398326f99059fF775485246999027B3197955);
         setPancakeRouterAddress(0x10ED43C718714eb63d5aA57B78B54704E256024E);
         setPancakeMCAddress(0xa5f8C5Dbd5F286960b9d90548680aE5ebFf07652);
         setPancakePairAddress(0x0eD7e52944161450477ee417DE9Cd3a859b14fD0);
@@ -107,8 +106,8 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
     }
 
     // @TODO add Event(?)
-    function setUsdtContractAddress(address _address) public isBeneficiaryOrOwner {
-        usdtContractAddress = _address;
+    function setUsdContractAddress(address _address) public isBeneficiaryOrOwner {
+        stableCoinAddress = _address;
     }
 
     // @TODO add Event(?)
@@ -136,7 +135,6 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
 
         uint[] memory rate;
         rate = new uint[](2);
-
         rate = IPancakeRouter02(pancakeRouterAddress).getAmountsOut(_amount,path);
         return rate[1];
     }
@@ -152,12 +150,12 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
         feePercent = _newFeePercent;
     }
 
-    function setMinUsdt(uint _minUsdt) public isBeneficiaryOrOwner{
-        minUsdt = _minUsdt;
+    function setMinUsd(uint _minUsd) public isBeneficiaryOrOwner{
+        minUsd = _minUsd;
     }
 
-    function setMaxUsdt(uint _maxUsdt) public isBeneficiaryOrOwner{
-        maxUsdt = _maxUsdt;
+    function setMaxUsd(uint _maxUsd) public isBeneficiaryOrOwner{
+        maxUsd = _maxUsd;
     }
 
     function rateLPTokens() public view returns (uint lpToken0, uint lpToken1){
@@ -167,21 +165,21 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
         lpToken1 = reserve1 * lpDecimals / supply;
     }
 
-    function setAll(address _token0, address _token1,address usdt, address router,address masterChef,address pair) public isBeneficiaryOrOwner {
+    function setAll(address _token0, address _token1,address usd, address router,address masterChef,address pair) public isBeneficiaryOrOwner {
         token0 = _token0;
         token1 = _token1;
         pancakeRouterAddress = router;
         pancakeMCAddress = masterChef;
         pancakePairAddress = pair;
-        usdtContractAddress = usdt;
+        stableCoinAddress = usd;
     }
 
     function deposit(uint amountToken0, uint amountToken1) public payable returns (bool success){
         if(isEthLottery)
             require(amountToken1 == msg.value, "msg.value and amount mismatch");
         else {
-            require(IERC20(token1).balanceOf(msg.sender) >= amountToken0, 'Not enought Token0');
-            require(IERC20(token1).allowance(msg.sender, address(this)) >= amountToken0,'Not enought allowance Token0');
+            require(IERC20(token1).balanceOf(msg.sender) >= amountToken1, 'Not enought Token1');
+            require(IERC20(token1).allowance(msg.sender, address(this)) >= amountToken1,'Not enought allowance Token1');
         }
         require(IERC20(token0).balanceOf(msg.sender) >= amountToken0, 'Not enought Token0');
         require(IERC20(token0).allowance(msg.sender, address(this)) >= amountToken0,'Not enought allowance Token0');
@@ -191,18 +189,22 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
     function _deposit(uint amountToken0, uint amountToken1) private returns (bool success){
         require(IFrogReferal(frogReferalAddress).isParticipant(msg.sender), "Not a Participant");
 
-        // Checking  minUSDT <= (balance + deposit - withdraw + new deposit) <= maxUSDT
+        // Checking  minUSD <= (balance + deposit - withdraw + new deposit) <= maxUSD
         (uint lpToken0, uint lpToken1) = rateLPTokens();
-        uint futureBalanceUsdt = (balanceOf[msg.sender] + depositOf[msg.sender] - withdrawOf[msg.sender]) * (getPSRate(lpToken0, token0, usdtContractAddress) + getPSRate(lpToken1, token1, usdtContractAddress)) / lpDecimals;
-        uint depositUsdt = getPSRate(amountToken0, token0, usdtContractAddress) + getPSRate(amountToken1, token1, usdtContractAddress);
-        require(futureBalanceUsdt + depositUsdt >= minUsdt, 'Total balance less than minUSDT');
-        require(futureBalanceUsdt + depositUsdt <= maxUsdt, 'Total balance great than maxUSDT');
+        uint futureBalanceUsd = (balanceOf[msg.sender] + depositOf[msg.sender] - withdrawOf[msg.sender]) * (getPSRate(lpToken0, token0, stableCoinAddress) + getPSRate(lpToken1, token1, stableCoinAddress)) / lpDecimals;
+        uint depositUsd = getPSRate(amountToken0, token0, stableCoinAddress) + getPSRate(amountToken1, token1, stableCoinAddress);
+        // 3639996370003640274 
+        // 100000000000000000
+        // 100000000000000000000
+        require(futureBalanceUsd + depositUsd >= minUsd, 'Total balance less than minUSD');
+        require(futureBalanceUsd + depositUsd <= maxUsd, 'Total balance great than maxUSD');
 
         bool isTransfer = IERC20(token0).transferFrom(msg.sender, address(this), amountToken0);
         require(isTransfer, 'transfer is failed');
         uint amountLP;
         IERC20(token0).approve(pancakeRouterAddress, amountToken0);
-        (, , amountLP) = IPancakeRouter02(pancakeRouterAddress).addLiquidityETH{value:amountToken1}(
+        if(isEthLottery){
+            (, , amountLP) = IPancakeRouter02(pancakeRouterAddress).addLiquidityETH{value:amountToken1}(
             token0,
             amountToken0,
             amountToken0 / 10000 * 9900,
@@ -210,6 +212,25 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
             address(this),
             block.timestamp + 20 minutes
         );
+        }else{
+            require(IERC20(token1).transferFrom(msg.sender, address(this), amountToken1), 'transfer is failed');
+            IERC20(token1).approve(pancakeRouterAddress, amountToken1);
+            uint one = amountToken0 / 10000 * 9900;
+            uint two = amountToken1 / 10000 * 9900;
+            {
+               (, , amountLP) = IPancakeRouter02(pancakeRouterAddress).addLiquidity(
+            token0,
+            token1,
+            amountToken0,
+            amountToken1,
+            one,
+            two,
+            address(this),
+            block.timestamp + 20 minutes); 
+            }
+            
+        }
+        
         IERC20(pancakePairAddress).approve(pancakeMCAddress,amountLP);
         IMasterChef(pancakeMCAddress).deposit(pancakePID, amountLP);
 
@@ -227,19 +248,19 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
     function withdraw(uint _amount) public returns (bool success){
         require(balanceOf[msg.sender] + depositOf[msg.sender] - withdrawOf[msg.sender] >= _amount, 'Not enought liquidity');
 
-        // Checking  minUSDT <= (balance + deposit - withdraw - new withdraw) <= maxUSDT
+        // Checking  minUSD <= (balance + deposit - withdraw - new withdraw) <= maxUSD
         (uint lpToken0, uint lpToken1) = rateLPTokens();
-        uint futureBalanceUsdt = (balanceOf[msg.sender] + depositOf[msg.sender] - withdrawOf[msg.sender] - _amount) * (getPSRate(lpToken0, token0, usdtContractAddress) + getPSRate(lpToken1, token1, usdtContractAddress)) / lpDecimals;
-        require((futureBalanceUsdt == 0) || (futureBalanceUsdt >= minUsdt), 'Total balance less than minUSDT');
-        require(futureBalanceUsdt <= maxUsdt, 'Total balance great than maxUSDT');
+        uint futureBalanceUsd = (balanceOf[msg.sender] + depositOf[msg.sender] - withdrawOf[msg.sender] - _amount) * (getPSRate(lpToken0, token0, stableCoinAddress) + getPSRate(lpToken1, token1, stableCoinAddress)) / lpDecimals;
+        require((futureBalanceUsd == 0) || (futureBalanceUsd >= minUsd), 'Total balance less than minUSD');
+        require(futureBalanceUsd <= maxUsd, 'Total balance great than maxUSD');
         withdrawOf[msg.sender] += _amount;
         return true;
     }
 
     function claimReward() public {
         require(rewardOf[msg.sender] > 0, 'Reward is empty');
-        require(IERC20(token0).balanceOf(address(this)) >= rewardOf[msg.sender], 'Not enought CAKE for a claim');
-        IERC20(token0).transfer(msg.sender, rewardOf[msg.sender]);
+        // require(IERC20(token0).balanceOf(address(this)) >= rewardOf[msg.sender], 'Not enought CAKE for a claim');
+        require(IERC20(token0).transfer(msg.sender, rewardOf[msg.sender]),"Transfer faild");
         balanceFromPreviousDraws -= rewardOf[msg.sender];
         rewardOf[msg.sender] = 0;
     }
@@ -248,49 +269,49 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
     // @TODO use SafeMath
     function accounting() internal{
         // @TODO optimize: IMasterChef(pancakeMCAddress).withdraw - call one time ?!
+
         for (uint i=0; i < participants.length; i++){
-            if(depositOf[participants[i]] > 0){
-                balanceOf[participants[i]] += depositOf[participants[i]];
-                depositOf[participants[i]] = 0;
+            address user = participants[i];
+            if(depositOf[user] > 0){
+                balanceOf[user] += depositOf[user];
+                depositOf[user] = 0;
             }
 
-            if(withdrawOf[participants[i]] > 0){
-                if(withdrawOf[participants[i]] <= balanceOf[participants[i]]){
-                    balanceOf[participants[i]] -= withdrawOf[participants[i]];
-                    IMasterChef(pancakeMCAddress).withdraw(pancakePID, withdrawOf[participants[i]]);
+            if(withdrawOf[user] > 0 && withdrawOf[user] <= balanceOf[user]){
+                    balanceOf[user] -= withdrawOf[user];
+                    IMasterChef(pancakeMCAddress).withdraw(pancakePID, withdrawOf[user]);
 
-                    IPancakePair(pancakePairAddress).approve(pancakeRouterAddress, withdrawOf[participants[i]]);
+                    IPancakePair(pancakePairAddress).approve(pancakeRouterAddress, withdrawOf[user]);
                     (uint lpToken0, uint lpToken1) = rateLPTokens();
                     if(isEthLottery){
                         (uint amount0, uint amount1) = IPancakeRouter02(pancakeRouterAddress).removeLiquidityETH(
                             token0,
-                            withdrawOf[participants[i]],
-                            lpToken0 * withdrawOf[participants[i]] / 10000 * 9900 / lpDecimals,
-                            lpToken1 * withdrawOf[participants[i]] / 10000 * 9900 / lpDecimals,
+                            withdrawOf[user],
+                            lpToken0 * withdrawOf[user] / 10000 * 9900 / lpDecimals,
+                            lpToken1 * withdrawOf[user] / 10000 * 9900 / lpDecimals,
                             address(this),
                             block.timestamp + 20 minutes
                         );
-                        IERC20(token0).transfer(participants[i],amount0);
-                        payable(participants[i]).transfer(amount1 / power);
+                        IERC20(token0).transfer(user,amount0);
+                        payable(user).transfer(amount1 / power);
                     }
                     else {
                         (uint amount0, uint amount1) = IPancakeRouter02(pancakeRouterAddress).removeLiquidity(
                             token0,
                             token1,
-                            withdrawOf[participants[i]],
-                            lpToken0 * withdrawOf[participants[i]] / 10000 * 9900 / lpDecimals,
-                            lpToken1 * withdrawOf[participants[i]] / 10000 * 9900 / lpDecimals,
+                            withdrawOf[user],
+                            lpToken0 * withdrawOf[user] / 10000 * 9900 / lpDecimals,
+                            lpToken1 * withdrawOf[user] / 10000 * 9900 / lpDecimals,
                             address(this),
                             block.timestamp + 20 minutes
                         );
-                        IERC20(token0).transfer(participants[i],amount0);
-                        IERC20(token1).transfer(participants[i],amount1);
+                        IERC20(token0).transfer(user,amount0);
+                        IERC20(token1).transfer(user,amount1);
                     }
                     
 
-                    withdrawOf[participants[i]] = 0;
+                    withdrawOf[user] = 0;
                 }
-            }
         }
     }
 
@@ -354,12 +375,6 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
 
     function farmTotal() public view returns(uint){
         return IMasterChef(pancakeMCAddress).pendingCake(pancakePID, address(this));
-    }
-
-    function removeWithdraw() public {
-        uint _withdraw = withdrawOf[msg.sender];
-        withdrawOf[msg.sender] = 0;
-        depositOf[msg.sender] += _withdraw;
     }
 
     receive() external payable {}

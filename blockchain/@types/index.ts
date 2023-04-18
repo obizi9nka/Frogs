@@ -4,6 +4,7 @@ export type allContractsFromDeploy = {
     cake: CakeToken;
     bnb: TBnb;
     usdt: ERC20Token;
+    usdc: ERC20Token;
     router: PancakeRouter;
     lottery: FrogLottery;
     masterChef: MasterChef;
@@ -11,4 +12,5 @@ export type allContractsFromDeploy = {
     syrupBar: SyrupBar;
     factory: Factory;
     referal: FrogReferal;
+    lotteryERC20: FrogLottery;
 }

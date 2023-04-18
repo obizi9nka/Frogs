@@ -12,13 +12,13 @@ pragma solidity ^0.8.0;
    */
 contract FrogReferal is Ownable{
     uint percent;
+    address public beneficiary;
+
     mapping(address => ReferalInfo) public refererOf;
     mapping(address => ReferalInfo[]) public referalsOf;
 
     mapping(address => mapping(address => uint)) public balance; // реферальные балансы участников лотерей
-
     mapping(address => bool) public isLottery; // адреса зарегестрированных лотерей (регестрировать лотереи может только фабрика лотерей)
-
 
     event ReferalReward(address from, address to, address lotteryAddress, uint reward);
 
@@ -38,11 +38,21 @@ contract FrogReferal is Ownable{
     event NewParticipant(address indexed _newParticipant, address indexed _referer);
 
     constructor(address _beneficiary) {
+        beneficiary = _beneficiary;
         setPercent(3);
         _add(_beneficiary, address(0));
     }
 
-    function setFactoryAddress(address factory) public{
+    modifier isBeneficiaryOrOwner() {
+        require(msg.sender == owner() || msg.sender == beneficiary, "Caller is not beneficiary or owner");
+        _;
+    }
+
+    function setBeneficiary(address _newBeneficiary) public isBeneficiaryOrOwner{
+        beneficiary = _newBeneficiary;
+    }
+
+    function setFactoryAddress(address factory) public isBeneficiaryOrOwner{
         lotteryFactoryAddress = factory;
     }
 
@@ -64,14 +74,14 @@ contract FrogReferal is Ownable{
         emit NewParticipant(_newParticipant, _referer);
     }
 
-    function setPercent(uint _percent) public{
+    function setPercent(uint _percent) public isBeneficiaryOrOwner{
         emit PercentChanged(percent, _percent);
         percent = _percent;
     }
 
     // регестрирует новую созданную лотерею
-    function registerNewLottery(address newLotteryAddress) public {
-        // require(lotteryFactoryAddress == msg.sender, 'registerNewLottery: you are not allowed to register new lotteries');
+    function registerNewLottery(address newLotteryAddress) public{
+        require(lotteryFactoryAddress == msg.sender, 'registerNewLottery: you are not allowed to register new lotteries');
         isLottery[newLotteryAddress] = true;
     }
 

@@ -110,7 +110,6 @@ contract PancakeRouter is IPancakeRouter02 {
         address pair = PancakeLibrary.pairFor(factory, token, WETH);
         TransferHelper.safeTransferFrom(token, msg.sender, pair, amountToken);
         bool succses;
-        uint amountETHDesired;
         (bool sent,) = WETH.call{value: amountETH/power}("");
         succses = IWETH(WETH).transfer(pair, amountETH/power);
         require(succses, "no suc");
@@ -130,16 +129,13 @@ contract PancakeRouter is IPancakeRouter02 {
         uint deadline
     ) public virtual override ensure(deadline) returns (uint amountA, uint amountB) {
         address pair = PancakeLibrary.pairFor(factory, tokenA, tokenB);
-        console.log("liquidity",liquidity);
         IPancakePair(pair).transferFrom(msg.sender, pair, liquidity); // send liquidity to pair
-        console.log("sended");
         (uint amount0, uint amount1) = IPancakePair(pair).burn(to);
         // (address token0,) = PancakeLibrary.sortTokens(tokenA, tokenB);
         address token0 = tokenA;
         (amountA, amountB) = tokenA == token0 ? (amount0, amount1) : (amount1, amount0);
         require(amountA >= amountAMin, 'PancakeRouter: INSUFFICIENT_A_AMOUNT');
         require(amountB >= amountBMin, 'PancakeRouter: INSUFFICIENT_B_AMOUNT');
-        console.log("removed");
     }
     function removeLiquidityETH(
         address token,
@@ -149,7 +145,6 @@ contract PancakeRouter is IPancakeRouter02 {
         address to,
         uint deadline
     ) public virtual override ensure(deadline) returns (uint amountToken, uint amountETH) {
-        console.log(99);
         (amountToken, amountETH) = removeLiquidity(
             token,
             WETH,
@@ -159,13 +154,9 @@ contract PancakeRouter is IPancakeRouter02 {
             address(this),
             deadline
         );
-        console.log(99);
         TransferHelper.safeTransfer(token, to, amountToken);
-        console.log(99);
         IWETH(WETH).withdraw(amountETH/power);
-        console.log(99);
         TransferHelper.safeTransferETH(to, amountETH / power);
-        console.log("done");
     }
     function removeLiquidityWithPermit(
         address tokenA,

@@ -25,7 +25,7 @@ contract PancakeFactory {
         return allPairs.length;
     }
 
-    function createPair(address tokenA, address tokenB) external returns (address pair) {
+    function createPair(address tokenA, address tokenB, bool isEthPair) external returns (address pair) {
         require(tokenA != tokenB, 'Pancake: IDENTICAL_ADDRESSES');
         // (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
         address token0 = tokenA;
@@ -37,7 +37,7 @@ contract PancakeFactory {
         assembly {
             pair := create2(0, add(bytecode, 32), mload(bytecode), salt)
         }
-        IPancakePair(pair).initialize(token0, token1);
+        IPancakePair(pair).initialize(token0, token1, isEthPair);
         getPair[token0][token1] = pair;
         getPair[token1][token0] = pair; // populate mapping in the reverse direction
         allPairs.push(pair);

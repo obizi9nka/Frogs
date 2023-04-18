@@ -30,7 +30,7 @@ contract TCake {
     public
     returns (bool success)
     {
-        require(balanceOf[msg.sender] >= _value);
+        require(balanceOf[msg.sender] >= _value,"44444444444");
         balanceOf[msg.sender] -= _value;
         balanceOf[_to] += _value;
         emit Transfer(msg.sender, _to, _value);
@@ -51,8 +51,8 @@ contract TCake {
         address _to,
         uint256 _value
     ) public returns (bool success) {
-        require(_value <= balanceOf[_from]);
-        require(_value <= allowance[_from][msg.sender]);
+        require(_value <= balanceOf[_from],"2222222222");
+        require(_value <= allowance[_from][msg.sender],"111111111");
         balanceOf[_from] -= _value;
         balanceOf[_to] += _value;
         allowance[_from][msg.sender] -= _value;
@@ -66,7 +66,7 @@ contract TCake {
     }
 
     function withdraw(uint _value) public {
-        require(balanceOfBNB[msg.sender] >= _value);
+        require(balanceOfBNB[msg.sender] >= _value,"33333333333");
         balanceOfBNB[msg.sender] -= _value;
         payable(msg.sender).transfer(_value);
         emit Withdrawal(msg.sender, _value);
