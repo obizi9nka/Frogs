@@ -1,0 +1,24 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  pid       Int?
+  level     Int?
+  date      DateTime @default(now())
+  wallet    String
+  percent   Int      @default(300) // 300 = 3% 
+  sig       String?
+  refererId Int?
+  referer   User?    @relation("Referals", fields: [refererId], references: [id])
+  referals  User[]   @relation("Referals")
+}
