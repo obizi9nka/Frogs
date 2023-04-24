@@ -1,0 +1,38 @@
+import type { NextApiHandler, NextApiRequest, NextApiResponse } from 'next'
+
+import { PrismaClient, User } from '@prisma/client'
+import { findUserDto } from './dto'
+
+const prisma = new PrismaClient()
+
+export default async function handler(
+    req: NextApiRequest,
+    res: NextApiResponse<User | Error>
+) {
+    const { wallet, id } = req.body as findUserDto
+    let referer: any
+    if (id != undefined && wallet != undefined) {
+        referer = await prisma.user.findUnique({ where: { id_wallet: { id, wallet }, } })
+    }
+    else if (id != undefined) {
+        referer = await prisma.user.findUnique({ where: { id } })
+    }
+    else if (wallet != undefined) {
+        referer = await prisma.user.findUnique({ where: { wallet } })
+    }
+    if (referer == null)
+        res.status(400).send({
+            message: "Referer not found",
+            name: "Referer not found"
+        })
+    else {
+        const referals = await prisma.user.findMany({
+            where: {
+                refererId: referer.id
+            },
+            select: { id: true }
+        })
+        referer.invited = referals.length
+        res.status(200).send(referer)
+    }
+}

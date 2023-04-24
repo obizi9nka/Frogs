@@ -138,7 +138,7 @@ export async function deployAll() {
 
     await router.addLiquidity(bnb.address, usdt.address, value, BigInt(power * 323 * 10 ** 18), 1, 1, acct1.address, Math.round(Date.now() / 1000) + 60 * 20)
 
-    await lottery.setAll(cake.address, bnb.address, usdt.address, router.address, masterChef.address, await pancakeFactory.getPair(cake.address, bnb.address))
+    await lottery.setAll(cake.address, bnb.address, usdt.address, router.address, masterChef.address, await pancakeFactory.getPair(cake.address, bnb.address));
     await lotteryERC20.setAll(cake.address, usdt.address, usdc.address, router.address, masterChef.address, await pancakeFactory.getPair(cake.address, usdt.address))
     await masterChef.add(1, await pancakeFactory.getPair(cake.address, bnb.address), false)
     await masterChef.add(1, await pancakeFactory.getPair(cake.address, usdt.address), false)
