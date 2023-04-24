@@ -102,6 +102,11 @@
       "inputs": [
         {
           "internalType": "address",
+          "name": "token",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
           "name": "referal",
           "type": "address"
         },

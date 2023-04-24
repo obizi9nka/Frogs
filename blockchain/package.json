@@ -28,5 +28,8 @@
     "hardhat": "^2.13.0",
     "hardhat-contract-sizer": "^2.8.0",
     "web3": "^1.8.2"
+  },
+  "dependencies": {
+    "solidity-coverage": "^0.8.0"
   }
 }

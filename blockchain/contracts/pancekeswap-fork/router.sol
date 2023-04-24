@@ -30,16 +30,14 @@ contract PancakeRouter is IPancakeRouter02 {
 
     address public immutable factory;
     address public immutable WETH;
-    uint power;
     modifier ensure(uint deadline) {
         // require(deadline >= block.timestamp, 'PancakeRouter: EXPIRED');
         _;
     }
 
-    constructor(address _factory, address _WETH, uint _power) {
+    constructor(address _factory, address _WETH) {
         factory = _factory;
         WETH = _WETH;
-        power = _power;
     }
 
     receive() external payable {
@@ -65,13 +63,11 @@ contract PancakeRouter is IPancakeRouter02 {
         } else {
             uint amountBOptimal = PancakeLibrary.quote(amountADesired, reserveA, reserveB);
             if (amountBOptimal <= amountBDesired) {
-                console.log(amountBOptimal,amountBMin);
                 require(amountBOptimal >= amountBMin, 'PancakeRouter: INSUFFICIENT_B_AMOUNT');
                 (amountA, amountB) = (amountADesired, amountBOptimal);
             } else {
                 uint amountAOptimal = PancakeLibrary.quote(amountBDesired, reserveB, reserveA);
                 assert(amountAOptimal <= amountADesired);
-                console.log(amountAOptimal,amountAMin);
                 require(amountAOptimal >= amountAMin, 'PancakeRouter: INSUFFICIENT_A_AMOUNT');
                 (amountA, amountB) = (amountAOptimal, amountBDesired);
             }
@@ -93,6 +89,8 @@ contract PancakeRouter is IPancakeRouter02 {
         TransferHelper.safeTransferFrom(tokenB, msg.sender, pair, amountB);
         liquidity = IPancakePair(pair).mint(to);
     }
+    uint power = 10000000000;
+    // uint power = 1;
     function addLiquidityETH(
         address token,
         uint amountTokenDesired,
@@ -101,21 +99,19 @@ contract PancakeRouter is IPancakeRouter02 {
         address to,
         uint deadline
     ) external virtual override payable ensure(deadline) returns (uint amountToken, uint amountETH, uint liquidity){
-        console.log("ethadd");
         (amountToken, amountETH) = _addLiquidity(
             token,
             WETH,
             amountTokenDesired,
-            msg.value * 100000000,
+            msg.value * power,
             amountTokenMin,
             amountETHMin
         );
         address pair = PancakeLibrary.pairFor(factory, token, WETH);
         TransferHelper.safeTransferFrom(token, msg.sender, pair, amountToken);
         bool succses;
-        uint amountETHDesired;
-        (bool sent,) = WETH.call{value: amountETH/100000000}("");
-        succses = IWETH(WETH).transfer(pair, amountETH/100000000);
+        (bool sent,) = WETH.call{value: amountETH/power}("");
+        succses = IWETH(WETH).transfer(pair, amountETH/power);
         require(succses, "no suc");
         liquidity = IPancakePair(pair).mint(to);
         // refund dust eth, if any
@@ -149,10 +145,6 @@ contract PancakeRouter is IPancakeRouter02 {
         address to,
         uint deadline
     ) public virtual override ensure(deadline) returns (uint amountToken, uint amountETH) {
-        console.log(liquidity, amountTokenMin, amountETHMin);
-        // 0.500000000000000000 
-        // 4.669780500000000000
-        //0.052420500000000000
         (amountToken, amountETH) = removeLiquidity(
             token,
             WETH,
@@ -163,8 +155,8 @@ contract PancakeRouter is IPancakeRouter02 {
             deadline
         );
         TransferHelper.safeTransfer(token, to, amountToken);
-        IWETH(WETH).withdraw(amountETH);
-        TransferHelper.safeTransferETH(to, amountETH);
+        IWETH(WETH).withdraw(amountETH/power);
+        TransferHelper.safeTransferETH(to, amountETH / power);
     }
     function removeLiquidityWithPermit(
         address tokenA,

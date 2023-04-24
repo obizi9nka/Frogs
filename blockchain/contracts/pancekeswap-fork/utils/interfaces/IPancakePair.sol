@@ -49,5 +49,5 @@ interface IPancakePair {
     function skim(address to) external;
     function sync() external;
 
-    function initialize(address, address) external;
+    function initialize(address, address, bool) external;
 }

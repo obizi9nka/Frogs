@@ -1,20 +1,15 @@
-# frog-mvp2
+To create new user in db:
 
-## Project setup
-```
-npm install
-```
+go to ./createFirstUserInDb.ts and change user's data and then run: 'npm run createFirstUser'
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
+## Getting Started
 
-### Compiles and minifies for production
-```
-npm run build
-```
+First, run the development server:
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
-# frogs-mvp
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+```

@@ -8,7 +8,8 @@ contract TBnb {
     string public symbol = "TBnb";
     uint256 public totalSupply = 1000000000000000000000000;
     uint8 public decimals = 18;
-    uint power = 100000000;
+    // uint power = 1;
+    uint power = 10000000000;
 
     event Transfer(address indexed _from, address indexed _to, uint256 _value);
     event Approval(
@@ -31,12 +32,6 @@ contract TBnb {
     returns (bool success)
     {
         _value *= power;
-        console.log(msg.sender,_to);
-        console.log("transfertbnb",balanceOf[msg.sender], _value);
-        //0.010000000997036671 00000000 
-        //0.052999894000318000 00000000
-        // 10000000997036671 00000000 
-        // 52999894000318000 00000000
         require(balanceOf[msg.sender] >= _value, "nonono");
         balanceOf[msg.sender] -= _value;
         balanceOf[_to] += _value;
@@ -60,8 +55,8 @@ contract TBnb {
         uint256 _value
     ) public returns (bool success, uint value) {
         _value *= power;
-        require(_value <= balanceOf[_from]);
-        require(_value <= allowance[_from][msg.sender]);
+        require(_value <= balanceOf[_from],"1");
+        require(_value <= allowance[_from][msg.sender],"2");
         balanceOf[_from] -= _value;
         balanceOf[_to] += _value;
         allowance[_from][msg.sender] -= _value;
@@ -70,25 +65,19 @@ contract TBnb {
     }
 
     function deposit() public payable{
-        console.log(99);
-        balanceOf[msg.sender] += msg.value * power * 100;
-        console.log(99);
-        emit Deposit(msg.sender, msg.value * power * 100);
-        console.log(99);
+        balanceOf[msg.sender] += msg.value * power;
+        emit Deposit(msg.sender, msg.value * power);
     }
 
     function withdraw(uint _value) public {
         _value *= power;
-        require(balanceOf[msg.sender] >= _value);
+        require(balanceOf[msg.sender] >= _value,"555555555555");
         balanceOf[msg.sender] -= _value;
-        payable(msg.sender).transfer(_value / power /100);
-        emit Withdrawal(msg.sender, _value / power /100);
+        payable(msg.sender).transfer(_value / power);
+        emit Withdrawal(msg.sender, _value / power);
     }
     receive() external payable {
-        console.log(99);
-        balanceOf[msg.sender] += msg.value * power * 100;
-        console.log(99);
-        emit Deposit(msg.sender, msg.value * power * 100);
-        console.log(99);
+        balanceOf[msg.sender] += msg.value * power;
+        emit Deposit(msg.sender, msg.value * power);
     }
 }
