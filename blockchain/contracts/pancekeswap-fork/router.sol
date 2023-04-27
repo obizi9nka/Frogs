@@ -19,11 +19,6 @@ interface IWETH {
     function withdraw(uint) external;
 }
 
-// File: contracts\PancakeRouter.sol
-
-pragma solidity ^0.8.0;
-
-
 
 contract PancakeRouter is IPancakeRouter02 {
     using SafeMath for uint;

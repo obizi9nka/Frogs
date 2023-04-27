@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 
+pragma solidity ^0.8.0;
 import "./Random.sol";
 
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -10,7 +11,6 @@ import "./pancekeswap-fork/utils/interfaces/IRouter.sol";
 import "./pancekeswap-fork/utils/interfaces/IFrogReferal.sol";
 import 'hardhat/console.sol';
 
-pragma solidity ^0.8.0;
 
 /**
   * @title FrogLottery
@@ -232,7 +232,7 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
         }
         
         IERC20(pancakePairAddress).approve(pancakeMCAddress,amountLP);
-        IMasterChef(pancakeMCAddress).deposit(pancakePID, amountLP);
+        // IMasterChef(pancakeMCAddress).deposit(pancakePID, amountLP);
 
         depositOf[msg.sender] += amountLP;
 
@@ -257,9 +257,9 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
         return true;
     }
 
-    function claimReward() public {
+    function claimReward() virtual   public {
         require(rewardOf[msg.sender] > 0, 'Reward is empty');
-        // require(IERC20(token0).balanceOf(address(this)) >= rewardOf[msg.sender], 'Not enought CAKE for a claim');
+        require(IERC20(token0).balanceOf(address(this)) >= rewardOf[msg.sender], 'Not enought CAKE for a claim');
         require(IERC20(token0).transfer(msg.sender, rewardOf[msg.sender]),"Transfer faild");
         balanceFromPreviousDraws -= rewardOf[msg.sender];
         rewardOf[msg.sender] = 0;
@@ -315,8 +315,8 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
         }
     }
 
-    function draw() public{
-        IMasterChef(pancakeMCAddress).deposit(pancakePID, 0);
+    function draw() virtual public{
+        // IMasterChef(pancakeMCAddress).deposit(pancakePID, 0);
         uint currentReward = IERC20(token0).balanceOf(address(this)) - balanceFromPreviousDraws;
         // // @TODO optimize
         address[] memory activeParticipants = new address[](participants.length);
@@ -367,14 +367,14 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
     }
      
     function calculateReferalReward(address referal,  uint currentReward, uint participantRewardPart) private returns(uint){
-        uint percent = IFrogReferal(frogReferalAddress).getReferalPercent(referal); // узнает сколько процентов должно достаться referer
-        uint rewardForReferer = ((currentReward * percent) / 100) * (participantRewardPart / 100); // высчитывает сколько это в токенах
-        IFrogReferal(frogReferalAddress).recieveRewardFromReferalVictory(token0,referal,rewardForReferer); // отправляет запрос на изменение состояния referal контракта
-        return rewardForReferer; // возвращает награду для referer для последующей отправки этих средств на контракт frogReferal
+        // uint percent = IFrogReferal(frogReferalAddress).getReferalPercent(referal); // узнает сколько процентов должно достаться referer
+        // uint rewardForReferer = ((currentReward * percent) / 100) * (participantRewardPart / 100); // высчитывает сколько это в токенах
+        // IFrogReferal(frogReferalAddress).recieveRewardFromReferalVictory(token0,referal,rewardForReferer); // отправляет запрос на изменение состояния referal контракта
+        // return rewardForReferer; // возвращает награду для referer для последующей отправки этих средств на контракт frogReferal
     }
 
     function farmTotal() public view returns(uint){
-        return IMasterChef(pancakeMCAddress).pendingCake(pancakePID, address(this));
+        // return IMasterChef(pancakeMCAddress).pendingCake(pancakePID, address(this));
     }
 
     receive() external payable {}

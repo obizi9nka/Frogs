@@ -4,15 +4,10 @@ import "./Random.sol";
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./pancekeswap-fork/utils/interfaces/IMasterChef.sol";
-import "./pancekeswap-fork/utils/interfaces/IPancakePair.sol";
-import "./pancekeswap-fork/utils/interfaces/IRouter.sol";
-import "./pancekeswap-fork/utils/interfaces/IFrogReferal.sol";
 import 'hardhat/console.sol';
 
 import "./FrogLottery.sol";
 
-pragma solidity ^0.8.0;
 
 /**
   * @title FrogLottery
@@ -31,7 +26,7 @@ contract FrogSponsor is FrogLottery{
     }
 
     function draw() override public isBeneficiaryOrOwner{
-        IMasterChef(pancakeMCAddress).deposit(pancakePID, 0);
+        // IMasterChef(pancakeMCAddress).deposit(pancakePID, 0);
         uint currentReward = IERC20(token0).balanceOf(address(this));
         (address[] memory winners, uint[] memory winnersBalance)= IFrogLotteryCut(FrogLotteryAddress).getRandomParticipantForSponsor();
         uint winnersCount = winnersBalance.length;
