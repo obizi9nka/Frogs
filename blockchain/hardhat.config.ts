@@ -12,20 +12,20 @@ const config: HardhatUserConfig = {
     compilers: [
       {
         version: "0.8.1"
-      }
-      // {
-      //   version: "=0.7.6"
-      // }, {
-      //   version: "0.5.0"
-      // }, {
-      //   version: "^0.7.0"
-      // }, {
-      //   version: ">=0.7.5"
-      // }, {
-      //   version: "0.6.0"
-      // }, {
-      //   version: "0.7.6"
-      // },
+      },
+      {
+        version: "=0.7.6"
+      }, {
+        version: "0.5.0"
+      }, {
+        version: "^0.7.0"
+      }, {
+        version: ">=0.7.5"
+      }, {
+        version: "0.6.0"
+      }, {
+        version: "0.7.6"
+      },
     ],
     settings: {
       optimizer: {
