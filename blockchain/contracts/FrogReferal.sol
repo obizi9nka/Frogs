@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0
+pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import 'hardhat/console.sol';
-pragma solidity ^0.8.0;
 
 /**
   * @title FrogReferal

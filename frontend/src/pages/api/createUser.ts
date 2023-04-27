@@ -10,7 +10,17 @@ export default async function handler(
     res: NextApiResponse<User | Error>
 ) {
     const userData = req.body as createUserDto
-    console.log(userData)
+    const isUserExist = await prisma.user.findUnique({
+        where: {
+            wallet: userData.wallet
+        }
+    })
+
+    if (isUserExist != null) {
+        res.status(200).json(isUserExist)
+        return
+    }
+
     const referer = await prisma.user.findUnique({
         where: {
             wallet: userData.refererWallet,

@@ -39,7 +39,6 @@ contract Factory is Ownable{
         lotteries[token0][token1] = newLottery;
         lotteries[token1][token0] = newLottery;
         IFrogReferal(frogReferalAddress).registerNewLottery(newLottery);
-
     }
 
 }
