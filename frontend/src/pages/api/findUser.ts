@@ -9,7 +9,9 @@ export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<User | Error>
 ) {
-    const { wallet, id } = req.body as findUserDto
+    let { wallet, id } = req.body as findUserDto
+    wallet = wallet?.toLowerCase()
+
     let referer
     if (id != undefined && wallet != undefined) {
         referer = await prisma.user.findUnique({ where: { id_wallet: { id, wallet }, } })

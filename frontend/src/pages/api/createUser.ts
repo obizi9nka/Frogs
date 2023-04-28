@@ -9,7 +9,8 @@ export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<User | Error>
 ) {
-    const userData = req.body as createUserDto
+    let userData = req.body as createUserDto
+    userData.wallet = userData.wallet.toLowerCase()
     const isUserExist = await prisma.user.findUnique({
         where: {
             wallet: userData.wallet

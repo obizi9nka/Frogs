@@ -64,28 +64,15 @@ function handler({ referer }: any) {
     useEffect(() => {
         if (typeof window?.ethereum !== 'undefined' && window?.ethereum.isMetaMask == true) {
             const web3 = new Web3(window.ethereum as any)
-            web3.eth.getAccounts().then(async accounts => {
-                await createUser(accounts[0]?.toLowerCase())
-            })
             window.ethereum.on('accountsChanged', async (accounts: any) => {
-                await createUser(accounts[0]?.toLowerCase())
+                if (accounts[0] == undefined)
+                    setAccount('')
+                else
+                    setAccount(accounts[0])
+
             });
         }
     }, [])
-
-    useEffect(() => {
-        if (typeof window.ethereum !== 'undefined') {
-            window.ethereum.on('accountsChanged', function (accounts: any) {
-                const ac = accounts[0]
-                if (typeof ac == 'string') {
-                    // createUser(accounts[0].toLowerCase())
-                    setAccount(accounts[0])
-                }
-                else
-                    setAccount('')
-            });
-        }
-    })
 
     const createUser = async (wallet: string) => {
         const userData = {
@@ -93,7 +80,7 @@ function handler({ referer }: any) {
             refererWallet: referer?.wallet,
             sig: ""
         } as createUserDto
-        await axios.post('/api/createUser', userData, { responseType: 'json' }).then(async (data: AxiosResponse) => {
+        await axios.post('/api/createUser', userData).then(async (data: AxiosResponse) => {
             if (data.status == 200) {
                 router.push('/ref')
             }
@@ -108,7 +95,7 @@ function handler({ referer }: any) {
             const web3 = new Web3(window.ethereum as any)
             var accounts = await web3.eth.requestAccounts()
             try {
-                createUser(accounts[0]?.toLowerCase())
+                createUser(accounts[0])
             } catch (error) {
                 console.log(error)
             }

@@ -42,20 +42,13 @@ export default function handler() {
             web3.eth.getAccounts().then(async accounts => {
                 if (accounts[0] == undefined)
                     router.push('/wrong')
-                await findUser(accounts[0]?.toLowerCase())
-                setURL(accounts[0]?.toLowerCase())
+                await findUser(accounts[0])
+                setURL(accounts[0])
             })
             window.ethereum.on('accountsChanged', async (accounts: any) => {
-                await findUser(accounts[0]?.toLowerCase())
-                setURL(accounts[0]?.toLowerCase())
+                await findUser(accounts[0])
+                setURL(accounts[0])
             });
-
-            window.ethereum.on('chainChanged', (chainId) => { })
-
-            window.ethereum.on('disconnect', (chainId) => {
-                setuser({})
-                setURL(undefined)
-            })
         }
     }, [])
 
@@ -68,7 +61,7 @@ export default function handler() {
     }
 
     const findUser = async (wallet: string) => {
-        await axios.post(`http://localhost:3000/api/findUserWithReferals`, { wallet }).then(async (response: AxiosResponse) => {
+        await axios.post(`/api/findUserWithReferals`, { wallet }).then(async (response: AxiosResponse) => {
             if (response.status == 200) {
                 const _user = await response.data
                 setuser(_user)
@@ -76,11 +69,6 @@ export default function handler() {
             }
         }).catch((error) => {
             router.push('/wrong')
-            // setuser({})
-            // console.log(error)
-            // if (typeof window !== 'undefined') {
-            //     alert('You are not a member of the referral program, follow the link of the member who invited you')
-            // }
         })
     }
 
