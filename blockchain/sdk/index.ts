@@ -9,6 +9,24 @@ const config = {
     'bsc': 56
 }
 
+export const sig = async (types: string[], values: any[], signer: any) => {
+    const message = ethers.utils.defaultAbiCoder.encode(types, values);
+    const messageHash = ethers.utils.solidityKeccak256(["bytes"], [message]);
+    const messageHashBytes = ethers.utils.arrayify(messageHash);
+
+    const sig1 = await signer.signMessage(messageHashBytes);
+
+    const { v, r, s } = ethers.utils.splitSignature(sig1);
+
+    return {
+        message,
+        messageHash,
+        v,
+        r,
+        s,
+    };
+};
+
 
 export default async function sdk(token0Address: string, token1Address: string, chainId: number, signerOrProvider: ethers.Wallet | ethers.providers.Provider) {
     const addresses = constants.addresses as any
@@ -36,6 +54,7 @@ export default async function sdk(token0Address: string, token1Address: string, 
         token1: create_ERC20(token1Address, signerOrProvider),
         factoryAddress,
         stableCoinAddress,
+        sig
     }
 
 }

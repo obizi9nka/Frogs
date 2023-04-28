@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 
 import "./FrogLottery.sol";
-import "./pancekeswap-fork/utils/interfaces/IFrogReferal.sol";
+import "./IFrogReferal.sol";
 import "./pancekeswap-fork/utils/interfaces/IPancakeFactory.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 

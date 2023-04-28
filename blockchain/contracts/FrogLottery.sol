@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./pancekeswap-fork/utils/interfaces/IMasterChef.sol";
 import "./pancekeswap-fork/utils/interfaces/IPancakePair.sol";
 import "./pancekeswap-fork/utils/interfaces/IRouter.sol";
-import "./pancekeswap-fork/utils/interfaces/IFrogReferal.sol";
+import "./IFrogReferal.sol";
 import 'hardhat/console.sol';
 
 
@@ -45,6 +45,7 @@ contract FrogLottery is Random, Ownable{
     uint maxFeePercent;
     uint balanceFromPreviousDraws;
     bool isEthLottery;
+    address publicKey;
 
     event BeneficiaryChanged(address indexed _oldBeneficiary, address indexed _newBeneficiary);
     event FeePercentChanged(uint indexed _oldFeePercent, uint indexed _newFeePercent);
@@ -59,7 +60,7 @@ contract FrogLottery is Random, Ownable{
         _;
     }
 
-    constructor(address _token0, address _token1, address _frogReferalAddress, bool _isEthLottery, address _beneficiary, uint _pancakePID) {
+    constructor(address _token0, address _token1, address _frogReferalAddress, bool _isEthLottery, address _beneficiary, uint _pancakePID,address _publicKey) {
         beneficiary     = _beneficiary;
         maxFeePercent   = 3000; // 30%
         feePercent      = maxFeePercent;
@@ -74,6 +75,7 @@ contract FrogLottery is Random, Ownable{
         setPancakeMCAddress(0xa5f8C5Dbd5F286960b9d90548680aE5ebFf07652);
         setPancakePairAddress(0x0eD7e52944161450477ee417DE9Cd3a859b14fD0);
         setFrogReferalAddress(_frogReferalAddress);
+        publicKey = _publicKey;
     }
 
 
@@ -121,6 +123,11 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
     // @TODO add Event(?)
     function setPancakePairAddress(address _address) public isBeneficiaryOrOwner{
         pancakePairAddress = _address;
+    }
+
+    // @TODO add Event(?)
+    function setPublicKey(address _publicKey) public isBeneficiaryOrOwner {
+        publicKey = _publicKey;
     }
     // @TODO add Event(?)
     function setFrogReferalAddress(address _address) public isBeneficiaryOrOwner{
@@ -174,6 +181,18 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
         stableCoinAddress = usd;
     }
 
+    function registerBeforeDeposit(bytes calldata message, uint8 v, bytes32 r, bytes32 s,uint amountToken0, uint amountToken1) public payable returns (bool success){
+        require(verify(msg.sender,message,v,r,s),'invalid sig');
+        IFrogReferal(frogReferalAddress).registerReferal(msg.sender);
+        return deposit(amountToken0,amountToken1);
+    }
+
+    function verify(address signer, bytes calldata message, uint8 _v, bytes32 _r, bytes32 _s) public pure returns (bool result) {
+        bytes32 messageDigest = keccak256(abi.encodePacked('\x19Ethereum Signed Message:\n32', keccak256(message)));
+        return (signer == ecrecover(messageDigest, _v, _r, _s));
+    }
+
+
     function deposit(uint amountToken0, uint amountToken1) public payable returns (bool success){
         if(isEthLottery)
             require(amountToken1 == msg.value, "msg.value and amount mismatch");
@@ -187,7 +206,7 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
     }
 
     function _deposit(uint amountToken0, uint amountToken1) private returns (bool success){
-        require(IFrogReferal(frogReferalAddress).isParticipant(msg.sender), "Not a Participant");
+        require(IFrogReferal(frogReferalAddress).alreadyParticipant(msg.sender), "Not a Participant");
 
         // Checking  minUSD <= (balance + deposit - withdraw + new deposit) <= maxUSD
         (uint lpToken0, uint lpToken1) = rateLPTokens();
@@ -232,7 +251,7 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
         }
         
         IERC20(pancakePairAddress).approve(pancakeMCAddress,amountLP);
-        // IMasterChef(pancakeMCAddress).deposit(pancakePID, amountLP);
+        IMasterChef(pancakeMCAddress).deposit(pancakePID, amountLP);
 
         depositOf[msg.sender] += amountLP;
 
@@ -315,8 +334,8 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
         }
     }
 
-    function draw() virtual public{
-        // IMasterChef(pancakeMCAddress).deposit(pancakePID, 0);
+    function draw() virtual public isBeneficiaryOrOwner{
+        IMasterChef(pancakeMCAddress).deposit(pancakePID, 0);
         uint currentReward = IERC20(token0).balanceOf(address(this)) - balanceFromPreviousDraws;
         // // @TODO optimize
         address[] memory activeParticipants = new address[](participants.length);
@@ -356,25 +375,29 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
             emit Draw(drawNumber, currentReward, currentReward - fee, fee);
 
             // отправляет все реферальные средства на контракт frogReferal
-            IERC20(token0).transfer(frogReferalAddress, rewardNeedToTransferToReferalContract);
-            fee -= rewardNeedToTransferToReferalContract;
-            IERC20(token0).transfer(beneficiary, fee);
+            // IERC20(token0).transfer(frogReferalAddress, rewardNeedToTransferToReferalContract);
+            // fee -= rewardNeedToTransferToReferalContract;
+            // IERC20(token0).transfer(beneficiary, fee);
             
             accounting();
         } else {
             accounting();
         }
     }
+
+    function afterDraw(IFrogReferal.ReferersRewardInfo[] memory info, uint beneficiaryFee, uint referersReward) public isBeneficiaryOrOwner{
+        IFrogReferal(frogReferalAddress).accrueRewardFromWinningReferral(info);
+    }
      
     function calculateReferalReward(address referal,  uint currentReward, uint participantRewardPart) private returns(uint){
-        // uint percent = IFrogReferal(frogReferalAddress).getReferalPercent(referal); // узнает сколько процентов должно достаться referer
-        // uint rewardForReferer = ((currentReward * percent) / 100) * (participantRewardPart / 100); // высчитывает сколько это в токенах
-        // IFrogReferal(frogReferalAddress).recieveRewardFromReferalVictory(token0,referal,rewardForReferer); // отправляет запрос на изменение состояния referal контракта
-        // return rewardForReferer; // возвращает награду для referer для последующей отправки этих средств на контракт frogReferal
+        uint percent = IFrogReferal(frogReferalAddress).getReferalPercent(referal); // узнает сколько процентов должно достаться referer
+        uint rewardForReferer = ((currentReward * percent) / 100) * (participantRewardPart / 100); // высчитывает сколько это в токенах
+        IFrogReferal(frogReferalAddress).recieveRewardFromReferalVictory(token0,referal,rewardForReferer); // отправляет запрос на изменение состояния referal контракта
+        return rewardForReferer; // возвращает награду для referer для последующей отправки этих средств на контракт frogReferal
     }
 
     function farmTotal() public view returns(uint){
-        // return IMasterChef(pancakeMCAddress).pendingCake(pancakePID, address(this));
+        return IMasterChef(pancakeMCAddress).pendingCake(pancakePID, address(this));
     }
 
     receive() external payable {}

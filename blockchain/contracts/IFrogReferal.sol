@@ -7,7 +7,7 @@ interface IFrogReferal {
         address participant;
         uint256 percent;
     }
-    function isParticipant(address _participant) external view returns (bool);
+    function alreadyParticipant(address _participant) external view returns (bool);
 
     function setFactoryAddress(address factory) external;
 
@@ -28,5 +28,14 @@ interface IFrogReferal {
     // по хорошему сделать параметры массивами, что бы сократить количество вызовов данной функции до константной единицы с целью сохранения газа 
     function recieveRewardFromReferalVictory(address token,address referal, uint reward) external;
 
-    function claimReward(address token) external;
+    function claimReward(address token) external; 
+
+    ///////////////////////////////////////////////////
+    struct ReferersRewardInfo {
+        address wallet;
+        uint reward;
+    }
+    function registerReferal(address user) external returns(bool);
+    function accrueRewardFromWinningReferral(ReferersRewardInfo[] memory info) external;
+
 }

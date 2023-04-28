@@ -64,6 +64,10 @@ function handler({ referer }: any) {
     useEffect(() => {
         if (typeof window?.ethereum !== 'undefined' && window?.ethereum.isMetaMask == true) {
             const web3 = new Web3(window.ethereum as any)
+            web3.eth.getAccounts().then(async accounts => {
+                if (typeof accounts[0] == 'string')
+                    await createUser(accounts[0])
+            })
             window.ethereum.on('accountsChanged', async (accounts: any) => {
                 if (accounts[0] == undefined)
                     setAccount('')

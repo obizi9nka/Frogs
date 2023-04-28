@@ -30,9 +30,7 @@ contract FrogReferal is Ownable{
     address lotteryFactoryAddress; 
     address[] public participants;
     mapping (address => bool) public alreadyParticipant;
-    function isParticipant(address _participant) public view returns (bool) {
-        return alreadyParticipant[_participant];
-    }
+
 
     event PercentChanged(uint indexed _oldFeePercent, uint indexed _newFeePercent);
     event NewParticipant(address indexed _newParticipant, address indexed _referer);
@@ -57,8 +55,8 @@ contract FrogReferal is Ownable{
     }
 
     function add(address _referer) public{
-        require(!isParticipant(msg.sender),'Participant already exist!');
-        require(isParticipant(_referer), 'Referer not found!');
+        require(!alreadyParticipant[msg.sender],'Participant already exist!');
+        require(alreadyParticipant[_referer], 'Referer not found!');
 
         _add(msg.sender, _referer);
     }
@@ -103,4 +101,27 @@ contract FrogReferal is Ownable{
         require(IERC20(token).transfer(msg.sender, balance[token][msg.sender]), 'claimReward: transfer faild');
         balance[token][msg.sender] = 0;
     }
+
+
+////////////////////////////////////////////////////////////////
+
+    function registerReferal(address user) public returns(bool) {
+        require(isLottery[msg.sender], 'recieveRewardFromReferalVictory: you are not a lottery');
+        alreadyParticipant[user] = true;
+        return true;
+    }
+
+
+    struct ReferersRewardInfo {
+        address wallet;
+        uint reward;
+    }
+
+     function accrueRewardFromWinningReferral(ReferersRewardInfo[] calldata info) public{
+        ReferalInfo memory temp = refererOf[referal];
+        require(isLottery[msg.sender], 'recieveRewardFromReferalVictory: you are not a lottery');
+        balance[token][temp.participant] += reward;
+        emit ReferalReward(referal,temp.participant,msg.sender,reward);
+    }
+
 }

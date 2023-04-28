@@ -13,33 +13,44 @@ const config: HardhatUserConfig = {
       {
         version: "0.8.1"
       },
-      {
-        version: "=0.7.6"
-      }, {
-        version: "0.5.0"
-      }, {
-        version: "^0.7.0"
-      }, {
-        version: ">=0.7.5"
-      }, {
-        version: "0.6.0"
-      }, {
-        version: "0.7.6"
-      },
+      // {
+      //   version: "=0.7.6"
+      // }, {
+      //   version: "0.5.0"
+      // }, {
+      //   version: "^0.7.0"
+      // }, {
+      //   version: ">=0.7.5"
+      // }, {
+      //   version: "0.6.0"
+      // }, {
+      //   version: "0.7.6"
+      // },
     ],
     settings: {
       optimizer: {
         enabled: true,
-        runs: 999,
+        runs: 500,
+        details: { yul: false },
       },
     }
   },
+  // solidity: {
+  //   version: "0.8.1",
+  //   settings: {
+  //     optimizer: {
+  //       enabled: true,
+  //       runs: 2000,
+  //     },
+  //   },
+  // },
   networks: {
     localhost: {
       url: "http://127.0.0.1:8545",
-      // allowUnlimitedContractSize: true,
+      allowUnlimitedContractSize: true,
     },
     hardhat: {
+      allowUnlimitedContractSize: true
     },
     testnet: {
       url: "https://data-seed-prebsc-1-s1.binance.org:8545",
@@ -67,6 +78,6 @@ const config: HardhatUserConfig = {
   etherscan: {
     apiKey: ethscanApiKey
   }
-};
+}
 
 export default config;
