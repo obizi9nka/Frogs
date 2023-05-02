@@ -56,7 +56,7 @@ function handler({ referer }: any) {
     useEffect(() => {
         if (referer == null) {
             if (typeof window !== 'undefined') {
-                router.push('/wrong')
+                // router.push('/wrong')
             }
         }
     }, [])
@@ -86,7 +86,7 @@ function handler({ referer }: any) {
         } as createUserDto
         await axios.post('/api/createUser', userData).then(async (data: AxiosResponse) => {
             if (data.status == 200) {
-                router.push('/ref')
+                // router.push('/ref')
             }
         }).catch((data) => {
             console.log(data)
@@ -154,7 +154,7 @@ function handler({ referer }: any) {
                         </a>
                         <div>
                             {account == '' ?
-                                <button className="header__button" onClick={connectWallet} >Connect Wallet</button> : <>
+                                <button className="header__button" onClick={connectWallet} style={{}} >Connect Wallet</button> : <>
                                     <span style={{ margin: "0px 6px 0px 10px" }}>{'0x' + (account.slice(2, 9) + '...' + account.slice(35, 42)).toUpperCase()}</span>
                                     <button className="header__button" onClick={disconnectWallet}>Disconnect</button>
                                 </>
@@ -183,39 +183,39 @@ function handler({ referer }: any) {
                                 <div className="bg-lines__line"></div>
                             </div>
                         </div>
-                        <div className="container" style={{ marginTop: '40px' }}>
-                            <h1 className="do-anim appear-slideInUp forAnimation" style={{ fontWeight: '600' }} ref={block1}>You're invited to<br /> FROGS <span
+                        <div className="container" style={{ marginTop: "40px" }}>
+                            <h1 className="do-anim appear-slideInUp forAnimation" style={{}} ref={block1}>You're invited to<br /> FROGS <span
                                 className="highlight" style={{ backgroundColor: '#454545' }}>AIRDROP</span></h1>
-                            <ul className="roadmap do-anim appear-slideInUp forAnimation" ref={block2}>
+                            <ul className="roadmap do-anim appear-slideInUp forAnimation" ref={block2} >
                                 <li className="roadmap__item">
-                                    <h4 style={{ fontWeight: '600' }}>Fundraising</h4>
+                                    <h4 style={{}}>Fundraising</h4>
                                     <p>(seed round from 3 venture firms)</p>
                                     <div className="roadmap__item-dot done"></div>
                                 </li>
                                 <li className="roadmap__item">
-                                    <h4 style={{ fontWeight: '600' }}>Smart Contract deployed<br /> on Main Net</h4>
+                                    <h4 style={{}}>Smart Contract deployed<br /> on Main Net</h4>
                                     <p>(Check <a href="">GitHub</a> & <a href="">Gitbook</a>)</p>
                                     <div className="roadmap__item-dot done"></div>
                                 </li>
                                 <li className="roadmap__item">
-                                    <h4 style={{ fontWeight: '600' }}>Partnership with<br /> BNB Chain</h4>
+                                    <h4 style={{}}>Partnership with<br /> BNB Chain</h4>
                                     <div className="roadmap__item-dot done"></div>
                                 </li>
                                 <li className="roadmap__item">
-                                    <h4 style={{ fontWeight: '600' }}>AIRDROP 1.0</h4>
+                                    <h4 style={{}}>AIRDROP 1.0</h4>
                                     <p>(powered by <a href="">crew3</a>)</p>
                                     <div className="roadmap__item-dot active animate__heartBeat"></div>
                                 </li>
                                 <li className="roadmap__item">
-                                    <h4 style={{ fontWeight: '600' }}>Beta Product is Live</h4>
+                                    <h4 style={{}}>Beta Product is Live</h4>
                                     <div className="roadmap__item-dot"></div>
                                 </li>
                                 <li className="roadmap__item">
-                                    <h4 style={{ fontWeight: '600' }}>$FROGS is listed</h4>
+                                    <h4 style={{}}>$FROGS is listed</h4>
                                     <div className="roadmap__item-dot"></div>
                                 </li>
                             </ul>
-                            <div className="section-actions do-anim appear-slideInUp" style={{ display: 'flex', alignItems: 'center', flexDirection: 'column' }}>
+                            <div className="section-actions do-anim appear-slideInUp" style={{ display: 'flex', alignItems: 'center', flexDirection: 'column', marginTop: "-40px" }}>
                                 <div onClick={connectWallet} className="button button--big take-part1">TAKE PART</div>
                                 <p>👆 <span className="counter">27</span> people just tapped the button 👆</p>
                             </div>
@@ -241,7 +241,7 @@ function handler({ referer }: any) {
                             </div>
                         </div>
                         <div className="container" style={{ marginTop: '40px' }}>
-                            <h2 className="h1 do-anim appear-slideInUp forAnimation" style={{ fontWeight: '600' }} ref={block9}>About FROGS.FI</h2>
+                            <h2 className="h1 do-anim appear-slideInUp forAnimation" style={{}} ref={block9}>About FROGS.FI</h2>
                             <div className="feature-set">
                                 <div className="feature do-anim appear-slideInUp forAnimation" ref={block3}>
                                     <div className="feature__icon"></div>
@@ -278,7 +278,7 @@ function handler({ referer }: any) {
                         </div>
 
                     </div>
-                    <div className="section section--small" >
+                    <div className="section section--small" style={{ paddingBottom: '40px' }} >
                         <div className="bg-lines">
                             <div className="bg-lines__wrap">
                                 <div className="bg-lines__line"></div>
@@ -295,7 +295,7 @@ function handler({ referer }: any) {
                                 <div className="bg-lines__line"></div>
                             </div>
                         </div>
-                        <div className="container" style={{ marginTop: '40px' }}>
+                        <div className="container" style={{ marginTop: '0px' }}>
                             <div className="box do-anim appear-slideInUp forAnimation" ref={block6}>
                                 <h2 className="h1">Details AIRDROP</h2>
                                 <ul className="join-list block-center">
@@ -304,13 +304,13 @@ function handler({ referer }: any) {
                                     <li className="third-bullet" style={{ display: "flex", justifyContent: "flex-start" }}>Connect Wallet on Frogs.fi</li>
                                 </ul>
                                 <div className="section-actions">
-                                    <div onClick={connectWallet} className="button button--big">Connect Wallet</div>
+                                    <div onClick={connectWallet} className="button button--big" style={{ maxWidth: '560px', marginRight: 'auto', marginLeft: 'auto' }}>Connect Wallet</div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </main>
-                <footer className="footer">
+                <footer className="footer" style={{ paddingBottom: '60px' }}>
                     <div className="container">
                         <div className="footer__top  do-anim appear-slideInUp forAnimation" ref={blockFooter1}>
                             <div className="footer__col-brand">

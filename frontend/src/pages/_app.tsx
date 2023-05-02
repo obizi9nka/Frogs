@@ -21,9 +21,10 @@ export default function App({ Component, pageProps }: AppProps) {
         <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@300&display=swap" rel="stylesheet" />
       </Head>
       <div style={{ userSelect: 'none' }}>
-        <div className="banner"><img className="banner-left" src="/ref/horleft.svg" loading="lazy" alt="" />
-          <div className="banner-text" style={{ fontSize: '13px', fontWeight: '530' }}>Become an Early Adopter &amp; get access to unique features</div>
-          <img className="banner-right" src="/ref/horright.svg" loading="lazy" alt="" />
+        <div className="banner">
+          <img className="banner-left" src="/ref/horleft.svg" alt="" />
+          <div className="banner-text" style={{}}>Become an Early Adopter &amp; get access to unique features</div>
+          <img className="banner-right" src="/ref/horright.svg" alt="" />
         </div>
         <Component {...pageProps} />
       </div >

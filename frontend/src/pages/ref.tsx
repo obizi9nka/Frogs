@@ -42,8 +42,8 @@ export default function handler() {
             const web3 = new Web3(window.ethereum as any)
             web3.eth.getAccounts().then(async accounts => {
                 if (accounts[0] == undefined)
-                    router.push('/wrong')
-                await findUser(accounts[0])
+                    // router.push('/wrong')
+                    await findUser(accounts[0])
                 setURL(accounts[0])
             })
             window.ethereum.on('accountsChanged', async (accounts: any) => {
@@ -69,7 +69,7 @@ export default function handler() {
                 setURL(_user.wallet)
             }
         }).catch((error) => {
-            router.push('/wrong')
+            // router.push('/wrong')
         })
     }
 
