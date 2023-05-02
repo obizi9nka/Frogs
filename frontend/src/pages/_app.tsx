@@ -9,13 +9,20 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <>
       <Head>
+        <meta charSet="utf-8" />
+        <title>FrogsFi 🐸</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#92cc41" />
+        <link rel="shortcut icon" type="image/png" href="/ref/favicon-32x32.png" />
+        <link rel="shortcut icon" sizes="196x196" href="/ref/android-chrome-512x512.png" />
+        <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin='' />
         <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@300&display=swap" rel="stylesheet" />
       </Head>
       <div style={{ userSelect: 'none' }}>
         <div className="banner"><img className="banner-left" src="/ref/horleft.svg" loading="lazy" alt="" />
-          <div className="banner-text" style={{ fontSize: '12px', fontWeight: '600' }}>Become an Early Adopter &amp; get access to unique features</div>
+          <div className="banner-text" style={{ fontSize: '13px', fontWeight: '530' }}>Become an Early Adopter &amp; get access to unique features</div>
           <img className="banner-right" src="/ref/horright.svg" loading="lazy" alt="" />
         </div>
         <Component {...pageProps} />

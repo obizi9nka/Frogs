@@ -46,7 +46,7 @@
 }
 
 .join-list {
-    text-align: center;
+    /* text-align: center; */
 }
 
 .first-bullet:before {
@@ -75,7 +75,7 @@
 
 .highlight {
     /* background-color: #454545 !important; */
-    background-color: #539933 !important;
+    background-color: #539933;
 }
 
 .ref-code {
@@ -91,9 +91,9 @@
         font-size: 1rem !important;
     }
 
-    .header__button {
+    /* .header__button {
         display: none;
-    }
+    } */
 }
 
 .forAnimation {
@@ -101,7 +101,9 @@
 }
 
 .take-part1 {
-    width: 550px;
+    width: 76%;
+    max-width: 560px;
+    min-width: 300px;
     animation-name: tada;
     animation-duration: 2s;
     animation-iteration-count: infinite;

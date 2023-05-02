@@ -43,7 +43,8 @@ html {
 }
 
 body {
-    margin: 0
+    margin: 0;
+    overflow: none;
 }
 
 img {
@@ -328,7 +329,7 @@ ul>li>ul:first-child {
     border-color: #050505;
     border-radius: 12px;
     background-color: #050505;
-    background-image: url(../../../public/ref/bigright.svg), url(../../../public/ref/bigleft.svg);
+    background-image: url(../bigright.svg), url(../bigleft.svg);
     background-position: 100% 50%, 0% 50%;
     background-size: auto 100%, auto 100%;
     background-repeat: no-repeat, no-repeat;
@@ -344,7 +345,7 @@ ul>li>ul:first-child {
 
 @media screen and (max-width: 767px) {
     .box {
-        background-image: url(../../../public/ref/bigbottom.svg), url(../../../public/ref/bigtop.svg);
+        background-image: url(../bigbottom.svg), url(../bigtop.svg);
         background-position: 50% 100%, 50% 0%;
         background-size: 100%, 100%
     }
@@ -444,7 +445,7 @@ body {
 
 .footer {
     padding-top: 80px;
-    padding-bottom: 40px;
+    padding-bottom: 80px;
     border-top: 1px solid var(--border)
 }
 
@@ -893,7 +894,7 @@ body {
 }
 
 .section-actions {
-    max-width: 660px;
+    max-width: 560px;
     margin-left: auto;
     margin-right: auto;
     text-align: center
@@ -905,7 +906,7 @@ body {
     top: 0%;
     right: 0%;
     bottom: auto;
-    z-index: 0;
+    z-index: -1;
     display: flex;
     width: 100%;
     height: 100%;
@@ -915,14 +916,11 @@ body {
     justify-content: flex-end
 }
 
-
 @media screen and (max-width: 991px) {
     .bg-lines {
         display: none
     }
 }
-
-
 
 .bg-lines__wrap {
     position: absolute;
@@ -930,7 +928,7 @@ body {
     top: 0%;
     right: 0%;
     bottom: 0%;
-    z-index: 0;
+    z-index: -1;
     display: flex;
     width: 100%;
     max-width: 1120px;
@@ -944,8 +942,8 @@ body {
     position: relative;
     width: 1px;
     height: 100%;
-    display: flex;
     background-color: var(--border);
+    display: flex;
     justify-content: center
 }
 
@@ -1040,7 +1038,7 @@ body {
 }
 
 .do-anim {
-    opacity: 1;
+    opacity: 0;
     will-change: opacity, transform
 }
 

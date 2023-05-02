@@ -32,6 +32,7 @@ export default function handler() {
     const blockFooter2 = useRef(null)
     const block9 = useRef(null)
     const block10 = useRef(null)
+    const blockWhy = useRef(null)
     const block5wallets = useRef(null)
     const block10wallets = useRef(null)
     const block20wallets = useRef(null)
@@ -40,8 +41,8 @@ export default function handler() {
         if (typeof window?.ethereum !== 'undefined' && window?.ethereum.isMetaMask == true) {
             const web3 = new Web3(window.ethereum as any)
             web3.eth.getAccounts().then(async accounts => {
-                if (accounts[0] == undefined)
-                    router.push('/wrong')
+                // if (accounts[0] == undefined)
+                //     router.push('/wrong')
                 await findUser(accounts[0])
                 setURL(accounts[0])
             })
@@ -68,7 +69,7 @@ export default function handler() {
                 setURL(_user.wallet)
             }
         }).catch((error) => {
-            router.push('/wrong')
+            // router.push('/wrong')
         })
     }
 
@@ -111,6 +112,7 @@ export default function handler() {
         t(blockFooter1.current, 0.6, '-15px', 'top bottom')
         t(blockFooter2.current, 0.6, '-15px', 'top bottom')
         t(block9.current)
+        t(blockWhy.current)
         t(block10.current, 0.6, '-5px')
         t(block5wallets.current, 0.2)
         t(block10wallets.current, 0.35)
@@ -160,7 +162,7 @@ export default function handler() {
                                     <div className="bg-lines__line"></div>
                                 </div>
                             </div>
-                            <div className="container" >
+                            <div className="container" style={{ marginTop: '40px' }}>
                                 <h1 className="do-anim appear-slideInUp forAnimation" style={{ fontWeight: 'bold' }} ref={block3}>Congrats <span
                                     className="highlight">FRO</span>! You got 100 XP<br />for connecting your wallet</h1>
                                 <div className=" forAnimation" ref={block4} style={{ display: 'flex', justifyContent: 'center' }}>
@@ -172,7 +174,7 @@ export default function handler() {
                                         className="highlight" >{user.invited ? user.invited : 0} friends</span>. Invite more <br /> using your referral link below</h3>
                                     <div className="ref-code paragraph-large" style={{ display: "grid", gridTemplateColumns: '12fr 1fr' }}>
                                         <a href="#" id="invite-link" style={{ textDecorationStyle: 'dotted', appearance: 'none', fontWeight: 'normal' }}>{`${user.wallet ? domen + `/invite/0x...${user.wallet.slice(37.42)}` : 'Connect wallet to get your refferal link'}`}</a>
-                                        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", cursor: "pointer", userSelect: 'none' }} onClick={copyToClipboard}>
+                                        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", cursor: "pointer", userSelect: 'none', maxHeight: '40px', maxWidth: "40px", minHeight: '40px', minWidth: "40px" }} onClick={copyToClipboard}>
                                             <img src="/ref/copy.png" width={40} height={40} />
                                         </div>
                                     </div>
@@ -199,7 +201,7 @@ export default function handler() {
                                 </div>
                             </div>
                             <div className="container">
-                                <h2 className="h1 do-anim appear-slideInUp" style={{ fontWeight: 'bold', marginTop: '-60px' }} >Why invite?</h2>
+                                <h2 className="h1 do-anim appear-slideInUp forAnimation" style={{ fontWeight: 'bold', marginTop: '0px' }} ref={blockWhy} >Why invite?</h2>
                                 <div className="feature-set">
                                     <div className="feature do-anim appear-slideInUp forAnimation" ref={block5}>
                                         <div className="feature__icon"></div>

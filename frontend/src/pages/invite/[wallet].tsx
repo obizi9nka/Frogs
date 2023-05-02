@@ -147,7 +147,6 @@ function handler({ referer }: any) {
     return (
         <div>
             <div className="wrap">
-
                 <header className="header">
                     <div className="header__container">
                         <a href="/" className="logo" aria-label="logo">
@@ -155,7 +154,7 @@ function handler({ referer }: any) {
                         </a>
                         <div>
                             {account == '' ?
-                                <button className="header__button" onClick={connectWallet}>Connect Wallet</button> : <>
+                                <button className="header__button" onClick={connectWallet} >Connect Wallet</button> : <>
                                     <span style={{ margin: "0px 6px 0px 10px" }}>{'0x' + (account.slice(2, 9) + '...' + account.slice(35, 42)).toUpperCase()}</span>
                                     <button className="header__button" onClick={disconnectWallet}>Disconnect</button>
                                 </>
@@ -164,7 +163,7 @@ function handler({ referer }: any) {
                     </div>
                 </header>
                 <main className="main">
-                    <div className="wow section bounceInUp" >
+                    <div className="section" >
                         <div className="bg-lines">
                             <div className="bg-lines__wrap">
                                 <div className="bg-lines__line"></div>
@@ -184,35 +183,35 @@ function handler({ referer }: any) {
                                 <div className="bg-lines__line"></div>
                             </div>
                         </div>
-                        <div className="container">
-                            <h1 className="do-anim appear-slideInUp forAnimation" style={{ fontWeight: 'bold' }} ref={block1}>You're invited to<br /> FROGS <span
-                                className="highlight">AIRDROP</span></h1>
+                        <div className="container" style={{ marginTop: '40px' }}>
+                            <h1 className="do-anim appear-slideInUp forAnimation" style={{ fontWeight: '600' }} ref={block1}>You're invited to<br /> FROGS <span
+                                className="highlight" style={{ backgroundColor: '#454545' }}>AIRDROP</span></h1>
                             <ul className="roadmap do-anim appear-slideInUp forAnimation" ref={block2}>
                                 <li className="roadmap__item">
-                                    <h4 style={{ fontWeight: 'bold' }}>Fundraising</h4>
+                                    <h4 style={{ fontWeight: '600' }}>Fundraising</h4>
                                     <p>(seed round from 3 venture firms)</p>
                                     <div className="roadmap__item-dot done"></div>
                                 </li>
                                 <li className="roadmap__item">
-                                    <h4 style={{ fontWeight: 'bold' }}>Smart Contract deployed<br /> on Main Net</h4>
+                                    <h4 style={{ fontWeight: '600' }}>Smart Contract deployed<br /> on Main Net</h4>
                                     <p>(Check <a href="">GitHub</a> & <a href="">Gitbook</a>)</p>
                                     <div className="roadmap__item-dot done"></div>
                                 </li>
                                 <li className="roadmap__item">
-                                    <h4 style={{ fontWeight: 'bold' }}>Partnership with<br /> BNB Chain</h4>
+                                    <h4 style={{ fontWeight: '600' }}>Partnership with<br /> BNB Chain</h4>
                                     <div className="roadmap__item-dot done"></div>
                                 </li>
                                 <li className="roadmap__item">
-                                    <h4 style={{ fontWeight: 'bold' }}>AIRDROP 1.0</h4>
+                                    <h4 style={{ fontWeight: '600' }}>AIRDROP 1.0</h4>
                                     <p>(powered by <a href="">crew3</a>)</p>
                                     <div className="roadmap__item-dot active animate__heartBeat"></div>
                                 </li>
                                 <li className="roadmap__item">
-                                    <h4 style={{ fontWeight: 'bold' }}>Beta Product is Live</h4>
+                                    <h4 style={{ fontWeight: '600' }}>Beta Product is Live</h4>
                                     <div className="roadmap__item-dot"></div>
                                 </li>
                                 <li className="roadmap__item">
-                                    <h4 style={{ fontWeight: 'bold' }}>$FROGS is listed</h4>
+                                    <h4 style={{ fontWeight: '600' }}>$FROGS is listed</h4>
                                     <div className="roadmap__item-dot"></div>
                                 </li>
                             </ul>
@@ -241,8 +240,8 @@ function handler({ referer }: any) {
                                     style={{ width: "67px;", top: "65%" }} /></div>
                             </div>
                         </div>
-                        <div className="container">
-                            <h2 className="h1 do-anim appear-slideInUp forAnimation" style={{ fontWeight: 'bold' }} ref={block9}>About FROGS.FI</h2>
+                        <div className="container" style={{ marginTop: '40px' }}>
+                            <h2 className="h1 do-anim appear-slideInUp forAnimation" style={{ fontWeight: '600' }} ref={block9}>About FROGS.FI</h2>
                             <div className="feature-set">
                                 <div className="feature do-anim appear-slideInUp forAnimation" ref={block3}>
                                     <div className="feature__icon"></div>
@@ -279,7 +278,7 @@ function handler({ referer }: any) {
                         </div>
 
                     </div>
-                    <div className="section section--small">
+                    <div className="section section--small" >
                         <div className="bg-lines">
                             <div className="bg-lines__wrap">
                                 <div className="bg-lines__line"></div>
@@ -296,13 +295,13 @@ function handler({ referer }: any) {
                                 <div className="bg-lines__line"></div>
                             </div>
                         </div>
-                        <div className="container">
+                        <div className="container" style={{ marginTop: '40px' }}>
                             <div className="box do-anim appear-slideInUp forAnimation" ref={block6}>
                                 <h2 className="h1">Details AIRDROP</h2>
                                 <ul className="join-list block-center">
-                                    <li className="first-bullet">Join Telegram</li>
-                                    <li className="second-bullet">Join Twitter</li>
-                                    <li className="third-bullet">Connect Wallet on Frogs.fi</li>
+                                    <li className="first-bullet" style={{ display: "flex", justifyContent: "flex-start" }}>Join Telegram</li>
+                                    <li className="second-bullet" style={{ display: "flex", justifyContent: "flex-start" }}>Join Twitter</li>
+                                    <li className="third-bullet" style={{ display: "flex", justifyContent: "flex-start" }}>Connect Wallet on Frogs.fi</li>
                                 </ul>
                                 <div className="section-actions">
                                     <div onClick={connectWallet} className="button button--big">Connect Wallet</div>
