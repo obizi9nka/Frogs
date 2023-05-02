@@ -96,9 +96,9 @@
     } */
 }
 
-::-webkit-scrollbar {
+/* ::-webkit-scrollbar {
     display: none;
-}
+} */
 
 .forAnimation {
     opacity: 0;
