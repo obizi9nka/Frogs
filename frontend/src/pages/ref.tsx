@@ -41,8 +41,8 @@ export default function handler() {
         if (typeof window?.ethereum !== 'undefined' && window?.ethereum.isMetaMask == true) {
             const web3 = new Web3(window.ethereum as any)
             web3.eth.getAccounts().then(async accounts => {
-                // if (accounts[0] == undefined)
-                //     router.push('/wrong')
+                if (accounts[0] == undefined)
+                    router.push('/wrong')
                 await findUser(accounts[0])
                 setURL(accounts[0])
             })
@@ -69,7 +69,7 @@ export default function handler() {
                 setURL(_user.wallet)
             }
         }).catch((error) => {
-            // router.push('/wrong')
+            router.push('/wrong')
         })
     }
 
@@ -167,7 +167,7 @@ export default function handler() {
                                     className="highlight">FRO</span>! You got 100 XP<br />for connecting your wallet</h1>
                                 <div className=" forAnimation" ref={block4} style={{ display: 'flex', justifyContent: 'center' }}>
                                     <a href="#" id="logo" ></a>
-                                    <img src="/ref/frog-image.png" style={{ maxWidth: '256px', zIndex: '100' }} />
+                                    <img src="/ref/frog-image-new.png" style={{ maxWidth: '256px', zIndex: '100' }} />
                                 </div>
                                 <div style={{ marginTop: "50px;", fontWeight: 'bold' }} className="section-actions do-anim appear-slideInUp forAnimation NowYouInvited" ref={block10} id="invite-more">
                                     <h3 style={{ fontWeight: "bold" }}>Now you invited <span
