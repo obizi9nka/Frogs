@@ -18,12 +18,12 @@ export default function App({ Component, pageProps }: AppProps) {
         <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin='' />
-        <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@300&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
       </Head>
-      <div style={{ userSelect: 'none' }}>
+      <div >
         <div className="banner">
           <img className="banner-left" src="/ref/horleft.svg" alt="" />
-          <div className="banner-text" style={{}}>Become an Early Adopter &amp; get access to unique features</div>
+          <div className="banner-text" >Become an Early Adopter &amp; get access to unique features</div>
           <img className="banner-right" src="/ref/horright.svg" alt="" />
         </div>
         <Component {...pageProps} />

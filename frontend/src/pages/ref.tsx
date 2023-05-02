@@ -163,14 +163,14 @@ export default function handler() {
                                 </div>
                             </div>
                             <div className="container" style={{ marginTop: '40px' }}>
-                                <h1 className="do-anim appear-slideInUp forAnimation" style={{ fontWeight: 'bold' }} ref={block3}>Congrats <span
+                                <h1 className="do-anim appear-slideInUp forAnimation" ref={block3}>Congrats <span
                                     className="highlight">FRO</span>! You got 100 XP<br />for connecting your wallet</h1>
                                 <div className=" forAnimation" ref={block4} style={{ display: 'flex', justifyContent: 'center' }}>
                                     <a href="#" id="logo" ></a>
                                     <img src="/ref/frog-image-new.png" style={{ maxWidth: '256px', zIndex: '100' }} />
                                 </div>
-                                <div style={{ marginTop: "50px;", fontWeight: 'bold' }} className="section-actions do-anim appear-slideInUp forAnimation NowYouInvited" ref={block10} id="invite-more">
-                                    <h3 style={{ fontWeight: "bold" }}>Now you invited <span
+                                <div style={{ marginTop: "50px;" }} className="section-actions do-anim appear-slideInUp forAnimation NowYouInvited" ref={block10} id="invite-more">
+                                    <h3 >Now you invited <span
                                         className="highlight" >{user.invited ? user.invited : 0} friends</span>. Invite more <br /> using your referral link below</h3>
                                     <div className="ref-code paragraph-large" style={{ display: "grid", gridTemplateColumns: '12fr 1fr' }}>
                                         <a href="#" id="invite-link" style={{ textDecorationStyle: 'dotted', appearance: 'none', fontWeight: 'normal' }}>{`${user.wallet ? domen + `/invite/0x...${user.wallet.slice(37.42)}` : 'Connect wallet to get your refferal link'}`}</a>
@@ -201,7 +201,7 @@ export default function handler() {
                                 </div>
                             </div>
                             <div className="container">
-                                <h2 className="h1 do-anim appear-slideInUp forAnimation" style={{ fontWeight: 'bold', marginTop: '0px' }} ref={blockWhy} >Why invite?</h2>
+                                <h2 className="h1 do-anim appear-slideInUp forAnimation" style={{ marginTop: '0px' }} ref={blockWhy} >Why invite?</h2>
                                 <div className="feature-set">
                                     <div className="feature do-anim appear-slideInUp forAnimation" ref={block5}>
                                         <div className="feature__icon"></div>
@@ -241,17 +241,17 @@ export default function handler() {
                             <div className="container">
                                 <div className="feature-set">
                                     <div className="feature do-anim appear-slideInUp forAnimation" ref={block5wallets}>
-                                        <h1 className="do-anim appear-slideInUp" style={{ marginBottom: "0px", fontWeight: 'bold' }}><span
+                                        <h1 className="do-anim appear-slideInUp" style={{ marginBottom: "0px" }}><span
                                             className="highlight highlight-1">500 XP</span></h1>
                                         <div className="feature__text">5 wallets</div>
                                     </div>
                                     <div className="feature do-anim appear-slideInUp forAnimation" ref={block10wallets}>
-                                        <h1 className="do-anim appear-slideInUp" style={{ marginBottom: "0px", fontWeight: 'bold' }}><span
+                                        <h1 className="do-anim appear-slideInUp" style={{ marginBottom: "0px" }}><span
                                             className="highlight highlight-2">1k XP</span></h1>
                                         <div className="feature__text">10 wallets</div>
                                     </div>
                                     <div className="feature do-anim appear-slideInUp forAnimation" ref={block20wallets}>
-                                        <h1 className="do-anim appear-slideInUp" style={{ marginBottom: "0px", fontWeight: 'bold' }}><span
+                                        <h1 className="do-anim appear-slideInUp" style={{ marginBottom: "0px" }}><span
                                             className="highlight highlight-3">2k XP</span></h1>
                                         <div className="feature__text">20 wallets</div>
                                     </div>
@@ -259,7 +259,7 @@ export default function handler() {
                             </div>
 
                         </div>
-                        <div className="section section--small">
+                        <div className="section section--small" style={{ paddingBottom: '40px' }}>
                             <div className="bg-lines">
                                 <div className="bg-lines__wrap">
                                     <div className="bg-lines__line"></div>
@@ -273,13 +273,14 @@ export default function handler() {
                                     <div className="bg-lines__line"></div>
                                     <div className="bg-lines__line"></div>
                                     <div className="bg-lines__line"></div>
-                                    <div className="bg-lines__line"><img className="decor" src="/ref/figure2.svg" loading="lazy" alt=""
-                                        style={{ width: "67px", top: "65%" }} /></div>
+                                    <div className="bg-lines__line">
+                                        {/* <img className="decor" src="/ref/figure2.svg" loading="lazy" alt="" style={{ width: "67px", top: "65%" }} /> */}
+                                    </div>
                                 </div>
                             </div>
                             <div className="container">
-                                <div className="box do-anim appear-slideInUp forAnimation" style={{ fontWeight: 'bold' }} ref={block9}>
-                                    <h2 className="h1" style={{ fontWeight: 'bold' }}>Airdrop Campaign 1.0<br />can stop at anytime</h2>
+                                <div className="box do-anim appear-slideInUp forAnimation" ref={block9}>
+                                    <h2 className="h1" >Airdrop Campaign 1.0<br />can stop at anytime</h2>
                                     <div className="join-list block-center">
                                         maybe 5 days 4 hours 3 mins LEFT
                                     </div>
@@ -294,7 +295,7 @@ export default function handler() {
 
                         </div>
                     </main>
-                    <footer className="footer">
+                    <footer className="footer" style={{ paddingBottom: '60px' }}>
                         <div className="container">
                             <div className="footer__top  do-anim appear-slideInUp forAnimation" ref={blockFooter1}>
                                 <div className="footer__col-brand">
@@ -346,8 +347,8 @@ export default function handler() {
                                 </div>
                             </div>
                             <div className="footer-line"></div>
-                            <div className="footer__bottom do-anim appear-slideInUp  forAnimation" ref={blockFooter2}>
-                                <div className="text-sm text-center">&copy; {`${'2023 FrogsFi > with 💚 from the swamp'}`}</div>
+                            <div className="footer__bottom do-anim appear-slideInUp forAnimation" ref={blockFooter2}>
+                                <div className="text-sm text-center">&copy; ${'2023 FrogsFi > with 💚 from the swamp'}</div>
                                 <div className="footer__social">
                                     <a href="https://t.me/frogsfi" target="_blank" className="circle"><svg viewBox="0 0 32 32" fill="none"
                                         className="icon rect-125">
@@ -367,7 +368,6 @@ export default function handler() {
                     </footer>
                 </div >
             </div >
-            <script src="dist/clipboard.min.js"></script>
         </div >
     )
 }
