@@ -171,7 +171,7 @@ export default function handler() {
                                 </div>
                                 <div style={{ marginTop: "50px;" }} className="section-actions do-anim appear-slideInUp forAnimation NowYouInvited" ref={block10} id="invite-more">
                                     <h3 >Now you invited <span
-                                        className="highlight" >{user.invited ? user.invited : 0} friends</span>. Invite more <br /> using your referral link below</h3>
+                                        className="highlight" >{user.invited ? user.invited : 0} friends</span>. Invite more  using<br /> your referral link below</h3>
                                     <div className="ref-code paragraph-large" style={{ display: "grid", gridTemplateColumns: '12fr 1fr' }}>
                                         <a href="#" id="invite-link" style={{ textDecorationStyle: 'dotted', appearance: 'none', fontWeight: 'normal' }}>{`${user.wallet ? domen + `/invite/0x...${user.wallet.slice(37.42)}` : 'Connect wallet to get your refferal link'}`}</a>
                                         <div style={{ display: "flex", justifyContent: "center", alignItems: "center", cursor: "pointer", userSelect: 'none', maxHeight: '40px', maxWidth: "40px", minHeight: '40px', minWidth: "40px" }} onClick={copyToClipboard}>
@@ -348,7 +348,7 @@ export default function handler() {
                             </div>
                             <div className="footer-line"></div>
                             <div className="footer__bottom do-anim appear-slideInUp forAnimation" ref={blockFooter2}>
-                                <div className="text-sm text-center">&copy; ${'2023 FrogsFi > with 💚 from the swamp'}</div>
+                                <div className="text-sm text-center">&copy; {`2023 FrogsFi > with 💚 from the swamp`}</div>
                                 <div className="footer__social">
                                     <a href="https://t.me/frogsfi" target="_blank" className="circle"><svg viewBox="0 0 32 32" fill="none"
                                         className="icon rect-125">
