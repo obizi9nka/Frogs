@@ -82,7 +82,7 @@ export default function handler() {
     }
 
     const disconnectWallet = async () => {
-        setuser({})
+        router.push('/wrong')
     }
 
     const copyToClipboard = () => {
@@ -138,10 +138,10 @@ export default function handler() {
                                 </ul>
                             </nav>
                             {user.wallet == null ?
-                                <button className="header__button" onClick={connectWallet}>Connect Wallet</button> : <>
-                                    <span style={{ margin: "0px 6px 0px 10px" }}>{'0x' + (user.wallet.slice(2, 9) + '...' + user.wallet.slice(35, 42)).toLowerCase()}</span>
+                                <button className="header__button" onClick={connectWallet}>Connect Wallet</button> : <div>
+                                    <span style={{ margin: "0px 15px 0px 10px" }}>{'0x' + (user.wallet.slice(2, 9) + '...' + user.wallet.slice(35, 42)).toLowerCase()}</span>
                                     <button className="header__button" onClick={disconnectWallet}>Disconnect</button>
-                                </>
+                                </div>
                             }
                         </div>
                     </header>

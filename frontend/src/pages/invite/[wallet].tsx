@@ -11,11 +11,6 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/dist/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger)
-declare global {
-    interface Window {
-        ethereum?: MetaMaskInpageProvider
-    }
-}
 
 export const getServerSideProps = async (context: any) => {
     const { wallet } = context.params

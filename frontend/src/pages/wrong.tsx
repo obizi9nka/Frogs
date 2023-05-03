@@ -40,18 +40,7 @@ function handler() {
             if (response.status == 200)
                 setuser(await response.data as User)
         }).catch(async (response: AxiosResponse) => {
-            // if (typeof window !== 'undefined') {
-            //     alert('not found')
-            // }
         })
-    }
-
-    const connectWallet = async () => {
-        if (typeof window.ethereum !== 'undefined') {
-            window.ethereum.request({ method: 'eth_requestAccounts' }).then(async (acounts: any) => {
-                await findUser(acounts[0])
-            })
-        }
     }
 
     useEffect(() => {
