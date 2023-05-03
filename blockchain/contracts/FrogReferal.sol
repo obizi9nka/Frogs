@@ -118,10 +118,10 @@ contract FrogReferal is Ownable{
     }
 
      function accrueRewardFromWinningReferral(ReferersRewardInfo[] calldata info) public{
-        ReferalInfo memory temp = refererOf[referal];
-        require(isLottery[msg.sender], 'recieveRewardFromReferalVictory: you are not a lottery');
-        balance[token][temp.participant] += reward;
-        emit ReferalReward(referal,temp.participant,msg.sender,reward);
+        // ReferalInfo memory temp = refererOf[referal];
+        // require(isLottery[msg.sender], 'recieveRewardFromReferalVictory: you are not a lottery');
+        // balance[token][temp.participant] += reward;
+        // emit ReferalReward(referal,temp.participant,msg.sender,reward);
     }
 
 }

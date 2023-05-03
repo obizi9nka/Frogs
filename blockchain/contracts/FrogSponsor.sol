@@ -22,7 +22,7 @@ interface IFrogLotteryCut {
 contract FrogSponsor is FrogLottery{
     address immutable FrogLotteryAddress;
 
-    constructor(address _token0, address _token1, bool _isEthLottery, address _beneficiary, uint _pancakePID, address _FrogLotteryAddress) FrogLottery(_token0,_token1,address(0),_isEthLottery,_beneficiary,_pancakePID) {
+    constructor(address _token0, address _token1, bool _isEthLottery, address _beneficiary, uint _pancakePID, address _FrogLotteryAddress) FrogLottery(_token0,_token1,address(0),_isEthLottery,_beneficiary,_pancakePID,msg.sender) {
         FrogLotteryAddress = _FrogLotteryAddress;
     }
 
