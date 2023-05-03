@@ -1044,6 +1044,7 @@ body {
     will-change: opacity, transform
 }
 
+
 .appear-slideInUp.is-animated,
 .appear-fadeIn.is-animated {
     --appearDuration: .6s;

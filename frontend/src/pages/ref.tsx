@@ -22,16 +22,16 @@ export default function handler() {
     const [user, setuser] = useState({} as any)
     const [domen, setDomen] = useState('')
     const router = useRouter()
-    const block1 = useRef(null)
-    const block2 = useRef(null)
-    const block3 = useRef(null)
-    const block4 = useRef(null)
-    const block5 = useRef(null)
-    const block6 = useRef(null)
+    const blockFrog2 = useRef(null)
+    const blockFrog1 = useRef(null)
+    const blockCongrats = useRef(null)
+    const blockLogo = useRef(null)
+    const blockWhyAnswer1 = useRef(null)
+    const blockWhyAnswer2 = useRef(null)
     const blockFooter1 = useRef(null)
     const blockFooter2 = useRef(null)
-    const block9 = useRef(null)
-    const block10 = useRef(null)
+    const blockBox = useRef(null)
+    const blockRefLink = useRef(null)
     const blockWhy = useRef(null)
     const block5wallets = useRef(null)
     const block10wallets = useRef(null)
@@ -91,39 +91,41 @@ export default function handler() {
     };
 
     useEffect(() => {
-        const t = (el: any, duration?: number, px?: string, start?: string) => {
-            gsap.to(el, {
+        const t = (el: any, delay?: number, duration?: number, px?: string, start?: string) => {
+            gsap.fromTo(el, {
+                y: '+=40',
+            }, {
                 scrollTrigger: {
                     trigger: el,
-                    start: start == undefined ? 'top center' : start
+                    start: start == undefined ? 'top 90%' : start
                 },
-                marginTop: 0,
+                y: '0',
                 duration: duration == undefined ? 0.6 : duration,
                 opacity: 1,
-                transform: `translateY(${px == undefined ? '-40px' : px})`
+                delay: delay == undefined ? 0.1 : delay
             })
         }
-        t(block1.current, 0.47)
-        t(block2.current, 0.4)
-        t(block3.current)
-        t(block4.current)
-        t(block5.current, 0.6, '-15px')
-        t(block6.current, 0.6, '-15px')
-        t(blockFooter1.current, 0.6, '-15px', 'top bottom')
-        t(blockFooter2.current, 0.6, '-15px', 'top bottom')
-        t(block9.current)
+        t(blockFrog2.current, 1)
+        t(blockFrog1.current, 1.2)
+        t(blockCongrats.current, 0.7)
+        t(blockLogo.current, 0, 0)
+        t(blockRefLink.current, 0.4, undefined, '-5px')
         t(blockWhy.current)
-        t(block10.current, 0.6, '-5px')
-        t(block5wallets.current, 0.2)
-        t(block10wallets.current, 0.35)
-        t(block20wallets.current, 0.5)
+        t(blockWhyAnswer1.current, 0.45, undefined, '-15px')
+        t(blockWhyAnswer2.current, 0.6, undefined, '-15px')
+        t(blockBox.current)
+        t(block5wallets.current, 0.3)
+        t(block10wallets.current, 0.45)
+        t(block20wallets.current, 0.6)
+        t(blockFooter1.current, 0.2, undefined, '-15px', 'top bottom')
+        t(blockFooter2.current, 0.2, undefined, '-15px', 'top bottom')
     }, [])
 
 
     return (
         <div>
             <div className="change-background">
-                <div className="wrap">
+                <div className="wrap" style={{ overflow: 'hidden' }}>
                     <header className="header change-background">
                         <div className="header__container">
                             <a href="/" className="logo" aria-label="logo"><img src="/ref/frogsfi.svg" alt="Frogs" /></a>
@@ -148,7 +150,7 @@ export default function handler() {
                             <div className="bg-lines">
                                 <div className="bg-lines__wrap">
                                     <div className="bg-lines__line"></div>
-                                    <div className="bg-lines__line"><img className="decor do-anim appear-slideInUp forAnimation" ref={block1} src="/ref/figure2.svg"
+                                    <div className="bg-lines__line"><img className="decor do-anim appear-slideInUp forAnimation" ref={blockFrog2} src="/ref/figure2.svg"
                                         loading="lazy" alt="" style={{ width: '67px', top: "50%" }} /></div>
                                     <div className="bg-lines__line"></div>
                                     <div className="bg-lines__line"></div>
@@ -156,20 +158,20 @@ export default function handler() {
                                     <div className="bg-lines__line"></div>
                                     <div className="bg-lines__line"></div>
                                     <div className="bg-lines__line"></div>
-                                    <div className="bg-lines__line"><img className="decor do-anim appear-slideInUp forAnimation" ref={block2} src="/ref/figure1.svg"
+                                    <div className="bg-lines__line"><img className="decor do-anim appear-slideInUp forAnimation" ref={blockFrog1} src="/ref/figure1.svg"
                                         loading="lazy" alt="" style={{ width: "29px", top: "10%" }} /></div>
                                     <div className="bg-lines__line"></div>
                                     <div className="bg-lines__line"></div>
                                 </div>
                             </div>
-                            <div className="container" style={{ marginTop: '40px' }}>
-                                <h1 className="do-anim appear-slideInUp forAnimation" ref={block3}>Congrats <span
+                            <div className="container" >
+                                <h1 className="do-anim appear-slideInUp forAnimation" ref={blockCongrats}>Congrats <span
                                     className="highlight">FRO</span>! You got 100 XP<br />for connecting your wallet</h1>
-                                <div className=" forAnimation" ref={block4} style={{ display: 'flex', justifyContent: 'center' }}>
+                                <div className=" forAnimation" ref={blockLogo} style={{ display: 'flex', justifyContent: 'center' }}>
                                     <a href="#" id="logo" ></a>
                                     <img src="/ref/frog-image-new.png" style={{ maxWidth: '256px', zIndex: '100' }} />
                                 </div>
-                                <div style={{ marginTop: "50px;" }} className="section-actions do-anim appear-slideInUp forAnimation NowYouInvited" ref={block10} id="invite-more">
+                                <div style={{ marginTop: "50px;" }} className="section-actions do-anim appear-slideInUp forAnimation NowYouInvited" ref={blockRefLink} id="invite-more">
                                     <h3 >Now you invited <span
                                         className="highlight" >{user.invited ? user.invited : 0} friends</span>. Invite more  using<br /> your referral link below</h3>
                                     <div className="ref-code paragraph-large" style={{ display: "grid", gridTemplateColumns: '12fr 1fr' }}>
@@ -201,19 +203,19 @@ export default function handler() {
                                 </div>
                             </div>
                             <div className="container">
-                                <h2 className="h1 do-anim appear-slideInUp forAnimation" style={{ marginTop: '0px' }} ref={blockWhy} >Why invite?</h2>
+                                <h2 className="h1 do-anim appear-slideInUp forAnimation" ref={blockWhy} >Why invite?</h2>
                                 <div className="feature-set">
-                                    <div className="feature do-anim appear-slideInUp forAnimation" ref={block5}>
+                                    <div className="feature do-anim appear-slideInUp forAnimation" ref={blockWhyAnswer1}>
                                         <div className="feature__icon"></div>
                                         <div className="feature__text">
-                                            <b style={{ fontWeight: 'bold' }} >Get XP on Zealy (Crew3)</b>.
+                                            <b  >Get XP on Zealy (Crew3)</b>.
                                             Make all of your friends connect their wallets to get more XP which will be converted in $FROGS tokens <br /> in the future
                                         </div>
                                     </div>
-                                    <div className="feature do-anim appear-slideInUp forAnimation" ref={block6}>
+                                    <div className="feature do-anim appear-slideInUp forAnimation" ref={blockWhyAnswer2}>
                                         <div className="feature__icon"></div>
                                         <div className="feature__text">
-                                            <b style={{ fontWeight: 'bold' }} >Get higher referral %</b>.
+                                            <b >Get higher referral %</b>.
                                             Invite now to get 5% of the prizes from everyone who connected with your referral link – try to invite real Pancake whales and increase your chances to earn more</div>
                                     </div>
                                 </div>
@@ -241,17 +243,17 @@ export default function handler() {
                             <div className="container">
                                 <div className="feature-set">
                                     <div className="feature do-anim appear-slideInUp forAnimation" ref={block5wallets}>
-                                        <h1 className="do-anim appear-slideInUp" style={{ marginBottom: "0px" }}><span
+                                        <h1 className="do-anim appear-slideInUp" ><span
                                             className="highlight highlight-1">500 XP</span></h1>
                                         <div className="feature__text">5 wallets</div>
                                     </div>
                                     <div className="feature do-anim appear-slideInUp forAnimation" ref={block10wallets}>
-                                        <h1 className="do-anim appear-slideInUp" style={{ marginBottom: "0px" }}><span
+                                        <h1 className="do-anim appear-slideInUp" ><span
                                             className="highlight highlight-2">1k XP</span></h1>
                                         <div className="feature__text">10 wallets</div>
                                     </div>
                                     <div className="feature do-anim appear-slideInUp forAnimation" ref={block20wallets}>
-                                        <h1 className="do-anim appear-slideInUp" style={{ marginBottom: "0px" }}><span
+                                        <h1 className="do-anim appear-slideInUp"><span
                                             className="highlight highlight-3">2k XP</span></h1>
                                         <div className="feature__text">20 wallets</div>
                                     </div>
@@ -259,7 +261,7 @@ export default function handler() {
                             </div>
 
                         </div>
-                        <div className="section section--small" style={{ paddingBottom: '40px' }}>
+                        <div className="section section--small" >
                             <div className="bg-lines">
                                 <div className="bg-lines__wrap">
                                     <div className="bg-lines__line"></div>
@@ -279,7 +281,7 @@ export default function handler() {
                                 </div>
                             </div>
                             <div className="container">
-                                <div className="box do-anim appear-slideInUp forAnimation" ref={block9}>
+                                <div className="box do-anim appear-slideInUp forAnimation" ref={blockBox}>
                                     <h2 className="h1" >Airdrop Campaign 1.0<br />can stop at anytime</h2>
                                     <div className="join-list block-center">
                                         maybe 5 days 4 hours 3 mins LEFT
@@ -295,7 +297,7 @@ export default function handler() {
 
                         </div>
                     </main>
-                    <footer className="footer" style={{ paddingBottom: '60px' }}>
+                    <footer className="footer" style={{ padding: '80px 0px 80px 0px ' }}>
                         <div className="container">
                             <div className="footer__top  do-anim appear-slideInUp forAnimation" ref={blockFooter1}>
                                 <div className="footer__col-brand">
