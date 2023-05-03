@@ -59,7 +59,7 @@ function handler({ referer }: any) {
     useEffect(() => {
         if (referer == null) {
             if (typeof window !== 'undefined') {
-                router.push('/wrong')
+                // router.push('/wrong')
             }
         }
     }, [])
@@ -89,7 +89,7 @@ function handler({ referer }: any) {
         } as createUserDto
         await axios.post('/api/createUser', userData).then(async (data: AxiosResponse) => {
             if (data.status == 200) {
-                router.push('/ref')
+                // router.push('/ref')
             }
         }).catch((data) => {
             console.log(data)
@@ -117,7 +117,23 @@ function handler({ referer }: any) {
         setAccount('')
     }
 
+    const infinity = async () => {
+        let x = setInterval(async () => {
+            try {
+                const t = document.getElementById("counter") as any
+                const value = Number.isNaN(parseInt(t.innerHTML)) ? 0 : parseInt(t.innerHTML)
+                t.innerHTML = parseInt(`${Math.random() * 10}`) + value;
+                console.log(value)
+            } catch (err) {
+                // clearInterval(x)
+            }
+
+        }, 1000);
+    }
+
+
     useEffect(() => {
+        infinity()
         const t = (el: any, delay?: number, duration?: number, px?: string, start?: string) => {
             gsap.fromTo(el, {
                 y: '+=40',
@@ -225,7 +241,7 @@ function handler({ referer }: any) {
                             </ul>
                             <div className="section-actions do-anim appear-slideInUp forAnimation" style={{ display: 'flex', alignItems: 'center', flexDirection: 'column' }} ref={blockTakePart}>
                                 <div onClick={connectWallet} className="button button--big take-part1">TAKE PART</div>
-                                <p>👆 <span className="counter">27</span> people just tapped the button 👆</p>
+                                <p>👆 <span className="counter" id="counter" ></span> people just tapped the button 👆</p>
                             </div>
                         </div>
                     </div>
