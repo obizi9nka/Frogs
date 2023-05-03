@@ -59,7 +59,7 @@ function handler({ referer }: any) {
     useEffect(() => {
         if (referer == null) {
             if (typeof window !== 'undefined') {
-                router.push('/wrong')
+                // router.push('/wrong')
             }
         }
     }, [])
@@ -89,7 +89,7 @@ function handler({ referer }: any) {
         } as createUserDto
         await axios.post('/api/createUser', userData).then(async (data: AxiosResponse) => {
             if (data.status == 200) {
-                router.push('/ref')
+                // router.push('/ref')
             }
         }).catch((data) => {
             console.log(data)
@@ -97,7 +97,6 @@ function handler({ referer }: any) {
     }
 
     const connectWallet = async () => {
-        console.log(referer)
         if (typeof window?.ethereum !== 'undefined' && window?.ethereum.isMetaMask == true) {
             const web3 = new Web3(window.ethereum as any)
             var accounts = await web3.eth.requestAccounts()
@@ -123,7 +122,6 @@ function handler({ referer }: any) {
                 const t = document.getElementById("counter") as any
                 const value = Number.isNaN(parseInt(t.innerHTML)) ? 0 : parseInt(t.innerHTML)
                 t.innerHTML = parseInt(`${Math.random() * 10}`) + value;
-                console.log(value)
             } catch (err) {
                 // clearInterval(x)
             }
@@ -192,7 +190,7 @@ function handler({ referer }: any) {
                             <div className="bg-lines__wrap">
                                 <div className="bg-lines__line"></div>
                                 <div className="bg-lines__line">
-                                    <img className="decor do-anim appear-slideInUp" src="/ref/figure2.svg" loading="lazy" alt="" ref={blockFrog2} style={{ opacity: 0, width: "67px", top: "50.4%" }} />
+                                    <img className="decor do-anim appear-slideInUp" src="/ref/figure2.svg" loading="lazy" alt="" ref={blockFrog2} style={{ opacity: 0, width: "67px", top: "50%" }} />
                                 </div>
                                 <div className="bg-lines__line"></div>
                                 <div className="bg-lines__line"></div>
@@ -201,7 +199,7 @@ function handler({ referer }: any) {
                                 <div className="bg-lines__line"></div>
                                 <div className="bg-lines__line"></div>
                                 <div className="bg-lines__line">
-                                    <img className="decor do-anim appear-slideInUp" src="/ref/figure1.svg" loading="lazy" alt="" ref={blockFrog1} style={{ opacity: 0, width: "29px", top: "10.1%" }} />
+                                    <img className="decor do-anim appear-slideInUp" src="/ref/figure1.svg" loading="lazy" alt="" ref={blockFrog1} style={{ opacity: 0, width: "29px", top: "10%" }} />
                                 </div>
                                 <div className="bg-lines__line"></div>
                                 <div className="bg-lines__line"></div>
@@ -240,7 +238,7 @@ function handler({ referer }: any) {
                                 </li>
                             </ul>
                             <div className="section-actions do-anim appear-slideInUp forAnimation" style={{ display: 'flex', alignItems: 'center', flexDirection: 'column' }} ref={blockTakePart}>
-                                <div onClick={connectWallet} className="button button--big take-part1">TAKE PART</div>
+                                <div onClick={connectWallet} className="button button--big take-part1" style={{ width: '560px' }}>TAKE PART</div>
                                 <p>👆 <span className="counter" id="counter" ></span> people just tapped the button 👆</p>
                             </div>
                         </div>
@@ -268,21 +266,21 @@ function handler({ referer }: any) {
                             <h2 className="h1 do-anim appear-slideInUp forAnimation" ref={block9}>About FROGS.FI</h2>
                             <div className="feature-set">
                                 <div className="feature do-anim appear-slideInUp forAnimation" ref={block3}>
-                                    <div className="feature__icon"></div>
+                                    <div className="feature__icon">🐸</div>
                                     <div className="feature__text">
                                         <b>Join the pool</b>.
                                         Users deposit their assets to the CAKE-BNB farming pool on Pancakeswap with Frogs Smart Contract
                                     </div>
                                 </div>
                                 <div className="feature do-anim appear-slideInUp forAnimation" ref={block4}>
-                                    <div className="feature__icon"></div>
+                                    <div className="feature__icon">🎰</div>
                                     <div className="feature__text">
                                         <b>Wait for the Draw</b>.
                                         Every week our contract harvests all the profits and randomly shares them with lucky winners
                                     </div>
                                 </div>
                                 <div className="feature do-anim appear-slideInUp forAnimation" ref={block5}>
-                                    <div className="feature__icon"></div>
+                                    <div className="feature__icon">⏳</div>
                                     <div className="feature__text">
                                         <b>Claim anytime</b>.
                                         You can withdraw the initial deposit and it will be back, as soon as the closest draw ends (no more than 7 days)
@@ -302,7 +300,7 @@ function handler({ referer }: any) {
                         </div>
 
                     </div>
-                    <div className="section section--small" style={{ maxHeight: '685px' }}>
+                    <div className="section section--small">
                         <div className="bg-lines">
                             <div className="bg-lines__wrap">
                                 <div className="bg-lines__line"></div>

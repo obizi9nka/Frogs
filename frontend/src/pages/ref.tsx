@@ -42,8 +42,8 @@ export default function handler() {
             const web3 = new Web3(window.ethereum as any)
             web3.eth.getAccounts().then(async accounts => {
                 if (accounts[0] == undefined)
-                    router.push('/wrong')
-                await findUser(accounts[0])
+                    // router.push('/wrong')
+                    await findUser(accounts[0])
                 setURL(accounts[0])
             })
             window.ethereum.on('accountsChanged', async (accounts: any) => {
@@ -69,7 +69,7 @@ export default function handler() {
                 setURL(_user.wallet)
             }
         }).catch((error) => {
-            router.push('/wrong')
+            // router.push('/wrong')
         })
     }
 
@@ -206,14 +206,14 @@ export default function handler() {
                                 <h2 className="h1 do-anim appear-slideInUp forAnimation" ref={blockWhy} >Why invite?</h2>
                                 <div className="feature-set">
                                     <div className="feature do-anim appear-slideInUp forAnimation" ref={blockWhyAnswer1}>
-                                        <div className="feature__icon"></div>
+                                        <div className="feature__icon">🎁</div>
                                         <div className="feature__text">
                                             <b  >Get XP on Zealy (Crew3)</b>.
                                             Make all of your friends connect their wallets to get more XP which will be converted in $FROGS tokens <br /> in the future
                                         </div>
                                     </div>
                                     <div className="feature do-anim appear-slideInUp forAnimation" ref={blockWhyAnswer2}>
-                                        <div className="feature__icon"></div>
+                                        <div className="feature__icon">💸</div>
                                         <div className="feature__text">
                                             <b >Get higher referral %</b>.
                                             Invite now to get 5% of the prizes from everyone who connected with your referral link – try to invite real Pancake whales and increase your chances to earn more</div>
@@ -243,17 +243,17 @@ export default function handler() {
                             <div className="container">
                                 <div className="feature-set">
                                     <div className="feature do-anim appear-slideInUp forAnimation" ref={block5wallets}>
-                                        <h1 className="do-anim appear-slideInUp" ><span
+                                        <h1 className="do-anim appear-slideInUp" style={{ marginBottom: '0px' }}><span
                                             className="highlight highlight-1">500 XP</span></h1>
                                         <div className="feature__text">5 wallets</div>
                                     </div>
                                     <div className="feature do-anim appear-slideInUp forAnimation" ref={block10wallets}>
-                                        <h1 className="do-anim appear-slideInUp" ><span
+                                        <h1 className="do-anim appear-slideInUp" style={{ marginBottom: '0px' }}><span
                                             className="highlight highlight-2">1k XP</span></h1>
                                         <div className="feature__text">10 wallets</div>
                                     </div>
                                     <div className="feature do-anim appear-slideInUp forAnimation" ref={block20wallets}>
-                                        <h1 className="do-anim appear-slideInUp"><span
+                                        <h1 className="do-anim appear-slideInUp" style={{ marginBottom: '0px' }}><span
                                             className="highlight highlight-3">2k XP</span></h1>
                                         <div className="feature__text">20 wallets</div>
                                     </div>

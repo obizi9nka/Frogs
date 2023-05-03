@@ -103,7 +103,7 @@ function handler() {
                                     <div className="bg-lines__line"></div>
                                     <div className="bg-lines__line"></div>
                                     <div className="bg-lines__line"><img className="decor do-anim appear-slideInUp forAnimation" ref={block2} src="/ref/figure1.svg"
-                                        loading="lazy" alt="" style={{ width: "26px", top: '10%' }} /></div>
+                                        loading="lazy" alt="" style={{ width: "29px", top: '10%' }} /></div>
                                     <div className="bg-lines__line"></div>
                                     <div className="bg-lines__line"></div>
                                 </div>
