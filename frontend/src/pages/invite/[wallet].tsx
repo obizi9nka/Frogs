@@ -59,7 +59,7 @@ function handler({ referer }: any) {
     useEffect(() => {
         if (referer == null) {
             if (typeof window !== 'undefined') {
-                // router.push('/wrong')
+                router.push('/wrong')
             }
         }
     }, [])
@@ -89,7 +89,7 @@ function handler({ referer }: any) {
         } as createUserDto
         await axios.post('/api/createUser', userData).then(async (data: AxiosResponse) => {
             if (data.status == 200) {
-                // router.push('/ref')
+                router.push('/ref')
             }
         }).catch((data) => {
             console.log(data)
