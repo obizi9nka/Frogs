@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 
 import "./FrogLottery.sol";
 import "./IFrogReferal.sol";
-import "./pancekeswap-fork/utils/interfaces/IPancakeFactory.sol";
+import "../pancekeswap-fork/utils/interfaces/IPancakeFactory.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract Factory is Ownable{

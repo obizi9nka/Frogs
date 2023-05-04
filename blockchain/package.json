@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "deploy": "npx hardhat run scripts/deploy.js --network localhost "
+    "deploy": "npx hardhat run scripts/deploy.js --network localhost",
+    "compileAll": "npx hardhat compile && cd v3 && npx hardhat compile"
   },
   "keywords": [],
   "author": "",

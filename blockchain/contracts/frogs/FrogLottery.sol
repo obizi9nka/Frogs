@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0
 
 pragma solidity ^0.8.0;
-import "./Random.sol";
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./pancekeswap-fork/utils/interfaces/IMasterChef.sol";
-import "./pancekeswap-fork/utils/interfaces/IPancakePair.sol";
-import "./pancekeswap-fork/utils/interfaces/IRouter.sol";
+import "../pancekeswap-fork/utils/interfaces/IMasterChef.sol";
+import "../pancekeswap-fork/utils/interfaces/IPancakePair.sol";
+import "../pancekeswap-fork/utils/interfaces/IRouter.sol";
 import "./IFrogReferal.sol";
+import "./Random.sol";
 import 'hardhat/console.sol';
 
 

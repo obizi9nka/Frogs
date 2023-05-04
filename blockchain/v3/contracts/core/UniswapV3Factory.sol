@@ -4,13 +4,13 @@ pragma solidity =0.7.6;
 import './interfaces/IUniswapV3Factory.sol';
 
 import './UniswapV3PoolDeployer.sol';
-import './NoDelegateCall.sol';
+// import './NoDelegateCall.sol';
 
 import './UniswapV3Pool.sol';
 
 /// @title Canonical Uniswap V3 factory
 /// @notice Deploys Uniswap V3 pools and manages ownership and control over pool protocol fees
-contract UniswapV3Factory is IUniswapV3Factory, UniswapV3PoolDeployer, NoDelegateCall {
+contract UniswapV3Factory is IUniswapV3Factory, UniswapV3PoolDeployer {
     /// @inheritdoc IUniswapV3Factory
     address public override owner;
 
@@ -36,7 +36,7 @@ contract UniswapV3Factory is IUniswapV3Factory, UniswapV3PoolDeployer, NoDelegat
         address tokenA,
         address tokenB,
         uint24 fee
-    ) external override noDelegateCall returns (address pool) {
+    ) external override returns (address pool) {
         require(tokenA != tokenB);
         (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
         require(token0 != address(0));
@@ -59,15 +59,15 @@ contract UniswapV3Factory is IUniswapV3Factory, UniswapV3PoolDeployer, NoDelegat
 
     /// @inheritdoc IUniswapV3Factory
     function enableFeeAmount(uint24 fee, int24 tickSpacing) public override {
-        require(msg.sender == owner);
-        require(fee < 1000000);
-        // tick spacing is capped at 16384 to prevent the situation where tickSpacing is so large that
-        // TickBitmap#nextInitializedTickWithinOneWord overflows int24 container from a valid tick
-        // 16384 ticks represents a >5x price change with ticks of 1 bips
-        require(tickSpacing > 0 && tickSpacing < 16384);
-        require(feeAmountTickSpacing[fee] == 0);
+        // require(msg.sender == owner);
+        // require(fee < 1000000);
+        // // tick spacing is capped at 16384 to prevent the situation where tickSpacing is so large that
+        // // TickBitmap#nextInitializedTickWithinOneWord overflows int24 container from a valid tick
+        // // 16384 ticks represents a >5x price change with ticks of 1 bips
+        // require(tickSpacing > 0 && tickSpacing < 16384);
+        // require(feeAmountTickSpacing[fee] == 0);
 
-        feeAmountTickSpacing[fee] = tickSpacing;
-        emit FeeAmountEnabled(fee, tickSpacing);
+        // feeAmountTickSpacing[fee] = tickSpacing;
+        // emit FeeAmountEnabled(fee, tickSpacing);
     }
 }

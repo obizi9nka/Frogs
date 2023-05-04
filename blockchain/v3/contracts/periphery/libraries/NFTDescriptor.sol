@@ -42,44 +42,44 @@ library NFTDescriptor {
     }
 
     function constructTokenURI(ConstructTokenURIParams memory params) public pure returns (string memory) {
-        string memory name = generateName(params, feeToPercentString(params.fee));
-        string memory descriptionPartOne =
-            generateDescriptionPartOne(
-                escapeQuotes(params.quoteTokenSymbol),
-                escapeQuotes(params.baseTokenSymbol),
-                addressToString(params.poolAddress)
-            );
-        string memory descriptionPartTwo =
-            generateDescriptionPartTwo(
-                params.tokenId.toString(),
-                escapeQuotes(params.baseTokenSymbol),
-                addressToString(params.quoteTokenAddress),
-                addressToString(params.baseTokenAddress),
-                feeToPercentString(params.fee)
-            );
-        string memory image = Base64.encode(bytes(generateSVGImage(params)));
+        // string memory name = generateName(params, feeToPercentString(params.fee));
+        // string memory descriptionPartOne =
+        //     generateDescriptionPartOne(
+        //         escapeQuotes(params.quoteTokenSymbol),
+        //         escapeQuotes(params.baseTokenSymbol),
+        //         addressToString(params.poolAddress)
+        //     );
+        // string memory descriptionPartTwo =
+        //     generateDescriptionPartTwo(
+        //         params.tokenId.toString(),
+        //         escapeQuotes(params.baseTokenSymbol),
+        //         addressToString(params.quoteTokenAddress),
+        //         addressToString(params.baseTokenAddress),
+        //         feeToPercentString(params.fee)
+        //     );
+        // string memory image = Base64.encode(bytes(generateSVGImage(params)));
 
-        return
-            string(
-                abi.encodePacked(
-                    'data:application/json;base64,',
-                    Base64.encode(
-                        bytes(
-                            abi.encodePacked(
-                                '{"name":"',
-                                name,
-                                '", "description":"',
-                                descriptionPartOne,
-                                descriptionPartTwo,
-                                '", "image": "',
-                                'data:image/svg+xml;base64,',
-                                image,
-                                '"}'
-                            )
-                        )
-                    )
-                )
-            );
+        // return
+        //     string(
+        //         abi.encodePacked(
+        //             'data:application/json;base64,',
+        //             Base64.encode(
+        //                 bytes(
+        //                     abi.encodePacked(
+        //                         '{"name":"',
+        //                         name,
+        //                         '", "description":"',
+        //                         descriptionPartOne,
+        //                         descriptionPartTwo,
+        //                         '", "image": "',
+        //                         'data:image/svg+xml;base64,',
+        //                         image,
+        //                         '"}'
+        //                     )
+        //                 )
+        //             )
+        //         )
+        //     );
     }
 
     function escapeQuotes(string memory symbol) internal pure returns (string memory) {
@@ -407,32 +407,32 @@ library NFTDescriptor {
     }
 
     function generateSVGImage(ConstructTokenURIParams memory params) internal pure returns (string memory svg) {
-        NFTSVG.SVGParams memory svgParams =
-            NFTSVG.SVGParams({
-                quoteToken: addressToString(params.quoteTokenAddress),
-                baseToken: addressToString(params.baseTokenAddress),
-                poolAddress: params.poolAddress,
-                quoteTokenSymbol: params.quoteTokenSymbol,
-                baseTokenSymbol: params.baseTokenSymbol,
-                feeTier: feeToPercentString(params.fee),
-                tickLower: params.tickLower,
-                tickUpper: params.tickUpper,
-                tickSpacing: params.tickSpacing,
-                overRange: overRange(params.tickLower, params.tickUpper, params.tickCurrent),
-                tokenId: params.tokenId,
-                color0: tokenToColorHex(uint256(params.quoteTokenAddress), 136),
-                color1: tokenToColorHex(uint256(params.baseTokenAddress), 136),
-                color2: tokenToColorHex(uint256(params.quoteTokenAddress), 0),
-                color3: tokenToColorHex(uint256(params.baseTokenAddress), 0),
-                x1: scale(getCircleCoord(uint256(params.quoteTokenAddress), 16, params.tokenId), 0, 255, 16, 274),
-                y1: scale(getCircleCoord(uint256(params.baseTokenAddress), 16, params.tokenId), 0, 255, 100, 484),
-                x2: scale(getCircleCoord(uint256(params.quoteTokenAddress), 32, params.tokenId), 0, 255, 16, 274),
-                y2: scale(getCircleCoord(uint256(params.baseTokenAddress), 32, params.tokenId), 0, 255, 100, 484),
-                x3: scale(getCircleCoord(uint256(params.quoteTokenAddress), 48, params.tokenId), 0, 255, 16, 274),
-                y3: scale(getCircleCoord(uint256(params.baseTokenAddress), 48, params.tokenId), 0, 255, 100, 484)
-            });
+        // NFTSVG.SVGParams memory svgParams =
+        //     NFTSVG.SVGParams({
+        //         quoteToken: addressToString(params.quoteTokenAddress),
+        //         baseToken: addressToString(params.baseTokenAddress),
+        //         poolAddress: params.poolAddress,
+        //         quoteTokenSymbol: params.quoteTokenSymbol,
+        //         baseTokenSymbol: params.baseTokenSymbol,
+        //         feeTier: feeToPercentString(params.fee),
+        //         tickLower: params.tickLower,
+        //         tickUpper: params.tickUpper,
+        //         tickSpacing: params.tickSpacing,
+        //         overRange: overRange(params.tickLower, params.tickUpper, params.tickCurrent),
+        //         tokenId: params.tokenId,
+        //         color0: tokenToColorHex(uint256(params.quoteTokenAddress), 136),
+        //         color1: tokenToColorHex(uint256(params.baseTokenAddress), 136),
+        //         color2: tokenToColorHex(uint256(params.quoteTokenAddress), 0),
+        //         color3: tokenToColorHex(uint256(params.baseTokenAddress), 0),
+        //         x1: scale(getCircleCoord(uint256(params.quoteTokenAddress), 16, params.tokenId), 0, 255, 16, 274),
+        //         y1: scale(getCircleCoord(uint256(params.baseTokenAddress), 16, params.tokenId), 0, 255, 100, 484),
+        //         x2: scale(getCircleCoord(uint256(params.quoteTokenAddress), 32, params.tokenId), 0, 255, 16, 274),
+        //         y2: scale(getCircleCoord(uint256(params.baseTokenAddress), 32, params.tokenId), 0, 255, 100, 484),
+        //         x3: scale(getCircleCoord(uint256(params.quoteTokenAddress), 48, params.tokenId), 0, 255, 16, 274),
+        //         y3: scale(getCircleCoord(uint256(params.baseTokenAddress), 48, params.tokenId), 0, 255, 100, 484)
+        //     });
 
-        return NFTSVG.generateSVG(svgParams);
+        // return NFTSVG.generateSVG(svgParams);
     }
 
     function overRange(

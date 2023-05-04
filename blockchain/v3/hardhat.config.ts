@@ -4,7 +4,7 @@ require('hardhat-contract-sizer');
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 import 'solidity-coverage';
-import { PRIVATE_KEY_1, bscscanApiKey, ethscanApiKey } from './secrets.json';
+import { PRIVATE_KEY_1, bscscanApiKey, ethscanApiKey } from '../secrets.json';
 
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
@@ -31,7 +31,7 @@ const config: HardhatUserConfig = {
   //   }
   // },
   solidity: {
-    version: "0.8.1",
+    version: "0.7.6",
     settings: {
       optimizer: {
         enabled: true,
@@ -71,6 +71,10 @@ const config: HardhatUserConfig = {
       accounts: [PRIVATE_KEY_1]
     }
   },
+  paths: {
+    artifacts: '../artifacts',
+    cache: '../cache'
+  }
   // etherscan: {
   //   apiKey: ethscanApiKey
   // }
