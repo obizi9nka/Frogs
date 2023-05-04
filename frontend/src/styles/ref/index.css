@@ -105,9 +105,9 @@
 }
 
 .take-part1 {
-    width: 76%;
+    width: 100%;
     max-width: 560px;
-    min-width: 300px;
+    /* min-width: 300px; */
     animation-name: tada;
     animation-duration: 2s;
     animation-iteration-count: infinite;

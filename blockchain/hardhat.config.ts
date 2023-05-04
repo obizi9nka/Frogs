@@ -4,7 +4,7 @@ require('hardhat-contract-sizer');
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 import 'solidity-coverage';
-// import { PRIVATE_KEY_1, bscscanApiKey, ethscanApiKey } from './secrets.json';
+import { PRIVATE_KEY_1, bscscanApiKey, ethscanApiKey } from './secrets.json';
 
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
@@ -14,24 +14,19 @@ const config: HardhatUserConfig = {
         version: "0.8.1"
       },
       // {
-      //   version: "=0.7.6"
-      // }, {
       //   version: "0.5.0"
-      // }, {
-      //   version: "^0.7.0"
-      // }, {
-      //   version: ">=0.7.5"
-      // }, {
-      //   version: "0.6.0"
-      // }, {
-      //   version: "0.7.6"
       // },
+      // {
+      //   version: "0.6.0"
+      // },
+      {
+        version: "0.7.6"
+      },
     ],
     settings: {
       optimizer: {
         enabled: true,
-        runs: 500,
-        details: { yul: false },
+        runs: 2000,
       },
     }
   },
@@ -56,6 +51,7 @@ const config: HardhatUserConfig = {
       url: "https://data-seed-prebsc-1-s1.binance.org:8545",
       chainId: 97,
       gasPrice: 20000000000,
+      allowUnlimitedContractSize: true
       // accounts: [PRIVATE_KEY_1],
     },
     mainnet: {
@@ -72,7 +68,7 @@ const config: HardhatUserConfig = {
     sepolia: {
       url: "https://sepolia.infura.io/v3/e896ad4f86a749038fe8e1de62a9b540",
       chainId: 11155111,
-      // accounts: [PRIVATE_KEY_1]
+      accounts: [PRIVATE_KEY_1]
     }
   },
   // etherscan: {

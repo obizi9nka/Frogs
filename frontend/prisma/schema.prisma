@@ -19,7 +19,7 @@ model User {
   percent   Int      @default(500) // 500 = 5%
   sig       String?
   refererId Int?
-  referer   User?    @relation("Referals", fields: [refererId], references: [id])
+  referer   User?    @relation("Referals", fields: [refererId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   referals  User[]   @relation("Referals")
 
   @@id([id, wallet])

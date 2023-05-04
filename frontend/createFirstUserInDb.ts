@@ -6,10 +6,10 @@ const CLEAR_ALL_DB = false
 
 const user = {
     wallet: '0x00',
-    id: 1,
+    // id: 1,
     level: 0,
-    refererId: null,
-    percent: 500,
+    // refererId: null,
+    // percent: 500,
     pid: null
 }
 

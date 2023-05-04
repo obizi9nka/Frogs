@@ -233,12 +233,12 @@ function handler({ referer }: any) {
                                 </li>
                             </ul>
                             <div className="section-actions do-anim appear-slideInUp forAnimation" style={{ display: 'flex', alignItems: 'center', flexDirection: 'column' }} ref={blockTakePart}>
-                                <div onClick={connectWallet} className="button button--big take-part1" style={{ width: '560px' }}>TAKE PART</div>
+                                <div onClick={connectWallet} className="button button--big take-part1">TAKE PART</div>
                                 <p>👆 <span className="counter" id="counter" ></span> people just tapped the button 👆</p>
                             </div>
                         </div>
                     </div>
-                    <div className="section section--small" style={{ maxHeight: '534px' }} >
+                    <div className="section section--small" >
                         <div className="bg-lines">
                             <div className="bg-lines__wrap">
                                 <div className="bg-lines__line"></div>
@@ -287,9 +287,9 @@ function handler({ referer }: any) {
                                 >GitHub</a>
                                 <a href="" className="services__item color-gitlook do-anim forAnimation" ref={blockGitBook}
                                 >Gitbook</a>
-                                <a href="" className="services__item color-telegram do-anim forAnimation" ref={blockTg}
+                                <a href="https://t.me/frogsfi" className="services__item color-telegram do-anim forAnimation" ref={blockTg}
                                 >Telegram</a>
-                                <a href="" className="services__item color-twitter do-anim forAnimation" ref={blockTw}
+                                <a href="https://twitter.com/FrogsFi" className="services__item color-twitter do-anim forAnimation" ref={blockTw}
                                 >Twitter</a>
                             </div>
                         </div>
