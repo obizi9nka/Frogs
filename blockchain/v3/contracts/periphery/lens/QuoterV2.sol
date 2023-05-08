@@ -56,23 +56,23 @@ contract QuoterV2 is IQuoterV2, IUniswapV3SwapCallback, PeripheryImmutableState 
         (uint160 sqrtPriceX96After, int24 tickAfter, , , , , ) = pool.slot0();
 
         if (isExactInput) {
-            // assembly {
-            //     let ptr := mload(0x40)
-            //     mstore(ptr, amountReceived)
-            //     mstore(add(ptr, 0x20), sqrtPriceX96After)
-            //     mstore(add(ptr, 0x40), tickAfter)
-            //     revert(ptr, 96)
-            // }
+            assembly {
+                let ptr := mload(0x40)
+                mstore(ptr, amountReceived)
+                mstore(add(ptr, 0x20), sqrtPriceX96After)
+                mstore(add(ptr, 0x40), tickAfter)
+                revert(ptr, 96)
+            }
         } else {
             // if the cache has been populated, ensure that the full output amount has been received
-            // if (amountOutCached != 0) require(amountReceived == amountOutCached);
-            // assembly {
-            //     let ptr := mload(0x40)
-            //     mstore(ptr, amountToPay)
-            //     mstore(add(ptr, 0x20), sqrtPriceX96After)
-            //     mstore(add(ptr, 0x40), tickAfter)
-            //     revert(ptr, 96)
-            // }
+            if (amountOutCached != 0) require(amountReceived == amountOutCached);
+            assembly {
+                let ptr := mload(0x40)
+                mstore(ptr, amountToPay)
+                mstore(add(ptr, 0x20), sqrtPriceX96After)
+                mstore(add(ptr, 0x40), tickAfter)
+                revert(ptr, 96)
+            }
         }
     }
 
