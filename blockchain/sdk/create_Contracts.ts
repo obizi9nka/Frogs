@@ -1,8 +1,8 @@
 import { ethers } from "ethers";
 import { ERC20Token, FrogLottery, TBnb, PancakeRouter, PancakePair } from "../typechain-types";
-import FrogLottery_json from "../artifacts/contracts/FrogLottery.sol/FrogLottery.json"
-import ERC20_json from "../artifacts/contracts/ERC20.sol/ERC20Token.json"
-import WETH_json from "../artifacts/contracts/TBnb.sol/TBnb.json"
+import FrogLottery_json from "../artifacts/contracts/frogs/FrogLottery.sol/FrogLottery.json"
+import ERC20_json from "../artifacts/contracts/frogs/ERC20.sol/ERC20Token.json"
+import WETH_json from "../artifacts/contracts/frogs/TBnb.sol/TBnb.json"
 import Router_json from "../artifacts/contracts/pancekeswap-fork/router.sol/PancakeRouter.json"
 import LP_json from "../artifacts/contracts/pancekeswap-fork/pancakepair.sol/PancakePair.json"
 

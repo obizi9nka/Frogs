@@ -42,10 +42,8 @@ const config: HardhatUserConfig = {
   networks: {
     localhost: {
       url: "http://127.0.0.1:8545",
-      allowUnlimitedContractSize: true,
     },
     hardhat: {
-      allowUnlimitedContractSize: true
     },
     testnet: {
       url: "https://data-seed-prebsc-1-s1.binance.org:8545",
@@ -68,7 +66,7 @@ const config: HardhatUserConfig = {
     sepolia: {
       url: "https://sepolia.infura.io/v3/e896ad4f86a749038fe8e1de62a9b540",
       chainId: 11155111,
-      accounts: [PRIVATE_KEY_1]
+      // accounts: [PRIVATE_KEY_1]
     }
   },
   // etherscan: {

@@ -34,7 +34,7 @@ contract Factory is Ownable{
         else if(token1 == WETH){
             isEth = true;
         }
-        address newLottery = address(new FrogLottery(token0,token1,frogReferalAddress,isEth,beneficiary,pancakePID, msg.sender));
+        address newLottery = address(new FrogLottery(token0,token1,frogReferalAddress,isEth,beneficiary,pancakePID));
         lotteries[token0][token1] = newLottery;
         lotteries[token1][token0] = newLottery;
         IFrogReferal(frogReferalAddress).registerNewLottery(newLottery);

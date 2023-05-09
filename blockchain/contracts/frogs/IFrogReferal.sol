@@ -11,22 +11,8 @@ interface IFrogReferal {
 
     function setFactoryAddress(address factory) external;
 
-    function add(address _referer) external;
-
-
-    function setPercent(uint _percent) external ;
-    // ui
-    function getReferalInfo(address referal) view external returns(ReferalInfo memory);
-
     // регестрирует новую созданную лотерею
     function registerNewLottery(address newLotteryAddress) external;
-
-    // возвращает процент который должен отдать referal
-    function getReferalPercent(address referal) external view returns(uint);
-
-    // зарегестрированная лотерея во время розыгрыша вызывает эту функцию и изменяет состояния баланса на данном контракте на основе выбранных победителей 
-    // по хорошему сделать параметры массивами, что бы сократить количество вызовов данной функции до константной единицы с целью сохранения газа 
-    function recieveRewardFromReferalVictory(address token,address referal, uint reward) external;
 
     function claimReward(address token) external; 
 
@@ -35,7 +21,7 @@ interface IFrogReferal {
         address wallet;
         uint reward;
     }
-    function registerReferal(address user) external returns(bool);
-    function accrueRewardFromWinningReferral(ReferersRewardInfo[] memory info) external;
+    function accrueRewardFromWinningReferral(ReferersRewardInfo[] memory info,address token) external;
 
+    function registerReferal(bytes calldata message, uint8 _v, bytes32 _r, bytes32 _s) external  returns (bool result);
 }

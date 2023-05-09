@@ -1,6 +1,6 @@
 import hre from "hardhat";
 import { ethers } from 'hardhat';
-import json from "../../artifacts/contracts/FrogLottery.sol/FrogLottery.json";
+import json from "../../artifacts/contracts/frogs/FrogLottery.sol/FrogLottery.json";
 import { FrogLottery } from "../../typechain-types";
 import { allContractsFromDeploy } from "../../@types";
 
@@ -38,7 +38,7 @@ export async function deployAll() {
     //     FrogReferal
     // ==================
     const Referal = await hre.ethers.getContractFactory('FrogReferal');
-    const referal = await Referal.deploy(acct1.address);
+    const referal = await Referal.deploy(acct1.address, acct1.address);
 
     await referal.deployed();
     // ==================
@@ -143,7 +143,6 @@ export async function deployAll() {
     await masterChef.add(1, await pancakeFactory.getPair(cake.address, bnb.address), false)
     await masterChef.add(1, await pancakeFactory.getPair(cake.address, usdt.address), false)
 
-    await referal.connect(acct2).add(acct1.address)
     return { cake, bnb, usdt, router, lottery, masterChef, pancakeFactory, syrupBar, factory, referal, lotteryERC20, usdc } as allContractsFromDeploy
 }
 

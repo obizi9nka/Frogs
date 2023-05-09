@@ -9,7 +9,7 @@ contract TBnb {
     uint256 public totalSupply = 1000000000000000000000000;
     uint8 public decimals = 18;
     // uint power = 1;
-    uint power = 10000000000;
+    uint power = 100000000;
 
     event Transfer(address indexed _from, address indexed _to, uint256 _value);
     event Approval(
@@ -55,6 +55,7 @@ contract TBnb {
         uint256 _value
     ) public returns (bool success, uint value) {
         _value *= power;
+        console.log(_value,balanceOf[_from],_from);
         require(_value <= balanceOf[_from],"1");
         require(_value <= allowance[_from][msg.sender],"2");
         balanceOf[_from] -= _value;

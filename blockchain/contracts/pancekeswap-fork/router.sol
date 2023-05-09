@@ -78,10 +78,16 @@ contract PancakeRouter is IPancakeRouter02 {
         address to,
         uint deadline
     ) external virtual override ensure(deadline) returns (uint amountA, uint amountB, uint liquidity) {
+        console.log("yyyyyyyyyyy");
         (amountA, amountB) = _addLiquidity(tokenA, tokenB, amountADesired, amountBDesired, amountAMin, amountBMin);
+        console.log(amountA, amountB);
+        // 10000000000000000
+        // 322999999999999990822862848
         address pair = PancakeLibrary.pairFor(factory, tokenA, tokenB);
         TransferHelper.safeTransferFrom(tokenA, msg.sender, pair, amountA);
+        console.log(1);
         TransferHelper.safeTransferFrom(tokenB, msg.sender, pair, amountB);
+        console.log(2);
         liquidity = IPancakePair(pair).mint(to);
     }
     uint power = 10000000000;
@@ -105,8 +111,8 @@ contract PancakeRouter is IPancakeRouter02 {
         address pair = PancakeLibrary.pairFor(factory, token, WETH);
         TransferHelper.safeTransferFrom(token, msg.sender, pair, amountToken);
         bool succses;
-        (bool sent,) = WETH.call{value: amountETH/power}("");
-        succses = IWETH(WETH).transfer(pair, amountETH/power);
+        (bool sent,) = WETH.call{value: amountETH / power}("");
+        succses = IWETH(WETH).transfer(pair, amountETH / power);
         require(succses, "no suc");
         liquidity = IPancakePair(pair).mint(to);
         // refund dust eth, if any
