@@ -81,8 +81,6 @@ contract PancakeRouter is IPancakeRouter02 {
         console.log("yyyyyyyyyyy");
         (amountA, amountB) = _addLiquidity(tokenA, tokenB, amountADesired, amountBDesired, amountAMin, amountBMin);
         console.log(amountA, amountB);
-        // 10000000000000000
-        // 322999999999999990822862848
         address pair = PancakeLibrary.pairFor(factory, tokenA, tokenB);
         TransferHelper.safeTransferFrom(tokenA, msg.sender, pair, amountA);
         console.log(1);
@@ -156,7 +154,7 @@ contract PancakeRouter is IPancakeRouter02 {
             deadline
         );
         TransferHelper.safeTransfer(token, to, amountToken);
-        IWETH(WETH).withdraw(amountETH/power);
+        IWETH(WETH).withdraw(amountETH / power);
         TransferHelper.safeTransferETH(to, amountETH / power);
     }
     function removeLiquidityWithPermit(

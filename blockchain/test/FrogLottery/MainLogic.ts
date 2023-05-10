@@ -24,7 +24,11 @@ describe("FrogLottery MainLogic", function () {
         it("deposit", async () => {
             const [acct1, acct2] = await ethers.getSigners();
             const equivalent = (await all.router.getAmountsOut(decimals, [all.cake.address, all.usdt.address]))[1]
+            console.log(await lottery.token0())
+            console.log(await lottery.token1())
             await lottery.deposit(decimals, isEthLottery ? decimals : equivalent, { value: isEthLottery ? decimals : equivalent });
+            console.log(decimals, equivalent)
+            console.log('deposit')
             const { message, v, r, s } = await sig(['address'], [acct2.address], acct1)
             await lottery.connect(acct2).registerBeforeDeposit(message, v, r, s, decimals, isEthLottery ? decimals : equivalent, { value: isEthLottery ? decimals : equivalent })
         });

@@ -5,31 +5,40 @@ const port = 3001
 // import { PrismaClient, User } from '@prisma/client'
 const { PrismaClient, User } = require('@prisma/client')
 var cors = require('cors')
+var bodyParser = require('body-parser')
 // import { ethers } from "ethers"
 const { ethers } = require("ethers")
 
 const constants = require("../blockchain/scripts/json/constants.json")
 const lotteryAbi = require("../blockchain/artifacts/contracts/frogs/FrogLottery.sol/FrogLottery.json")
 app.use(cors())
+app.use(bodyParser.urlencoded({ extended: true }))
+app.use(express.json())
 const prisma = new PrismaClient()
 
 
-// app.post('/', async (req: any, res: any) => {
-//     try {
-//         console.log(req.body)
-//         const wallet = JSON.parse(req.body)
-//         console.log(wallet)
-//         const user = await prisma.user.findUnique({
-//             where: {
-//                 wallet
-//             }
-//         })
-//         res.send(user)
-//     } catch (error) {
-//         console.log(error)
-//     }
-
-// })
+app.post('/getUser', async (req: any, res: any) => {
+    try {
+        const { wallet } = req.body
+        const user = await prisma.user.findUnique({
+            where: {
+                wallet
+            }
+        })
+        const referer = await prisma.user.findUnique({
+            where: {
+                id: user.refererId
+            },
+            select: {
+                wallet: true
+            }
+        })
+        res.send({ user, referer })
+    } catch (error) {
+        res.send({ user: null })
+        console.log(error)
+    }
+})
 
 app.listen(port, async () => {
     const provider = new ethers.providers.JsonRpcProvider("http://127.0.0.1:8545")
@@ -40,22 +49,21 @@ app.listen(port, async () => {
         let afterDrawData = []
         let referalsReward = BigInt(0)
         const len = filter.length
-        console.log(len)
         for (let index = len - 1; index >= 0; index--) {
             const element = filter[index];
-            console.log(element.args._drawNumber, drawNumber)
+            console.log(element.args)
             if (element.args._drawNumber < drawNumber)
                 break
-            console.log(element.args)
             const user = await prisma.user.findUnique({
                 where: {
-                    wallet: element.args?._winner
+                    wallet: element.args?._winner.toLowerCase()
                 },
                 select: {
                     percent: true,
                     refererId: true
                 }
             })
+            console.log(user)
             const referer = await prisma.user.findUnique({
                 where: {
                     id: user?.refererId as any
@@ -71,9 +79,9 @@ app.listen(port, async () => {
             })
             referalsReward += BigInt(reward)
         }
-        // console.log(afterDrawData)
+        console.log(afterDrawData)
         await contract.afterDraw(afterDrawData, BigInt(referalsReward))
-        console.log("done")
+        console.log("done:", drawNumber)
     })
     console.log(`Example app listening on port ${port}`)
 })

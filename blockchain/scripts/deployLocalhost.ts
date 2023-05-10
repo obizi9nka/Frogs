@@ -142,11 +142,11 @@ async function main() {
   // await bnb.connect(acct1).approve(operator, TOKENS_VALUE_20);
   // await bnb.connect(acct2).approve(operator, TOKENS_VALUE_20);
 
+  const value = BigInt(10 ** 14);
   const power = 1000000 // 1 || 1000
 
   await utils.saveAddress("LPToken_CAKE_BNB", await pancakeFactory.getPair(cake.address, bnb.address))
-  await router.addLiquidityETH(cake.address, BigInt(power * 89 * 10 ** 18), 1, 1, acct1.address, Math.round(Date.now() / 1000) + 60 * 20, { value: BigInt(10 ** 16) })
-  // await router.addLiquidityETH(cake.address, BigInt(power * 89 * 10 ** 18), 1, 1, acct1.address, Math.round(Date.now() / 1000) + 60 * 20, { value: BigInt(power * 10 ** 18) })
+  await router.addLiquidityETH(cake.address, BigInt(power * 89 * 10 ** 18), 1, 1, acct1.address, Math.round(Date.now() / 1000) + 60 * 20, { value })
 
   console.log("11")
 
@@ -156,15 +156,9 @@ async function main() {
   console.log("11")
 
   await utils.saveAddress("LPToken_BNB_USDT", await pancakeFactory.getPair(bnb.address, usdt.address))
-  await router.addLiquidity(bnb.address, usdt.address, BigInt(10 ** 16), BigInt(power * 323 * 10 ** 18), 1, 1, acct1.address, Math.round(Date.now() / 1000) + 60 * 20)
-  // await router.addLiquidity(bnb.address, usdt.address, BigInt(power * 10 ** 18), BigInt(power * 323 * 10 ** 18), 1, 1, acct1.address, Math.round(Date.now() / 1000) + 60 * 20)
+  await router.addLiquidityETH(usdt.address, BigInt(power * 323 * 10 ** 18), 1, 1, acct1.address, Math.round(Date.now() / 1000) + 60 * 20, { value })
 
   console.log("11")
-
-  // await router.addLiquidityETH(cake.address, BigInt("296425305890688515832270"), BigInt("3354646137853991998227"), 1, acct1.address, Math.round(Date.now() / 1000) + 60 * 20, { value: BigInt("3354646137853991998227") })
-  // await router.addLiquidity(cake.address, usdt.address, BigInt("37523972898549674205"), BigInt("135540240750768484727"), 1, 1, acct1.address, Math.round(Date.now() / 1000) + 60 * 20)
-  // await router.addLiquidity(bnb.address, usdt.address, BigInt("3064888219835196950616"), BigInt("987845633306609054408648"), 1, 1, acct1.address, Math.round(Date.now() / 1000) + 60 * 20)
-
 
   await lottery.setAll(cake.address, bnb.address, usdt.address, router.address, masterChef.address, await pancakeFactory.getPair(cake.address, bnb.address))
   await masterChef.add(1, await pancakeFactory.getPair(cake.address, bnb.address), false)

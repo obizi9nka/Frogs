@@ -356,10 +356,10 @@ export default {
       const pancakePairCakeWbnb = new web3.eth.Contract(PancakePairCakeWbnbABI, PancakePairCakeWbnbAddress);
       const reserves = await pancakePairCakeWbnb.methods.getReserves().call()
       const supply = await pancakePairCakeWbnb.methods.totalSupply().call()
-      this.pancake.rates.lpcake = reserves._reserve0 / supply
-      this.pancake.rates.lpbnb = reserves._reserve1 / supply
-      this.pancake.rates.cakelp = supply / reserves._reserve0;
-      this.pancake.rates.bnblp = supply / reserves._reserve1;
+      this.pancake.rates.lpcake = reserves._reserve1 / supply
+      this.pancake.rates.lpbnb = reserves._reserve0 / supply
+      this.pancake.rates.cakelp = supply / reserves._reserve1;
+      this.pancake.rates.bnblp = supply / reserves._reserve0;
 
 
       const FrogContract = new web3.eth.Contract(FrogContractABI, FrogContractAddress);
@@ -512,13 +512,15 @@ export default {
       // const FrogReferal = new web3.eth.Contract(FrogReferalABI, FrogReferalAddress)
 
       // const referalInfo = await FrogReferal.methods.refererOf(this.$store.state.account.toLowerCase()).call()
-      // const user = await axios.post('http://localhost:3001', {
-      //   method: "POST",
-      //   body: JSON.stringify({ wallet: this.$store.state.account.toLowerCase() }),
-      // })
-      // console.log(user)
-      this.frog.referalInfo.referer = 0
-      this.frog.referalInfo.percent = 0
+      const data = await axios.post('http://localhost:3001/getUser', { wallet: this.$store.state.account.toLowerCase() })
+      console.log("data", data.data)
+      if (data.data.user == null) {
+        this.frog.referalInfo.referer = '-11'
+        this.frog.referalInfo.percent = -11
+      } else {
+        this.frog.referalInfo.referer = data.data.referer.wallet
+        this.frog.referalInfo.percent = data.data.user.percent / 100
+      }
 
       setTimeout(this.updateParticipants, 20000)
     },
@@ -555,8 +557,13 @@ export default {
       if (errors.length) {
         this.showModal(errors.join(', '))
       } else {
-        if (confirm("You want to send: \n" + this.form.deposit.cake + " CAKE\n" + this.form.deposit.bnb + " BNB")) {
-          const web3 = new Web3(window.ethereum)
+        const web3 = new Web3(window.ethereum)
+        const FrogReferal = new web3.eth.Contract(FrogReferalABI, FrogReferalAddress)
+        const isPartisipant = await FrogReferal.methods.alreadyParticipant(this.$store.state.account).call()
+        console.log(isPartisipant, "isPartisipant")
+        if (this.frog.referalInfo.referer == '-11') {
+          this.showModal('Not a referal')
+        } else if (confirm("You want to send: \n" + this.form.deposit.cake + " CAKE\n" + this.form.deposit.bnb + " BNB")) {
           const allowance0 = web3.utils.fromWei(await new web3.eth.Contract(CakeContractABI, CakeContractAddress)
             .methods.allowance(this.$store.state.account, FrogContractAddress).call());
           if (allowance0 < this.form.deposit.cake) {
@@ -577,9 +584,6 @@ export default {
           const amountToken0 = web3.utils.toWei(this.form.deposit.cake.toString().substring(0, 20));
           const amountToken1 = web3.utils.toWei(this.form.deposit.bnb.toString().substring(0, 20));
           const FrogContract = new web3.eth.Contract(FrogContractABI, FrogContractAddress)
-          const FrogReferal = new web3.eth.Contract(FrogReferalABI, FrogReferalAddress)
-          const isPartisipant = await FrogReferal.methods.alreadyParticipant(this.$store.state.account).call()
-          console.log(isPartisipant, "isPartisipant")
           if (isPartisipant) {
             await FrogContract.methods.deposit(
               amountToken0,
@@ -602,7 +606,6 @@ export default {
               })
           } else {
             const { message, v, r, s } = await this.sigAddress(this.$store.state.account)
-            console.log(message)
             await FrogContract.methods.registerBeforeDeposit(message, v, r, s,
               amountToken0,
               amountToken1
@@ -841,6 +844,14 @@ export default {
     this.updateBalances()
     this.updateParams()
     this.updateParticipants()
+    if (typeof window?.ethereum !== 'undefined' && window?.ethereum.isMetaMask == true) {
+      const web3 = new Web3(window.ethereum)
+      window.ethereum.on('accountsChanged', async (accounts) => {
+        this.updateBalances()
+        this.updateParams()
+        this.updateParticipants()
+      });
+    }
   },
 }
 </script>

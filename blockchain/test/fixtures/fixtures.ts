@@ -134,9 +134,9 @@ export async function deployAll() {
     await router.addLiquidity(cake.address, usdc.address, BigInt(power * 10 ** 18), BigInt(power * 3.64 * 10 ** 18), 1, 1, acct1.address, Math.round(Date.now() / 1000) + 60 * 20)
     await router.addLiquidity(usdt.address, usdc.address, BigInt(power * 10 ** 18), BigInt(power * 10 ** 18), 1, 1, acct1.address, Math.round(Date.now() / 1000) + 60 * 20)
 
-    await bnb.deposit({ value })
+    // await bnb.deposit({ value })
 
-    await router.addLiquidity(bnb.address, usdt.address, value, BigInt(power * 323 * 10 ** 18), 1, 1, acct1.address, Math.round(Date.now() / 1000) + 60 * 20)
+    await router.addLiquidityETH(usdt.address, BigInt(power * 323 * 10 ** 18), 1, 1, acct1.address, Math.round(Date.now() / 1000) + 60 * 20, { value })
 
     await lottery.setAll(cake.address, bnb.address, usdt.address, router.address, masterChef.address, await pancakeFactory.getPair(cake.address, bnb.address));
     await lotteryERC20.setAll(cake.address, usdt.address, usdc.address, router.address, masterChef.address, await pancakeFactory.getPair(cake.address, usdt.address))

@@ -4,16 +4,20 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "first": "npx ts-node scripts/createFirstUser.ts",
+    "listener": "npx ts-node scripts/createUsersForListenerTest.ts",
+    "ref": "npx ts-node scripts/createUsersForReferalSystemTest.ts"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@prisma/client": "^4.14.0",
     "axios": "^1.4.0",
+    "body-parser": "^1.20.2",
     "cors": "^2.8.5",
     "ethers": "^5.7.2",
     "express": "^4.18.2",
+    "nodemon": "^2.0.22",
     "prisma": "^4.14.0",
     "ts-node": "^10.9.1"
   },

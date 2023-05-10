@@ -206,6 +206,11 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
         uint futureBalanceUsd = (balanceOf[msg.sender] + depositOf[msg.sender] - withdrawOf[msg.sender]) * (getPSRate(lpToken0, token0, stableCoinAddress) + getPSRate(lpToken1, token1, stableCoinAddress)) / lpDecimals;
         uint depositUsd = getPSRate(amountToken0, token0, stableCoinAddress) + getPSRate(amountToken1, token1, stableCoinAddress);
 
+        console.log(futureBalanceUsd,depositUsd,minUsd,maxUsd);
+        // 0 
+        // 326639673360326630774
+        // 100000000000000000
+        // 100000000000000000000
         require(futureBalanceUsd + depositUsd >= minUsd, 'Total balance less than minUSD');
         require(futureBalanceUsd + depositUsd <= maxUsd, 'Total balance great than maxUSD');
 
