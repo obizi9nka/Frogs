@@ -11,7 +11,8 @@ import "./IFrogReferal.sol";
 import "./Random.sol";
 import 'hardhat/console.sol';
 
-import "../../v3/contracts/core/interfaces/IUniswapV3Pool.sol";
+// import "../../v3/contracts/core/interfaces/IUniswapV3Pool.sol";
+import "../v3-interfaces/INonfungiblePositionManager.sol";
 
 /**
   * @title FrogLottery
@@ -63,7 +64,11 @@ contract FrogLottery is Random, Ownable{
         _;
     }
 
-    constructor(address _token0, address _token1, address _frogReferalAddress, bool _isEthLottery, address _beneficiary, uint _pancakePID) {
+    // v3 
+    address public nonfungiblePositionManager;
+    uint public tokenId;
+
+    constructor(address _token0, address _token1, address _frogReferalAddress, bool _isEthLottery, address _beneficiary, uint _pancakePID, int24 tickLower, int24 tickUpper, address _nonfungiblePositionManager) {
         beneficiary     = _beneficiary;
         maxFeePercent   = 3000; // 30%
         feePercent      = maxFeePercent;
@@ -73,11 +78,32 @@ contract FrogLottery is Random, Ownable{
         isEthLottery    = _isEthLottery;
         setToken0ContractAddress(_token0); // setToken0ContractAddress(0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82);
         setToken1ContractAddress(_token1); // setToken1ContractAddress(0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c);       
-        setUsdContractAddress(0x55d398326f99059fF775485246999027B3197955);
-        setPancakeRouterAddress(0x10ED43C718714eb63d5aA57B78B54704E256024E);
-        setPancakeMCAddress(0xa5f8C5Dbd5F286960b9d90548680aE5ebFf07652);
-        setPancakePairAddress(0x0eD7e52944161450477ee417DE9Cd3a859b14fD0);
+        // setUsdContractAddress(0x55d398326f99059fF775485246999027B3197955);
+        // setPancakeRouterAddress(0x10ED43C718714eb63d5aA57B78B54704E256024E);
+        // setPancakeMCAddress(0xa5f8C5Dbd5F286960b9d90548680aE5ebFf07652);
+        // setPancakePairAddress(0x0eD7e52944161450477ee417DE9Cd3a859b14fD0);
         setFrogReferalAddress(_frogReferalAddress);
+        nonfungiblePositionManager = _nonfungiblePositionManager;
+        createPosition(_token0,_token1,tickUpper,tickLower);
+    }
+
+    function createPosition(address _token0, address _token1, int24 tickLower, int24 tickUpper) private {
+        INonfungiblePositionManager.MintParams memory params =
+            INonfungiblePositionManager.MintParams({
+                token0: _token0,
+                token1: _token1,
+                fee: 500,
+                tickLower: tickLower,
+                tickUpper: tickUpper,
+                amount0Desired: 1<<18,
+                amount1Desired: 1<<18,
+                amount0Min: 0,
+                amount1Min: 0,
+                recipient: address(this),
+                deadline: block.timestamp
+            });
+    // console.log("non",nonfungiblePositionManager);
+    (tokenId,,,) = INonfungiblePositionManager(nonfungiblePositionManager).mint(params);
     }
 
 

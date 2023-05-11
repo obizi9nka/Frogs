@@ -13,6 +13,8 @@ import '../libraries/LiquidityAmounts.sol';
 import './PeripheryPayments.sol';
 import './PeripheryImmutableState.sol';
 
+import 'hardhat/console.sol';
+
 /// @title Liquidity management functions
 /// @notice Internal functions for safely managing liquidity in Uniswap V3
 abstract contract LiquidityManagement is IUniswapV3MintCallback, PeripheryImmutableState, PeripheryPayments {
@@ -57,16 +59,21 @@ abstract contract LiquidityManagement is IUniswapV3MintCallback, PeripheryImmuta
             IUniswapV3Pool pool
         )
     {
+        console.log('addLiquidity');
         PoolAddress.PoolKey memory poolKey =
             PoolAddress.PoolKey({token0: params.token0, token1: params.token1, fee: params.fee});
 
         pool = IUniswapV3Pool(PoolAddress.computeAddress(factory, poolKey));
+        console.log(address(pool));
 
         // compute the liquidity amount
         {
+            console.log("here");
             (uint160 sqrtPriceX96, , , , , , ) = pool.slot0();
+            console.log(uint(sqrtPriceX96));
             uint160 sqrtRatioAX96 = TickMath.getSqrtRatioAtTick(params.tickLower);
             uint160 sqrtRatioBX96 = TickMath.getSqrtRatioAtTick(params.tickUpper);
+            console.log(uint(sqrtPriceX96), 2);
 
             liquidity = LiquidityAmounts.getLiquidityForAmounts(
                 sqrtPriceX96,
@@ -76,6 +83,7 @@ abstract contract LiquidityManagement is IUniswapV3MintCallback, PeripheryImmuta
                 params.amount1Desired
             );
         }
+        console.log(liquidity);
 
         (amount0, amount1) = pool.mint(
             params.recipient,
@@ -85,6 +93,10 @@ abstract contract LiquidityManagement is IUniswapV3MintCallback, PeripheryImmuta
             abi.encode(MintCallbackData({poolKey: poolKey, payer: msg.sender}))
         );
 
+        console.log(amount0, amount1);
+        
+
         require(amount0 >= params.amount0Min && amount1 >= params.amount1Min, 'Price slippage check');
+        console.log('addLiquidity end');
     }
 }

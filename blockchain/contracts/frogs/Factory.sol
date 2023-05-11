@@ -4,11 +4,12 @@ pragma solidity ^0.8.0;
 
 import "./FrogLottery.sol";
 import "./IFrogReferal.sol";
-import "../pancekeswap-fork/utils/interfaces/IPancakeFactory.sol";
+import "../v3-interfaces/IUniswapV3Factory.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import 'hardhat/console.sol';
 
 contract Factory is Ownable{
-    mapping(address => mapping(address => address)) public lotteries;
+    mapping(address => mapping(address => mapping(uint24 => address))) public lotteries;
 
     address frogReferalAddress;
     address beneficiary;
@@ -22,9 +23,9 @@ contract Factory is Ownable{
         beneficiary = _beneficiary;
     }
 
-    function createNewLottery(address token0, address token1, uint pancakePID) public onlyOwner{
-        require(IPancakeFactory(pancakeFactory).getPair(token0,token1) != address(0), "pair dont exist");
-        require(lotteries[token0][token1] == address(0), "lottery exist");
+    function createNewLottery(address token0, address token1, uint24 fee, uint pancakePID, int24 tickLower, int24 tickUpper, address nonfungiblePositionManager) public onlyOwner{
+        require(IUniswapV3Factory(pancakeFactory).getPool(token0,token1, fee) != address(0), "pair dont exist");
+        require(lotteries[token0][token1][fee] == address(0), "lottery exist");
         bool isEth = false;
         if(token0 == WETH){
             isEth = true;
@@ -34,9 +35,10 @@ contract Factory is Ownable{
         else if(token1 == WETH){
             isEth = true;
         }
-        address newLottery = address(new FrogLottery(token0,token1,frogReferalAddress,isEth,beneficiary,pancakePID));
-        lotteries[token0][token1] = newLottery;
-        lotteries[token1][token0] = newLottery;
+        // console.log('tiks',uint(tickUpper), uint(tickLower));
+        address newLottery = address(new FrogLottery(token0,token1,frogReferalAddress,isEth,beneficiary,pancakePID, tickLower, tickUpper, nonfungiblePositionManager));
+        lotteries[token0][token1][fee] = newLottery;
+        lotteries[token1][token0][fee] = newLottery;
         IFrogReferal(frogReferalAddress).registerNewLottery(newLottery);
     }
 

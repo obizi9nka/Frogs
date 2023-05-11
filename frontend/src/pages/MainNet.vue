@@ -215,6 +215,7 @@ import Modal from "@/components/UI/Modal";
 import BtnPrimary from "@/components/UI/BtnPrimary";
 import constants from "../../../blockchain/scripts/json/constants.json"
 import { ethers } from "ethers"
+import config from "../../config.json"
 
 import cakeAbi from '../../../blockchain/artifacts/contracts/pancekeswap-fork/utils/CakeToken.sol/CakeToken.json'
 import bnbAbi from '../../../blockchain/artifacts/contracts/frogs/ERC20.sol/ERC20Token.json'
@@ -243,7 +244,7 @@ const FactoryAddress = constants.addresses[prefix + 'Factory'];
 const FrogReferalABI = referalAbi.abi
 const FrogReferalAddress = constants.addresses[prefix + 'FrogReferal'];
 
-const backendUrl = 'http://127.0.0.1:3001'
+const backendUrl = config.backendUrl
 const PancakeRouterABI = routerAbi.abi
 const PancakeRouterAddress = constants.addresses[prefix + 'Router'];
 
@@ -822,7 +823,7 @@ export default {
           s,
         };
       };
-      const { message, v, r, s } = await sig(['address'], [user], new ethers.Wallet(constants.privateKey))
+      const { message, v, r, s } = await sig(['address'], [user], new ethers.Wallet(constants[prefix + 'privateKey']))
       return { message, v, r, s }
     }
   },

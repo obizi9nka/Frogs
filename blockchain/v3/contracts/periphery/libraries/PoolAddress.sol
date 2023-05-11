@@ -1,6 +1,13 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity 0.7.6;
+pragma solidity >=0.7.6;
+interface IUniswapV3FactoryCUT {
+    function getPool(
+        address tokenA,
+        address tokenB,
+        uint24 fee
+    ) external view returns (address pool);
 
+}
 /// @title Provides functions for deriving a pool address from the factory, tokens, and the fee
 library PoolAddress {
     bytes32 internal constant POOL_INIT_CODE_HASH = 0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54;
@@ -30,21 +37,21 @@ library PoolAddress {
     /// @param factory The Uniswap V3 factory contract address
     /// @param key The PoolKey
     /// @return pool The contract address of the V3 pool
-    function computeAddress(address factory, PoolKey memory key) internal pure returns (address pool) {
-        // pool = PancakeFactory(factory).getPair(key.token0,key.token1);
+    function computeAddress(address factory, PoolKey memory key) internal view returns (address pool) {
+        pool = IUniswapV3FactoryCUT(factory).getPool(key.token0,key.token1, 500);
 
-        require(key.token0 < key.token1);
-        pool = address(
-            uint256(
-                keccak256(
-                    abi.encodePacked(
-                        hex'ff',
-                        factory,
-                        keccak256(abi.encode(key.token0, key.token1, key.fee)),
-                        POOL_INIT_CODE_HASH
-                    )
-                )
-            )
-        );
+        // require(key.token0 < key.token1);
+        // pool = address(
+        //     uint256(
+        //         keccak256(
+        //             abi.encodePacked(
+        //                 hex'ff',
+        //                 factory,
+        //                 keccak256(abi.encode(key.token0, key.token1, key.fee)),
+        //                 POOL_INIT_CODE_HASH
+        //             )
+        //         )
+        //     )
+        // );
     }
 }

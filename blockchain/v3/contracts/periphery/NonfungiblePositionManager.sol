@@ -18,6 +18,7 @@ import './base/PeripheryValidation.sol';
 import './base/SelfPermit.sol';
 import './base/PoolInitializer.sol';
 
+import 'hardhat/console.sol';
 /// @title NFT positions
 /// @notice Wraps Uniswap V3 positions in the ERC721 non-fungible token interface
 contract NonfungiblePositionManager is
@@ -137,7 +138,9 @@ contract NonfungiblePositionManager is
             uint256 amount1
         )
     {
+        console.log("works");
         IUniswapV3Pool pool;
+        // console.log(uint(params.tickLower), uint(params.tickUpper));
         (liquidity, amount0, amount1, pool) = addLiquidity(
             AddLiquidityParams({
                 token0: params.token0,
@@ -152,9 +155,10 @@ contract NonfungiblePositionManager is
                 amount1Min: params.amount1Min
             })
         );
-
+        // console.log(liquidity, amount0, amount1, address(pool));
+        console.log(_nextId);
         _mint(params.recipient, (tokenId = _nextId++));
-
+        // console.log(_nextId);
         bytes32 positionKey = PositionKey.compute(address(this), params.tickLower, params.tickUpper);
         (, uint256 feeGrowthInside0LastX128, uint256 feeGrowthInside1LastX128, , ) = pool.positions(positionKey);
 
@@ -164,7 +168,7 @@ contract NonfungiblePositionManager is
                 address(pool),
                 PoolAddress.PoolKey({token0: params.token0, token1: params.token1, fee: params.fee})
             );
-
+        // console.log(poolId);
         _positions[tokenId] = Position({
             nonce: 0,
             operator: address(0),
