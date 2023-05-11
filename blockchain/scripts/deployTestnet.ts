@@ -1,6 +1,6 @@
 import hre from "hardhat";
 const utils = require("./main");
-import { ethers } from 'hardhat';
+import { ethers } from 'ethers';
 import json from "../artifacts/contracts/frogs/FrogLottery.sol/FrogLottery.json";
 import constants from "./json/constants.json";
 const prefix = "sepolia_"
