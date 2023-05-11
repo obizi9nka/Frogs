@@ -2,19 +2,22 @@
 const express = require('express')
 const app = express()
 const port = 3001
-// import { PrismaClient, User } from '@prisma/client'
 const { PrismaClient, User } = require('@prisma/client')
 var cors = require('cors')
 var bodyParser = require('body-parser')
-// import { ethers } from "ethers"
 const { ethers } = require("ethers")
-
+const dotenv = require('dotenv')
 const constants = require("../blockchain/scripts/json/constants.json")
 const lotteryAbi = require("../blockchain/artifacts/contracts/frogs/FrogLottery.sol/FrogLottery.json")
 app.use(cors())
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(express.json())
+dotenv.config()
 const prisma = new PrismaClient()
+
+const PROD = process.env.PROD != 'false'
+const chainId = 11155111
+const infura = 'e896ad4f86a749038fe8e1de62a9b540'
 
 
 app.post('/getUser', async (req: any, res: any) => {
@@ -22,7 +25,7 @@ app.post('/getUser', async (req: any, res: any) => {
         const { wallet } = req.body
         const user = await prisma.user.findUnique({
             where: {
-                wallet
+                wallet: wallet.toLowerCase()
             }
         })
         const referer = await prisma.user.findUnique({
@@ -41,7 +44,10 @@ app.post('/getUser', async (req: any, res: any) => {
 })
 
 app.listen(port, async () => {
-    const provider = new ethers.providers.JsonRpcProvider("http://127.0.0.1:8545")
+    let provider = new ethers.providers.JsonRpcProvider("http://127.0.0.1:8545")
+    if (PROD) {
+        provider = new ethers.providers.InfuraProvider(chainId, infura)
+    }
     const contract = new ethers.Contract(constants.addresses.Lottery_CAKE_BNB, lotteryAbi.abi, new ethers.Wallet(constants.privateKey, provider))
     contract.on('Draw', async (drawNumber: any, allReward: any, participantsReward: any) => {
         console.log(drawNumber.toString(), allReward.toString(), participantsReward.toString())
@@ -51,7 +57,7 @@ app.listen(port, async () => {
         const len = filter.length
         for (let index = len - 1; index >= 0; index--) {
             const element = filter[index];
-            console.log(element.args)
+            // console.log(element.args)
             if (element.args._drawNumber < drawNumber)
                 break
             const user = await prisma.user.findUnique({
@@ -63,7 +69,7 @@ app.listen(port, async () => {
                     refererId: true
                 }
             })
-            console.log(user)
+            // console.log(user)
             const referer = await prisma.user.findUnique({
                 where: {
                     id: user?.refererId as any

@@ -378,7 +378,6 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
         IERC20(token0).transfer(frogReferalAddress,referersReward);
         IERC20(token0).transfer(beneficiary, balance - referersReward);
     }
-     
 
     function farmTotal() public view returns(uint){
         return IMasterChef(pancakeMCAddress).pendingCake(pancakePID, address(this));

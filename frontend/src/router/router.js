@@ -8,12 +8,12 @@ import { createRouter, createWebHistory } from "vue-router";
 const routes = [
     {
         name: 'main-net',
-        path: '/mn',
+        path: '/',
         component: MainNet
     },
     {
         name: 'lottery',
-        path: '/',
+        path: '/lottery',
         component: Lottery
     },
     {

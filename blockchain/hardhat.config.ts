@@ -8,28 +8,6 @@ import { PRIVATE_KEY_1, bscscanApiKey, ethscanApiKey } from './secrets.json';
 
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
-  // solidity: {
-  //   compilers: [
-  //     {
-  //       version: "0.8.1"
-  //     },
-  //     // {
-  //     //   version: "0.5.0"
-  //     // },
-  //     // {
-  //     //   version: "0.6.0"
-  //     // },
-  //     {
-  //       version: "0.7.6"
-  //     },
-  //   ],
-  //   settings: {
-  //     optimizer: {
-  //       enabled: true,
-  //       runs: 2000,
-  //     },
-  //   }
-  // },
   solidity: {
     version: "0.8.1",
     settings: {
@@ -66,7 +44,7 @@ const config: HardhatUserConfig = {
     sepolia: {
       url: "https://sepolia.infura.io/v3/e896ad4f86a749038fe8e1de62a9b540",
       chainId: 11155111,
-      // accounts: [PRIVATE_KEY_1]
+      accounts: [PRIVATE_KEY_1]
     }
   },
   // etherscan: {

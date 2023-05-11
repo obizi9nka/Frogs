@@ -3,6 +3,9 @@ const utils = require("./main");
 import { ethers } from 'hardhat';
 import json from "../artifacts/contracts/frogs/FrogLottery.sol/FrogLottery.json";
 import constants from "./json/constants.json";
+
+const prefix = 'localhost_'
+
 async function main() {
   const [acct1, acct2] = await ethers.getSigners();
 
@@ -16,7 +19,7 @@ async function main() {
   const usdt = await USDT.deploy('USDT', "usdt");
 
   await usdt.deployed();
-  await utils.saveAddress("USDT", usdt.address)
+  await utils.saveAddress(prefix + "USDT", usdt.address)
 
   // ==================
   //        CAKE
@@ -29,7 +32,7 @@ async function main() {
   const cake = await CAKE.deploy();
 
   await cake.deployed();
-  await utils.saveAddress("CAKE", cake.address)
+  await utils.saveAddress(prefix + "CAKE", cake.address)
 
   // ==================
   //         BNB
@@ -40,7 +43,7 @@ async function main() {
   const bnb = await BNB.deploy();
 
   await bnb.deployed();
-  await utils.saveAddress("BNB", bnb.address)
+  await utils.saveAddress(prefix + "BNB", bnb.address)
 
   // ==================
   //     FrogReferal
@@ -51,7 +54,7 @@ async function main() {
   const referal = await Referal.deploy(acct1.address, constants.addressOfPrivateKey);
 
   await referal.deployed();
-  await utils.saveAddress("FrogReferal", referal.address)
+  await utils.saveAddress(prefix + "FrogReferal", referal.address)
 
 
   console.log(1)
@@ -64,7 +67,7 @@ async function main() {
   const pancakeFactory = await PancakeFactory.deploy(acct1.address);
 
   await pancakeFactory.deployed();
-  await utils.saveAddress("PancakeFactory", pancakeFactory.address)
+  await utils.saveAddress(prefix + "PancakeFactory", pancakeFactory.address)
   await pancakeFactory.createPair(cake.address, bnb.address, true)
   await pancakeFactory.createPair(cake.address, usdt.address, false)
   await pancakeFactory.createPair(bnb.address, usdt.address, false)
@@ -80,7 +83,7 @@ async function main() {
   await referal.setFactoryAddress(factory.address)
 
   await factory.deployed();
-  await utils.saveAddress("Factory", factory.address)
+  await utils.saveAddress(prefix + "Factory", factory.address)
 
   await factory.createNewLottery(cake.address, bnb.address, 1)
 
@@ -94,13 +97,13 @@ async function main() {
   const syrupBar = await SyrupBar.deploy(cake.address);
 
   await syrupBar.deployed();
-  await utils.saveAddress("SyrupBar", syrupBar.address)
+  await utils.saveAddress(prefix + "SyrupBar", syrupBar.address)
 
   const MasterChef = await hre.ethers.getContractFactory('MasterChef');
   const masterChef = await MasterChef.deploy(cake.address, syrupBar.address, acct1.address, BigInt(40 * 10 ** 18), 0);
 
   await masterChef.deployed();
-  await utils.saveAddress("MasterChef", masterChef.address)
+  await utils.saveAddress(prefix + "MasterChef", masterChef.address)
 
   // ==================
   //       Router
@@ -110,7 +113,7 @@ async function main() {
   const router = await Router.deploy(pancakeFactory.address, bnb.address);
 
   await router.deployed();
-  await utils.saveAddress("Router", router.address)
+  await utils.saveAddress(prefix + "Router", router.address)
 
   console.log(1)
 
@@ -119,7 +122,7 @@ async function main() {
   // ==================
 
   const lotteryAddress = await factory.lotteries(cake.address, bnb.address)
-  await utils.saveAddress("Lottery_CAKE_BNB", lotteryAddress)
+  await utils.saveAddress(prefix + "Lottery_CAKE_BNB", lotteryAddress)
 
 
 
@@ -145,17 +148,17 @@ async function main() {
   const value = BigInt(10 ** 14);
   const power = 1000000 // 1 || 1000
 
-  await utils.saveAddress("LPToken_CAKE_BNB", await pancakeFactory.getPair(cake.address, bnb.address))
+  await utils.saveAddress(prefix + "LPToken_CAKE_BNB", await pancakeFactory.getPair(cake.address, bnb.address))
   await router.addLiquidityETH(cake.address, BigInt(power * 89 * 10 ** 18), 1, 1, acct1.address, Math.round(Date.now() / 1000) + 60 * 20, { value })
 
   console.log("11")
 
-  await utils.saveAddress("LPToken_CAKE_USDT", await pancakeFactory.getPair(cake.address, usdt.address))
+  await utils.saveAddress(prefix + "LPToken_CAKE_USDT", await pancakeFactory.getPair(cake.address, usdt.address))
   await router.addLiquidity(cake.address, usdt.address, BigInt(power * 10 ** 18), BigInt(power * 3.64 * 10 ** 18), 1, 1, acct1.address, Math.round(Date.now() / 1000) + 60 * 20)
 
   console.log("11")
 
-  await utils.saveAddress("LPToken_BNB_USDT", await pancakeFactory.getPair(bnb.address, usdt.address))
+  await utils.saveAddress(prefix + "LPToken_BNB_USDT", await pancakeFactory.getPair(bnb.address, usdt.address))
   await router.addLiquidityETH(usdt.address, BigInt(power * 323 * 10 ** 18), 1, 1, acct1.address, Math.round(Date.now() / 1000) + 60 * 20, { value })
 
   console.log("11")
