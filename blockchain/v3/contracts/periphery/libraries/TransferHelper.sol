@@ -16,9 +16,11 @@ library TransferHelper {
         address to,
         uint256 value
     ) internal {
-        (bool success, bytes memory data) =
-            token.call(abi.encodeWithSelector(IERC20.transferFrom.selector, from, to, value));
-        require(success && (data.length == 0 || abi.decode(data, (bool))), 'STF');
+        bool success = IERC20(token).transferFrom( from, to, value);
+        // (bool success, bytes memory data) =
+        //     token.call(abi.encodeWithSelector(IERC20.transferFrom.selector, from, to, value));
+        // require(success && (data.length == 0 || abi.decode(data, (bool))), 'STF');
+        require(success, 'STF');
     }
 
     /// @notice Transfers tokens from msg.sender to a recipient

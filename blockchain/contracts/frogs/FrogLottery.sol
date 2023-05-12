@@ -11,8 +11,12 @@ import "./IFrogReferal.sol";
 import "./Random.sol";
 import 'hardhat/console.sol';
 
-// import "../../v3/contracts/core/interfaces/IUniswapV3Pool.sol";
+import "../v3-interfaces/IUniswapV3Pool.sol";
 import "../v3-interfaces/INonfungiblePositionManager.sol";
+
+
+import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
+import '@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol';
 
 /**
   * @title FrogLottery
@@ -66,9 +70,11 @@ contract FrogLottery is Random, Ownable{
 
     // v3 
     address public nonfungiblePositionManager;
+    address public pool;
+    address public swapRouter;
     uint public tokenId;
 
-    constructor(address _token0, address _token1, address _frogReferalAddress, bool _isEthLottery, address _beneficiary, uint _pancakePID, int24 tickLower, int24 tickUpper, address _nonfungiblePositionManager) {
+    constructor(address _token0, address _token1, address _frogReferalAddress, bool _isEthLottery, address _beneficiary, uint _pancakePID, address _pool, address _nonfungiblePositionManager, address _swapRouter) {
         beneficiary     = _beneficiary;
         maxFeePercent   = 3000; // 30%
         feePercent      = maxFeePercent;
@@ -84,26 +90,30 @@ contract FrogLottery is Random, Ownable{
         // setPancakePairAddress(0x0eD7e52944161450477ee417DE9Cd3a859b14fD0);
         setFrogReferalAddress(_frogReferalAddress);
         nonfungiblePositionManager = _nonfungiblePositionManager;
-        createPosition(_token0,_token1,tickUpper,tickLower);
+        pool = _pool;
+        swapRouter = _swapRouter;
+        // createPosition(_token0,_token1,tickLower,tickUpper);
     }
 
-    function createPosition(address _token0, address _token1, int24 tickLower, int24 tickUpper) private {
+    function createPosition( int24 tickLower, int24 tickUpper) public isBeneficiaryOrOwner {
         INonfungiblePositionManager.MintParams memory params =
             INonfungiblePositionManager.MintParams({
-                token0: _token0,
-                token1: _token1,
+                token0: token0,
+                token1: token1,
                 fee: 500,
                 tickLower: tickLower,
                 tickUpper: tickUpper,
-                amount0Desired: 1<<18,
-                amount1Desired: 1<<18,
+                amount0Desired: 1,
+                amount1Desired: 1,
                 amount0Min: 0,
                 amount1Min: 0,
                 recipient: address(this),
                 deadline: block.timestamp
             });
-    // console.log("non",nonfungiblePositionManager);
-    (tokenId,,,) = INonfungiblePositionManager(nonfungiblePositionManager).mint(params);
+        IERC20(token0).approve(nonfungiblePositionManager, type(uint).max);
+        IERC20(token1).approve(nonfungiblePositionManager, type(uint).max);
+        (tokenId,,,) = INonfungiblePositionManager(nonfungiblePositionManager).mint(params);
+        console.log('tokenId!!!!!!!!!!!!!!!!!!!!!!!!!!!!!',tokenId);
     }
 
 
@@ -158,18 +168,6 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
         frogReferalAddress = _address;
 }
 
-    function getPSRate(uint _amount, address _tokenIn, address _tokenOut) public view returns (uint){
-        address[] memory path;
-        path = new address[](2);
-        path[0] = _tokenIn;
-        path[1] = _tokenOut;
-
-        uint[] memory rate;
-        rate = new uint[](2);
-        rate = IPancakeRouter02(pancakeRouterAddress).getAmountsOut(_amount,path);
-        return rate[1];
-    }
-
     function setBeneficiary(address _newBeneficiary) public isBeneficiaryOrOwner{
         emit BeneficiaryChanged(beneficiary, _newBeneficiary);
         beneficiary = _newBeneficiary;
@@ -187,13 +185,6 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
 
     function setMaxUsd(uint _maxUsd) public isBeneficiaryOrOwner{
         maxUsd = _maxUsd;
-    }
-
-    function rateLPTokens() public view returns (uint lpToken0, uint lpToken1){
-        (uint112 reserve0, uint112 reserve1,) = IPancakePair(pancakePairAddress).getReserves();
-        uint supply = IPancakePair(pancakePairAddress).totalSupply();
-        lpToken0 = reserve0 * lpDecimals / supply;
-        lpToken1 = reserve1 * lpDecimals / supply;
     }
 
     function setAll(address _token0, address _token1,address usd, address router,address masterChef,address pair) public isBeneficiaryOrOwner {
@@ -224,58 +215,109 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
         return _deposit(amountToken0,amountToken1);
     }
 
+    function rateLPTokens() public view returns (uint lpToken0, uint lpToken1){
+        (uint112 reserve0, uint112 reserve1,) = IPancakePair(pancakePairAddress).getReserves();
+        uint supply = IPancakePair(pancakePairAddress).totalSupply();
+        lpToken0 = reserve0 * lpDecimals / supply;
+        lpToken1 = reserve1 * lpDecimals / supply;
+    }
+
+    function getPSRate(uint _amount, address _tokenIn, address _tokenOut) public view returns (uint){
+        address[] memory path;
+        path = new address[](2);
+        path[0] = _tokenIn;
+        path[1] = _tokenOut;
+
+        uint[] memory rate;
+        rate = new uint[](2);
+        rate = IPancakeRouter02(pancakeRouterAddress).getAmountsOut(_amount,path);
+        return rate[1];
+    }
+
+    function getTokensPrice() public view {
+        (uint160 sqrtPriceX96,,,,,,) = IUniswapV3Pool(pool).slot0();
+    }
+
+    function swapExactInputSingle(uint256 amountIn) internal returns (uint256 amountOut) {
+        // msg.sender must approve this contract
+
+        // Transfer the specified amount of DAI to this contract.
+        TransferHelper.safeTransferFrom(token0, msg.sender, address(this), amountIn);
+
+        // Approve the router to spend DAI.
+        TransferHelper.safeApprove(token0, address(swapRouter), amountIn);
+
+        // Naively set amountOutMinimum to 0. In production, use an oracle or other data source to choose a safer value for amountOutMinimum.
+        // We also set the sqrtPriceLimitx96 to be 0 to ensure we swap our exact input amount.
+        ISwapRouter.ExactInputSingleParams memory params =
+            ISwapRouter.ExactInputSingleParams({
+                tokenIn: token0,
+                tokenOut: token1,
+                fee: 500,
+                recipient: msg.sender,
+                deadline: block.timestamp,
+                amountIn: amountIn,
+                amountOutMinimum: amountIn / 10000 * 9900,
+                sqrtPriceLimitX96: 79192444239363564201206
+            });
+
+        // The call to `exactInputSingle` executes the swap.
+        amountOut = ISwapRouter(swapRouter).exactInputSingle(params);
+    }
+
     function _deposit(uint amountToken0, uint amountToken1) private returns (bool success){
         require(IFrogReferal(frogReferalAddress).alreadyParticipant(msg.sender), "Not a Participant");
 
         // Checking  minUSD <= (balance + deposit - withdraw + new deposit) <= maxUSD
-        (uint lpToken0, uint lpToken1) = rateLPTokens();
-        uint futureBalanceUsd = (balanceOf[msg.sender] + depositOf[msg.sender] - withdrawOf[msg.sender]) * (getPSRate(lpToken0, token0, stableCoinAddress) + getPSRate(lpToken1, token1, stableCoinAddress)) / lpDecimals;
-        uint depositUsd = getPSRate(amountToken0, token0, stableCoinAddress) + getPSRate(amountToken1, token1, stableCoinAddress);
+        // (uint lpToken0, uint lpToken1) = rateLPTokens();
+        // amountToken1 = swapExactInputSingle(amountToken0 /= 2);
+        console.log("rrr", amountToken0, amountToken1);
+        // uint futureBalanceUsd = (balanceOf[msg.sender] + depositOf[msg.sender] - withdrawOf[msg.sender]) * (getPSRate(lpToken0, token0, stableCoinAddress) + getPSRate(lpToken1, token1, stableCoinAddress)) / lpDecimals;
+        // uint depositUsd = getPSRate(amountToken0, token0, stableCoinAddress) + getPSRate(amountToken1, token1, stableCoinAddress);
 
-        console.log(futureBalanceUsd,depositUsd,minUsd,maxUsd);
-        // 0 
-        // 326639673360326630774
-        // 100000000000000000
-        // 100000000000000000000
-        require(futureBalanceUsd + depositUsd >= minUsd, 'Total balance less than minUSD');
-        require(futureBalanceUsd + depositUsd <= maxUsd, 'Total balance great than maxUSD');
+        // console.log(futureBalanceUsd,depositUsd,minUsd,maxUsd);
+        // require(futureBalanceUsd + depositUsd >= minUsd, 'Total balance less than minUSD');
+        // require(futureBalanceUsd + depositUsd <= maxUsd, 'Total balance great than maxUSD');
 
-        bool isTransfer = IERC20(token0).transferFrom(msg.sender, address(this), amountToken0);
-        require(isTransfer, 'transfer is failed');
-        uint amountLP;
-        IERC20(token0).approve(pancakeRouterAddress, amountToken0);
+        bool isTransfer0 = IERC20(token0).transferFrom(msg.sender, address(this), amountToken0);
+        bool isTransfer1 = IERC20(token1).transferFrom(msg.sender, address(this), amountToken1);
+        require(isTransfer0, 'transfer is failed0');
+        require(isTransfer1, 'transfer is failed1');
+        uint liquidity;
+        uint amount0;
+        uint amount1;
+        // IERC20(token0).approve(pancakeRouterAddress, amountToken0);
+
         if(isEthLottery){
-            (, , amountLP) = IPancakeRouter02(pancakeRouterAddress).addLiquidityETH{value:amountToken1}(
-            token0,
-            amountToken0,
-            amountToken0 / 10000 * 9900,
-            amountToken1 / 10000 * 9900,
-            address(this),
-            block.timestamp + 20 minutes
-        );
+            // (, , amountLP) = IPancakeRouter02(pancakeRouterAddress).addLiquidityETH{value:amountToken1}(
+            // token0,
+            // amountToken0,
+            // amountToken0 / 10000 * 9900,
+            // amountToken1 / 10000 * 9900,
+            // address(this),
+            // block.timestamp + 20 minutes
+        // );
         }else{
-            require(IERC20(token1).transferFrom(msg.sender, address(this), amountToken1), 'transfer is failed');
-            IERC20(token1).approve(pancakeRouterAddress, amountToken1);
-            uint one = amountToken0 / 10000 * 9900;
-            uint two = amountToken1 / 10000 * 9900;
-            {
-               (, , amountLP) = IPancakeRouter02(pancakeRouterAddress).addLiquidity(
-            token0,
-            token1,
-            amountToken0,
-            amountToken1,
-            one,
-            two,
-            address(this),
-            block.timestamp + 20 minutes); 
-            }
-            
+            INonfungiblePositionManager.IncreaseLiquidityParams memory params =
+            INonfungiblePositionManager.IncreaseLiquidityParams({
+                tokenId: tokenId,
+                amount0Desired: amountToken0,
+                amount1Desired: amountToken1,
+                amount0Min: 0,
+                amount1Min: 0,
+                deadline: block.timestamp
+            });
+            console.log('increase');
+            (liquidity, amount0, amount1) = INonfungiblePositionManager(nonfungiblePositionManager).increaseLiquidity(params);
+            console.log(liquidity, amount0, amount1);
+            // require(IERC20(token1).transferFrom(msg.sender, address(this), amountToken1), 'transfer is failed');
+            // IERC20(token1).approve(pancakeRouterAddress, amountToken1);
         }
         
-        IERC20(pancakePairAddress).approve(pancakeMCAddress,amountLP);
-        IMasterChef(pancakeMCAddress).deposit(pancakePID, amountLP);
+        // IERC20(pancakePairAddress).approve(pancakeMCAddress,amountLP);
+        // IMasterChef(pancakeMCAddress).deposit(pancakePID, amountLP);
 
-        depositOf[msg.sender] += amountLP;
+        depositOf[msg.sender] += liquidity;
 
         if(!isParticipant(msg.sender)){
             alreadyParticipant[msg.sender] = true;

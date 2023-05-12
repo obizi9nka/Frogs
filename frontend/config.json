@@ -1,3 +1,4 @@
 {
-    "backendUrl": "http://127.0.0.1:3001"
+    "backendUrl_replaceMe": "http://127.0.0.1:3001",
+    "backendUrl": "https://frogs-api.test-mvp.ru"
 }

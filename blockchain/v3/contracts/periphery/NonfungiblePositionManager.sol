@@ -138,9 +138,8 @@ contract NonfungiblePositionManager is
             uint256 amount1
         )
     {
-        console.log("works");
         IUniswapV3Pool pool;
-        // console.log(uint(params.tickLower), uint(params.tickUpper));
+        console.log('mint');
         (liquidity, amount0, amount1, pool) = addLiquidity(
             AddLiquidityParams({
                 token0: params.token0,
@@ -155,9 +154,10 @@ contract NonfungiblePositionManager is
                 amount1Min: params.amount1Min
             })
         );
-        // console.log(liquidity, amount0, amount1, address(pool));
-        console.log(_nextId);
+        console.log('mint2');
         _mint(params.recipient, (tokenId = _nextId++));
+        console.log(liquidity, amount0, amount1, address(pool));
+
         // console.log(_nextId);
         bytes32 positionKey = PositionKey.compute(address(this), params.tickLower, params.tickUpper);
         (, uint256 feeGrowthInside0LastX128, uint256 feeGrowthInside1LastX128, , ) = pool.positions(positionKey);
@@ -168,7 +168,7 @@ contract NonfungiblePositionManager is
                 address(pool),
                 PoolAddress.PoolKey({token0: params.token0, token1: params.token1, fee: params.fee})
             );
-        // console.log(poolId);
+        console.log("poolId",poolId);
         _positions[tokenId] = Position({
             nonce: 0,
             operator: address(0),
@@ -212,7 +212,9 @@ contract NonfungiblePositionManager is
     {
         Position storage position = _positions[params.tokenId];
 
+        console.log(uint(position.poolId));
         PoolAddress.PoolKey memory poolKey = _poolIdToPoolKey[position.poolId];
+        console.log(uint(poolKey.fee));
 
         IUniswapV3Pool pool;
         (liquidity, amount0, amount1, pool) = addLiquidity(
