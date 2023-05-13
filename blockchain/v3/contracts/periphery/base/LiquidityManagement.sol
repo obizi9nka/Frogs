@@ -32,9 +32,9 @@ abstract contract LiquidityManagement is IUniswapV3MintCallback, PeripheryImmuta
         MintCallbackData memory decoded = abi.decode(data, (MintCallbackData));
         CallbackValidation.verifyCallback(factory, decoded.poolKey);
 
-        console.log(decoded.poolKey.token0, decoded.payer, msg.sender, amount0Owed);
+        // console.log(decoded.poolKey.token0, decoded.payer, msg.sender, amount0Owed);
         if (amount0Owed > 0) pay(decoded.poolKey.token0, decoded.payer, msg.sender, amount0Owed);
-        console.log(decoded.poolKey.token1, decoded.payer, msg.sender, amount0Owed);
+        // console.log(decoded.poolKey.token1, decoded.payer, msg.sender, amount0Owed);
         if (amount1Owed > 0) pay(decoded.poolKey.token1, decoded.payer, msg.sender, amount1Owed);
     }
 
@@ -61,20 +61,23 @@ abstract contract LiquidityManagement is IUniswapV3MintCallback, PeripheryImmuta
             IUniswapV3Pool pool
         )
     {
-        console.log('addLiquidity');
+        // console.log('addLiquidity');
         PoolAddress.PoolKey memory poolKey =
             PoolAddress.PoolKey({token0: params.token0, token1: params.token1, fee: params.fee});
 
         pool = IUniswapV3Pool(PoolAddress.computeAddress(factory, poolKey));
-        console.log(params.token0,params.token1,params.fee);
-        console.log('pool',address(pool));
+        // console.log(params.token0,params.token1,params.fee);
+        // console.log('pool',address(pool));
         // compute the liquidity amount
         {
             (uint160 sqrtPriceX96, , , , , , ) = pool.slot0();
-            console.log('sqrtPriceX96',sqrtPriceX96);
+            // console.log('sqrtPriceX96',sqrtPriceX96);
             uint160 sqrtRatioAX96 = TickMath.getSqrtRatioAtTick(params.tickLower);
             uint160 sqrtRatioBX96 = TickMath.getSqrtRatioAtTick(params.tickUpper);
+            console.log('sqrtRatioAX96',sqrtRatioAX96);
             console.log('sqrtRatioBX96',sqrtRatioBX96);
+            console.log(params.amount0Desired);
+            console.log(params.amount1Desired);
 
             liquidity = LiquidityAmounts.getLiquidityForAmounts(
                 sqrtPriceX96,
@@ -83,6 +86,10 @@ abstract contract LiquidityManagement is IUniswapV3MintCallback, PeripheryImmuta
                 params.amount0Desired,
                 params.amount1Desired
             );
+            //  79208487693028943765174 // dai/usdt 100
+            //  79228162514264337593543950336 // 28
+            //  7922816251426434139029504 // 24
+            //  79228162514264334008320 // 22
         }
         console.log('liq',liquidity);
 
@@ -94,10 +101,10 @@ abstract contract LiquidityManagement is IUniswapV3MintCallback, PeripheryImmuta
             abi.encode(MintCallbackData({poolKey: poolKey, payer: msg.sender}))
         );
 
-        console.log('amount01',amount0, amount1);
+        console.log('minted',amount0, amount1);
         
 
         require(amount0 >= params.amount0Min && amount1 >= params.amount1Min, 'Price slippage check');
-        console.log('addLiquidity end');
+        // console.log('addLiquidity end');
     }
 }

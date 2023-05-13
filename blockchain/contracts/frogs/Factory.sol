@@ -38,7 +38,7 @@ contract Factory is Ownable{
             isEth = true;
         }
         // console.log('tiks',uint(tickUpper), uint(tickLower));
-        address newLottery = address(new FrogLottery(token0,token1,frogReferalAddress,isEth,beneficiary,pancakePID, _pool, nonfungiblePositionManager,swapRouter));
+        address newLottery = address(new FrogLottery(token0,token1,fee,frogReferalAddress,isEth,beneficiary,pancakePID, _pool, nonfungiblePositionManager,swapRouter));
         lotteries[token0][token1][fee] = newLottery;
         lotteries[token1][token0][fee] = newLottery;
         IFrogReferal(frogReferalAddress).registerNewLottery(newLottery);

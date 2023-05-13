@@ -17,7 +17,7 @@ export async function deployAll() {
     const usdc = await USDC.deploy('USDC', "usdc") as ERC20Token;
 
     await usdc.deployed();
-    console.log(usdc.address)
+    // console.log(usdc.address)
     // ==================
     //        USDT
     // ==================
@@ -25,7 +25,7 @@ export async function deployAll() {
     const usdt = await USDT.deploy('USDT', "usdt") as ERC20Token;
 
     await usdt.deployed();
-    console.log(usdt.address)
+    // console.log(usdt.address)
     // ==================
     //        BUSD
     // ==================
@@ -33,7 +33,7 @@ export async function deployAll() {
     const busd = await BUSD.deploy('BUSD', "busd") as ERC20Token;
 
     await busd.deployed();
-    console.log(busd.address)
+    // console.log(busd.address)
 
     // ==================
     //        BNB
@@ -42,7 +42,7 @@ export async function deployAll() {
     const bnb = await BNB.deploy() as TBnb;
 
     await bnb.deployed();
-    console.log(bnb.address)
+    // console.log(bnb.address)
 
     // ==================
     //     FrogReferal
@@ -51,7 +51,7 @@ export async function deployAll() {
     const referal = await Referal.deploy(acct1.address, acct1.address) as FrogReferal;
 
     await referal.deployed();
-    console.log(referal.address)
+    // console.log(referal.address)
 
 
     // ==================
@@ -61,7 +61,7 @@ export async function deployAll() {
     const pancakeFactory = await PancakeFactory.deploy() as UniswapV3Factory;
 
     await pancakeFactory.deployed();
-    console.log(pancakeFactory.address)
+    // console.log(pancakeFactory.address)
 
     await pancakeFactory.createPool(busd.address, usdt.address, 500)
 
@@ -83,7 +83,7 @@ export async function deployAll() {
                 .toString()
         )
     }
-    const rrr = BigInt(7.9228162514264337593543950336e+28) // encodePriceSqrt(1, 1)
+    const rrr = BigInt(79228162514264337593543950336) // encodePriceSqrt(1, 1)
     // console.log(rrr)
     // const price = BigInt('111111179192444239363564201206')//BigNumber.from(BigInt(10 ** 18 * 2 ** 96))
     const price = rrr
@@ -91,7 +91,7 @@ export async function deployAll() {
     await pool_busd_usdt.initialize(price)
     console.log(await pool_busd_usdt.slot0())
     console.log(await pool_busd_usdt.liquidity())
-    console.log('pool_busd_usdt', pool_busd_usdt.address)
+    // console.log(pool_busd_usdt', pool_busd_usdt.address)
 
     // ==================
     //  NonfungiblePositionManager
@@ -100,7 +100,7 @@ export async function deployAll() {
     const nonfungiblePositionManager = await NonfungiblePositionManager.deploy(pancakeFactory.address, ethers.constants.AddressZero, ethers.constants.AddressZero) as NonfungiblePositionManager;
 
     await nonfungiblePositionManager.deployed();
-    console.log('nonfungiblePositionManager', nonfungiblePositionManager.address)
+    // console.log(nonfungiblePositionManager', nonfungiblePositionManager.address)
 
     // ==================
     //       Router
@@ -108,7 +108,7 @@ export async function deployAll() {
     const SwapRouter = await hre.ethers.getContractFactory('SwapRouter');
     const router = await SwapRouter.deploy(pancakeFactory.address, bnb.address) as SwapRouter
     await router.deployed();
-    console.log('router', router.address)
+    // console.log(router', router.address)
 
     // ==================
     //       Factory
@@ -117,7 +117,7 @@ export async function deployAll() {
     const factory = await Factory.deploy(referal.address, ethers.constants.AddressZero, pancakeFactory.address, acct1.address, router.address) as Factory;
 
     await factory.deployed();
-    console.log('factory', factory.address)
+    // console.log(factory', factory.address)
 
 
 
@@ -144,24 +144,36 @@ export async function deployAll() {
     await usdt.approve(nonfungiblePositionManager.address, TOKENS_VALUE_20)
 
 
-    // await nonfungiblePositionManager.mint({
-    //     token0: busd.address,
-    //     token1: usdt.address,
-    //     fee: 500,
-    //     tickLower: -280000,
-    //     tickUpper: -260000,
-    //     amount0Desired: BigInt(2 ** 30),
-    //     amount1Desired: BigInt(2 ** 30),
-    //     amount0Min: 0,
-    //     amount1Min: 0,
-    //     recipient: acct1.address,
-    //     deadline: 10000000000000
-    // })
+    const balanceBeforeBusd = await busd.balanceOf(acct1.address)
+    const balanceBeforeUsdt = await usdt.balanceOf(acct1.address)
 
-    // console.log(await nonfungiblePositionManager.positions(1))
-    // console.log(await pool_busd_usdt.liquidity())
-    // console.log("balance0:", (await pool_busd_usdt.balance0()).toString())
-    // console.log((await pool_busd_usdt.balance1()).toString())
+
+
+    await nonfungiblePositionManager.mint({
+        token0: busd.address,
+        token1: usdt.address,
+        fee: 500,
+        tickLower: -100,
+        tickUpper: 100,
+        amount0Desired: BigInt(10 ** 30),
+        amount1Desired: BigInt(10 ** 30),
+        amount0Min: 0,
+        amount1Min: 0,
+        recipient: acct1.address,
+        deadline: 10000000000000
+    })
+
+    console.log(await nonfungiblePositionManager.positions(1))
+    console.log(await pool_busd_usdt.liquidity())
+    console.log("balance0:", (await pool_busd_usdt.balance0()).toString())
+    console.log((await pool_busd_usdt.balance1()).toString())
+
+    const balanceAfterBusd = await busd.balanceOf(acct1.address)
+    const balanceAfterUsdt = await usdt.balanceOf(acct1.address)
+    console.log(balanceBeforeBusd.toString())
+    console.log(balanceBeforeUsdt.toString())
+    console.log(balanceAfterBusd.toString())
+    console.log(balanceAfterUsdt.toString())
 
 
     await factory.createNewLottery(busd.address, usdt.address, 500, 2, pool_busd_usdt.address, nonfungiblePositionManager.address)
@@ -171,7 +183,7 @@ export async function deployAll() {
     await lottery_busd_usdt.createPosition(-1000, 1000)
 
 
-    console.log('lottery_busd_usdt', lottery_busd_usdt.address)
+    // console.log(lottery_busd_usdt', lottery_busd_usdt.address)
 
 
     await busd.approve(lottery_busd_usdt.address, BigInt(10 ** 35))

@@ -126,7 +126,7 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
 
     /// @dev Common checks for valid tick inputs.
     function checkTicks(int24 tickLower, int24 tickUpper) private view {
-        console.log(uint(tickLower),uint(tickUpper));
+        // console.log(uint(tickLower),uint(tickUpper));
         require(tickLower < tickUpper, 'TLU');
         require(tickLower >= TickMath.MIN_TICK, 'TLM');
         require(tickUpper <= TickMath.MAX_TICK, 'TUM');
@@ -315,7 +315,7 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
             int256 amount1
         )
     {
-        console.log('_modifyPosition');
+        // console.log('_modifyPosition');
 
         checkTicks(params.tickLower, params.tickUpper);
 
@@ -328,11 +328,11 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
             params.liquidityDelta,
             _slot0.tick
         );
-        console.log("rrrrrrrrrrrrrrr");
-        console.log(uint(params.liquidityDelta));
-        console.log(uint(_slot0.tick));
-        console.log(uint(params.tickLower));
-        console.log(uint(params.tickUpper));
+        // console.log("rrrrrrrrrrrrrrr");
+        // console.log(uint(params.liquidityDelta));
+        // console.log(uint(_slot0.tick));
+        // console.log(uint(params.tickLower));
+        // console.log(uint(params.tickUpper));
         if (params.liquidityDelta != 0) {
             if (_slot0.tick < params.tickLower) {
                 // current tick is below the passed range; liquidity can only become in range by crossing from left to
@@ -379,7 +379,7 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
                 );
             }
         }
-        console.log('_modifyPosition end');
+        // console.log('_modifyPosition end');
 
     }
 
@@ -395,7 +395,7 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
         int128 liquidityDelta,
         int24 tick
     ) private returns (Position.Info storage position) {
-        console.log('_updatePosition');
+        // console.log('_updatePosition');
         position = positions.get(owner, tickLower, tickUpper);
 
         uint256 _feeGrowthGlobal0X128 = feeGrowthGlobal0X128; // SLOAD for gas optimization
@@ -404,10 +404,10 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
         // if we need to update the ticks, do it
         bool flippedLower;
         bool flippedUpper;
-        console.log("liquidityDelta",uint(liquidityDelta));
+        // console.log("liquidityDelta",uint(liquidityDelta));
         if (liquidityDelta != 0) {
             uint32 time = _blockTimestamp();
-            console.log("time",uint(time));
+            // console.log("time",uint(time));
             (int56 tickCumulative, uint160 secondsPerLiquidityCumulativeX128) =
                 observations.observeSingle(
                     time,
@@ -417,7 +417,7 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
                     liquidity,
                     slot0.observationCardinality
                 );
-            console.log("tickCumulative",uint(tickCumulative),secondsPerLiquidityCumulativeX128);
+            // console.log("tickCumulative",uint(tickCumulative),secondsPerLiquidityCumulativeX128);
 
             flippedLower = ticks.update(
                 tickLower,
@@ -431,7 +431,7 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
                 false,
                 maxLiquidityPerTick
             );
-            console.log(flippedLower);
+            // console.log(flippedLower);
             flippedUpper = ticks.update(
                 tickUpper,
                 tick,
@@ -444,7 +444,7 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
                 true,
                 maxLiquidityPerTick
             );
-            console.log("flippedUpper",flippedUpper);
+            // console.log("flippedUpper",flippedUpper);
 
             if (flippedLower) {
                 tickBitmap.flipTick(tickLower, tickSpacing);
@@ -454,11 +454,11 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
             }
         }
 
-        console.log('getFeeGrowthInside');
+        // console.log('getFeeGrowthInside');
         (uint256 feeGrowthInside0X128, uint256 feeGrowthInside1X128) =
             ticks.getFeeGrowthInside(tickLower, tickUpper, tick, _feeGrowthGlobal0X128, _feeGrowthGlobal1X128);
 
-        console.log('feeGrowthInside0X128',feeGrowthInside0X128,feeGrowthInside1X128);
+        // console.log('feeGrowthInside0X128',feeGrowthInside0X128,feeGrowthInside1X128);
         position.update(liquidityDelta, feeGrowthInside0X128, feeGrowthInside1X128);
 
         // clear any tick data that is no longer needed
@@ -470,7 +470,7 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
                 ticks.clear(tickUpper);
             }
         }
-        console.log('_updatePosition end');
+        // console.log('_updatePosition end');
 
     }
 

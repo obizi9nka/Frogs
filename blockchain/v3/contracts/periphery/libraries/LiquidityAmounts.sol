@@ -3,6 +3,7 @@ pragma solidity >=0.5.0;
 
 import '@uniswap/v3-core/contracts/libraries/FullMath.sol';
 import '@uniswap/v3-core/contracts/libraries/FixedPoint96.sol';
+import 'hardhat/console.sol';
 
 /// @title Liquidity amount functions
 /// @notice Provides functions for computing liquidity amounts from token amounts and prices
@@ -59,7 +60,7 @@ library LiquidityAmounts {
         uint160 sqrtRatioBX96,
         uint256 amount0,
         uint256 amount1
-    ) internal pure returns (uint128 liquidity) {
+    ) internal view returns (uint128 liquidity) {
         if (sqrtRatioAX96 > sqrtRatioBX96) (sqrtRatioAX96, sqrtRatioBX96) = (sqrtRatioBX96, sqrtRatioAX96);
 
         if (sqrtRatioX96 <= sqrtRatioAX96) {
@@ -68,6 +69,7 @@ library LiquidityAmounts {
             uint128 liquidity0 = getLiquidityForAmount0(sqrtRatioX96, sqrtRatioBX96, amount0);
             uint128 liquidity1 = getLiquidityForAmount1(sqrtRatioAX96, sqrtRatioX96, amount1);
 
+            console.log("dadwdawd adw ad wafhbwk fkjah ",uint(liquidity0),uint(liquidity1));
             liquidity = liquidity0 < liquidity1 ? liquidity0 : liquidity1;
         } else {
             liquidity = getLiquidityForAmount1(sqrtRatioAX96, sqrtRatioBX96, amount1);

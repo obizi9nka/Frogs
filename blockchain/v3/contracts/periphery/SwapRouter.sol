@@ -16,6 +16,7 @@ import './libraries/Path.sol';
 import './libraries/PoolAddress.sol';
 import './libraries/CallbackValidation.sol';
 import './interfaces/external/IWETH9.sol';
+import 'hardhat/console.sol';
 
 /// @title Uniswap V3 Swap Router
 /// @notice Router for stateless execution of swaps against Uniswap V3
@@ -107,6 +108,7 @@ contract SwapRouter is
                     : sqrtPriceLimitX96,
                 abi.encode(data)
             );
+        console.log("trwtrtwrttwtr",uint(amount0),uint(amount1));
 
         return uint256(-(zeroForOne ? amount1 : amount0));
     }
@@ -125,6 +127,8 @@ contract SwapRouter is
             params.sqrtPriceLimitX96,
             SwapCallbackData({path: abi.encodePacked(params.tokenIn, params.fee, params.tokenOut), payer: msg.sender})
         );
+
+        console.log("exactInputSingle",amountOut);
         require(amountOut >= params.amountOutMinimum, 'Too little received');
     }
 
