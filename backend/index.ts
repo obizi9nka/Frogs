@@ -22,12 +22,16 @@ const infura = 'e896ad4f86a749038fe8e1de62a9b540'
 
 app.post('/getUser', async (req: any, res: any) => {
     try {
-        const { wallet } = req.body
+        let { wallet } = req.body
+        console.log(wallet, wallet.toLowerCase())
+        wallet = wallet.toLowerCase()
+        console.log(wallet)
         const user = await prisma.user.findUnique({
             where: {
-                wallet: wallet.toLowerCase()
+                wallet
             }
         })
+        console.log(user)
         const referer = await prisma.user.findUnique({
             where: {
                 id: user.refererId
@@ -38,8 +42,8 @@ app.post('/getUser', async (req: any, res: any) => {
         })
         res.send({ user, referer })
     } catch (error) {
-        res.send({ user: null })
         console.log(error)
+        res.send({ user: null, error })
     }
 })
 
