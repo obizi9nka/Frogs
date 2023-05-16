@@ -63,9 +63,11 @@ export async function deployAll() {
     await pancakeFactory.deployed();
     // console.log(pancakeFactory.address)
 
-    await pancakeFactory.createPool(busd.address, usdt.address, 500)
+    const fee = 500;
 
-    const pool_busd_usdt = new ethers.Contract(await pancakeFactory.getPool(busd.address, usdt.address, 500), jsonPool.abi, acct1) as UniswapV3Pool
+    await pancakeFactory.createPool(busd.address, usdt.address, fee)
+
+    const pool_busd_usdt = new ethers.Contract(await pancakeFactory.getPool(busd.address, usdt.address, fee), jsonPool.abi, acct1) as UniswapV3Pool
 
     // 79204448054751562486699905150
     // 79192444239363564201206
@@ -119,10 +121,6 @@ export async function deployAll() {
     await factory.deployed();
     // console.log(factory', factory.address)
 
-
-
-
-
     await referal.setFactoryAddress(factory.address)
 
     const TOKENS_VALUE_20 = BigInt(10 ** 35)
@@ -147,12 +145,10 @@ export async function deployAll() {
     const balanceBeforeBusd = await busd.balanceOf(acct1.address)
     const balanceBeforeUsdt = await usdt.balanceOf(acct1.address)
 
-
-
     await nonfungiblePositionManager.mint({
         token0: busd.address,
         token1: usdt.address,
-        fee: 500,
+        fee,
         tickLower: -100,
         tickUpper: 100,
         amount0Desired: BigInt(10 ** 30),
@@ -176,8 +172,8 @@ export async function deployAll() {
     console.log(balanceAfterUsdt.toString())
 
 
-    await factory.createNewLottery(busd.address, usdt.address, 500, 2, pool_busd_usdt.address, nonfungiblePositionManager.address)
-    const lottery_busd_usdt = new ethers.Contract(await factory.lotteries(busd.address, usdt.address, 500), json.abi, acct1) as FrogLottery
+    await factory.createNewLottery(busd.address, usdt.address, fee, 2, pool_busd_usdt.address, nonfungiblePositionManager.address)
+    const lottery_busd_usdt = new ethers.Contract(await factory.lotteries(busd.address, usdt.address, fee), json.abi, acct1) as FrogLottery
     await busd.transfer(lottery_busd_usdt.address, BigInt(10 ** 20))
     await usdt.transfer(lottery_busd_usdt.address, BigInt(10 ** 20))
     await lottery_busd_usdt.createPosition(-1000, 1000)
@@ -286,5 +282,5 @@ export async function deployAll() {
     // await masterChef.add(1, await pancakeFactory.getPair(cake.address, usdt.address), false)
 
     // return { cake, bnb, usdt, router, lottery, masterChef, pancakeFactory, syrupBar, factory, referal, lotteryERC20, usdc } as allContractsFromDeploy
-    return ({ usdc, usdt, busd, pool_busd_usdt, lottery_busd_usdt, pancakeFactory, router, nonfungiblePositionManager, factory, referal })
+    return ({ usdc, usdt, busd, pool_busd_usdt, lottery_busd_usdt, SwapRouter, pancakeFactory, router, nonfungiblePositionManager, factory, referal, fee })
 }

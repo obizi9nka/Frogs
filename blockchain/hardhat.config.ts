@@ -49,9 +49,9 @@ const config: HardhatUserConfig = {
             accounts: [PRIVATE_KEY_1]
         }
     },
-    // etherscan: {
-    //   apiKey: ethscanApiKey
-    // }
+    etherscan: {
+        apiKey: ethscanApiKey
+    }
 }
 
 export default config;

@@ -40,6 +40,32 @@ describe("FrogLottery MainLogic", function () {
             await lottery.withdraw(balance)
         })
         let isFirstWinner = false;
+        it('swap to generate fee', async () => {
+            const [acct1, acct2] = await ethers.getSigners();
+
+            await all.busd.approve(all.router.address, BigInt(10 ** 36))
+
+            const params = {
+                tokenIn: all.busd.address,
+                tokenOut: all.usdt.address,
+                fee: all.fee,
+                recipient: acct1.address,
+                deadline: 1000000000000,
+                amountIn: BigInt(10 ** 30),
+                amountOutMinimum: BigInt(10 ** 29),
+                sqrtPriceLimitX96: 0
+            }
+
+            const balanceBeforeBusd = await all.busd.balanceOf(acct1.address)
+            const balanceBeforeUsdt = await all.usdt.balanceOf(acct1.address)
+            await all.router.exactInputSingle(params)
+            const balanceAfterBusd = await all.busd.balanceOf(acct1.address)
+            const balanceAfterUsdt = await all.usdt.balanceOf(acct1.address)
+            console.log(balanceBeforeBusd.toString())
+            console.log(balanceBeforeUsdt.toString())
+            console.log(balanceAfterBusd.toString())
+            console.log(balanceAfterUsdt.toString())
+        })
         it("second draw with participants", async () => {
             const [acct1, acct2] = await ethers.getSigners();
             await lottery.draw()
