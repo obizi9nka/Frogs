@@ -283,6 +283,8 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
         // console.log(futureBalanceUsd,depositUsd,minUsd,maxUsd);
         // require(futureBalanceUsd + depositUsd >= minUsd, 'Total balance less than minUSD');
         // require(futureBalanceUsd + depositUsd <= maxUsd, 'Total balance great than maxUSD');
+        TransferHelper.safeTransferFrom(token0, msg.sender, address(this), amountToken0);
+        TransferHelper.safeTransferFrom(token1, msg.sender, address(this), amountToken1);
 
         uint liquidity;
         uint amount0;
@@ -424,11 +426,25 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
                             amount1Min: 0,
                             deadline: block.timestamp
                         });
+                        console.log(IERC20(token0).balanceOf(address(this)));
+                        console.log(IERC20(token1).balanceOf(address(this)));
+                        (uint amount0, uint amount1) = INonfungiblePositionManager(nonfungiblePositionManager).decreaseLiquidity(params);
 
-                        (uint amount0,uint amount1) = INonfungiblePositionManager(nonfungiblePositionManager).decreaseLiquidity(params);
+                        INonfungiblePositionManager.CollectParams memory paramsCollect =
+                        INonfungiblePositionManager.CollectParams({
+                            tokenId: tokenId,
+                            recipient: address(this),
+                            amount0Max: type(uint128).max,
+                            amount1Max: type(uint128).max
+                        });
 
-                        IERC20(token0).transfer(user,amount0);
-                        IERC20(token1).transfer(user,amount1);
+                        (uint amount0Collect, uint amount1Collect) = INonfungiblePositionManager(nonfungiblePositionManager).collect(paramsCollect);
+                        console.log(IERC20(token0).balanceOf(address(this)));
+                        console.log(IERC20(token1).balanceOf(address(this)));
+                        console.log(amount0, amount1);
+                        console.log(amount0Collect, amount1Collect);
+                        IERC20(token0).transfer(user,amount0Collect);
+                        IERC20(token1).transfer(user,amount1Collect);
                     }
                     
 
@@ -450,7 +466,7 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
 
         (uint amount0, uint amount1) = INonfungiblePositionManager(nonfungiblePositionManager).collect(params);
         // (,,,,,int24 tickLower, int24 tickUpper, ,,,,) = INonfungiblePositionManager(nonfungiblePositionManager).positions(tokenId);
-        console.log(amount0,amount1);
+        console.log('collect',amount0,amount1);
 
         // uint rewardInLiquidity = calculateLiqFromAmounts(amount0,amount1,tickLower,tickUpper);
 

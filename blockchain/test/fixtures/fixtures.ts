@@ -171,9 +171,9 @@ export async function deployAll() {
     params.token1 = usdc.address
     await nonfungiblePositionManager.mint(params)
 
-    // params.token0 = busd.address
-    // params.token1 = usdc.address
-    // await nonfungiblePositionManager.mint(params)
+    params.token0 = busd.address
+    params.token1 = usdc.address
+    await nonfungiblePositionManager.mint(params)
 
     // console.log(await nonfungiblePositionManager.positions(1))
     // console.log(await pool_busd_usdt.liquidity())
@@ -190,8 +190,8 @@ export async function deployAll() {
 
     await factory.createNewLottery(busd.address, usdt.address, fee, 2, pool_busd_usdt.address, nonfungiblePositionManager.address, usdc.address)
     const lottery_busd_usdt = new ethers.Contract(await factory.lotteries(busd.address, usdt.address, fee), json.abi, acct1) as FrogLottery
-    await busd.transfer(lottery_busd_usdt.address, BigInt(10 ** 20))
-    await usdt.transfer(lottery_busd_usdt.address, BigInt(10 ** 20))
+    await busd.transfer(lottery_busd_usdt.address, 1)
+    await usdt.transfer(lottery_busd_usdt.address, 1)
     await lottery_busd_usdt.createPosition(-1000, 1000)
 
 

@@ -108,8 +108,6 @@ contract SwapRouter is
                     : sqrtPriceLimitX96,
                 abi.encode(data)
             );
-        console.log("trwtrtwrttwtr",uint(amount0),uint(amount1));
-
         return uint256(-(zeroForOne ? amount1 : amount0));
     }
 

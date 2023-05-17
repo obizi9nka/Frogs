@@ -392,7 +392,7 @@ export default {
         return quote.toString() / (10 ** token1Decimals)
       }
 
-      console.log('price', 1 / getPrice(1, BigInt(1857259621983179994159796290), 18, 18))
+      // console.log('price', 1 / getPrice(1, BigInt(1857259621983179994159796290), 18, 18))
       // console.log('price', 1 / getPrice(1, (await pool.methods.slot0().call()).sqrtPriceX96, 18, 18))
       const token0PerToken1 = getPrice(1, (await pool.methods.slot0().call()).sqrtPriceX96, 18, 18)
       const token1PerToken0 = 1 / token0PerToken1

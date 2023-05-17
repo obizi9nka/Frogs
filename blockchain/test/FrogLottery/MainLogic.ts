@@ -77,6 +77,7 @@ describe("FrogLottery MainLogic", function () {
             const data = await lottery.queryFilter(filter)
             const refererReward0 = data[0].args._amountToken0.div(100).mul(3)
             const refererReward1 = data[0].args._amountToken1.div(100).mul(3)
+
             await lottery.afterDraw([{ wallet: isFirstWinner ? ethers.constants.AddressZero : acct1.address, reward0: refererReward0, reward1: refererReward1 }], refererReward0, refererReward1)
         })
         it('claim reward', async () => {
@@ -127,11 +128,11 @@ describe("FrogLottery MainLogic", function () {
             expect(balanceAfterBusd).to.be.equal(balanceBeforeBusd.add(rewardOfToken0))
             expect(balanceAfterUsdt).to.be.equal(balanceBeforeUsdt.add(rewardOfToken1))
         })
-        // it("deposit", async () => {
-        //     const [acct1, acct2, acct3] = await ethers.getSigners();
+        it("deposit", async () => {
+            const [acct1, acct2, acct3] = await ethers.getSigners();
 
-        //     await lottery.deposit(all.usdc.address, decimals);
-        // });
+            await lottery.deposit(all.usdc.address, decimals);
+        });
     }
     mainLogic(true)
     // mainLogic(false)
