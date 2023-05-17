@@ -1,192 +1,194 @@
 import hre from "hardhat";
-const utils = require("./main");
-import { ethers } from 'ethers';
+import { ethers } from 'hardhat';
 import json from "../artifacts/contracts/frogs/FrogLottery.sol/FrogLottery.json";
-import constants from "./json/constants.json";
-const prefix = "sepolia_"
-import secret from "../secrets.json"
+import jsonPool from "../artifacts/contracts/core/UniswapV3Pool.sol/UniswapV3Pool.json"
+import { ERC20Token, Factory, FrogLottery, FrogReferal, TBnb } from "../typechain-types";
+const utils = require("./main");
+import { allContractsFromDeploy } from "../@types";
+import { NonfungiblePositionManager, SwapRouter, UniswapV3Factory, UniswapV3Pool } from "../v3/typechain-types";
+import { BigNumber } from "ethers";
+import bn from 'bignumber.js'
 
-async function main() {
-  const acct1 = new ethers.Wallet(secret.PRIVATE_KEY_1, new ethers.providers.InfuraProvider('sepolia', 'e896ad4f86a749038fe8e1de62a9b540'))
+const prefix = 'localhost_'
 
+export async function deployAll() {
+  const [acct1, acct2, acct3, acct4] = await ethers.getSigners();
+  // ==================
+  //        USDC
+  // ==================
+  const USDC = await hre.ethers.getContractFactory('ERC20Token');
+  const usdc = await USDC.deploy('USDC', "usdc") as ERC20Token;
+
+  await usdc.deployed();
+  await utils.saveAddress("USDT", usdc.address)
+  // console.log(usdc.address)
   // ==================
   //        USDT
   // ==================
-
-  console.log(1)
-
   const USDT = await hre.ethers.getContractFactory('ERC20Token');
-  const usdt = await USDT.deploy('USDT', "usdt");
+  const usdt = await USDT.deploy('USDT', "usdt") as ERC20Token;
 
   await usdt.deployed();
-  await utils.saveAddress(prefix + "USDT", usdt.address)
+  // console.log(usdt.address)
+  // ==================
+  //        BUSD
+  // ==================
+  const BUSD = await hre.ethers.getContractFactory('ERC20Token');
+  const busd = await BUSD.deploy('BUSD', "busd") as ERC20Token;
+
+  await busd.deployed();
+  // console.log(busd.address)
 
   // ==================
-  //        CAKE
+  //        BNB
   // ==================
-
-  console.log(1)
-
-
-  const CAKE = await hre.ethers.getContractFactory('CakeToken');
-  const cake = await CAKE.deploy();
-
-  await cake.deployed();
-  await utils.saveAddress(prefix + "CAKE", cake.address)
-
-  // ==================
-  //         BNB
-  // ==================
-  console.log(1)
-
   const BNB = await hre.ethers.getContractFactory('TBnb');
-  const bnb = await BNB.deploy();
+  const bnb = await BNB.deploy() as TBnb;
 
   await bnb.deployed();
-  await utils.saveAddress(prefix + "BNB", bnb.address)
+  // console.log(bnb.address)
 
   // ==================
   //     FrogReferal
   // ==================
-  console.log(1)
-
   const Referal = await hre.ethers.getContractFactory('FrogReferal');
-  const referal = await Referal.deploy(acct1.address, constants.addressOfPrivateKey);
+  const referal = await Referal.deploy(acct1.address, acct1.address) as FrogReferal;
 
   await referal.deployed();
-  await utils.saveAddress(prefix + "FrogReferal", referal.address)
+  // console.log(referal.address)
 
-
-  console.log(1)
 
   // ==================
   //   PancakeFactory
   // ==================
-
-  const PancakeFactory = await hre.ethers.getContractFactory('PancakeFactory');
-  const pancakeFactory = await PancakeFactory.deploy(acct1.address);
+  const PancakeFactory = await hre.ethers.getContractFactory('UniswapV3Factory');
+  const pancakeFactory = await PancakeFactory.deploy() as UniswapV3Factory;
 
   await pancakeFactory.deployed();
-  await utils.saveAddress(prefix + "PancakeFactory", pancakeFactory.address)
-  await pancakeFactory.createPair(cake.address, bnb.address, true)
-  await pancakeFactory.createPair(cake.address, usdt.address, false)
-  await pancakeFactory.createPair(bnb.address, usdt.address, true)
+  // console.log(pancakeFactory.address)
+
+  const fee = 500;
+
+  await pancakeFactory.createPool(busd.address, usdt.address, fee)
+
+  const pool_busd_usdt = new ethers.Contract(await pancakeFactory.getPool(busd.address, usdt.address, fee), jsonPool.abi, acct1) as UniswapV3Pool
+
+  // 79204448054751562486699905150
+  // 79192444239363564201206
+  // 1771580069046490802230235074
+  // 111111179192444239363564201206 // норм в ремиксе 1
+  // 80000000000000000000000000000000000000 // не норм в ремиксе 10 ** 18
+  // 211113179192444239363564201206 // норм в ремиксе 7
+  function encodePriceSqrt(reserve1: any, reserve0: any): BigNumber {
+    return BigNumber.from(
+      new bn(reserve1)
+        .div(reserve0)
+        .sqrt()
+        .multipliedBy(new bn(2).pow(96))
+        .integerValue(3)
+        .toString()
+    )
+  }
+  const rrr = BigInt(79228162514264337593543950336) // encodePriceSqrt(1, 1)
+  // console.log(rrr)
+  // const price = BigInt('111111179192444239363564201206')//BigNumber.from(BigInt(10 ** 18 * 2 ** 96))
+  const price = rrr
+
+  await pool_busd_usdt.initialize(price)
+  console.log(await pool_busd_usdt.slot0())
+  console.log(await pool_busd_usdt.liquidity())
+  // console.log(pool_busd_usdt', pool_busd_usdt.address)
 
   // ==================
-  //       Factory
+  //  NonfungiblePositionManager
   // ==================
-  console.log(1)
+  const NonfungiblePositionManager = await hre.ethers.getContractFactory('NonfungiblePositionManager');
+  const nonfungiblePositionManager = await NonfungiblePositionManager.deploy(pancakeFactory.address, ethers.constants.AddressZero, ethers.constants.AddressZero) as NonfungiblePositionManager;
 
-  const Factory = await hre.ethers.getContractFactory('Factory');
-  const factory = await Factory.deploy(referal.address, bnb.address, pancakeFactory.address, acct1.address);
-
-  await referal.setFactoryAddress(factory.address)
-
-  await factory.deployed();
-  await utils.saveAddress(prefix + "Factory", factory.address)
-
-  await factory.createNewLottery(cake.address, bnb.address, 1)
-
-  console.log(1)
-
-  // ==================
-  //     MasterChef
-  // ==================
-
-  const SyrupBar = await hre.ethers.getContractFactory('SyrupBar');
-  const syrupBar = await SyrupBar.deploy(cake.address);
-
-  await syrupBar.deployed();
-  await utils.saveAddress(prefix + "SyrupBar", syrupBar.address)
-
-  const MasterChef = await hre.ethers.getContractFactory('MasterChef');
-  const masterChef = await MasterChef.deploy(cake.address, syrupBar.address, acct1.address, BigInt(40 * 10 ** 18), 0);
-
-  await masterChef.deployed();
-  await utils.saveAddress(prefix + "MasterChef", masterChef.address)
+  await nonfungiblePositionManager.deployed();
+  // console.log(nonfungiblePositionManager', nonfungiblePositionManager.address)
 
   // ==================
   //       Router
   // ==================
-
-  const Router = await hre.ethers.getContractFactory('PancakeRouter');
-  const router = await Router.deploy(pancakeFactory.address, bnb.address);
-
+  const SwapRouter = await hre.ethers.getContractFactory('SwapRouter');
+  const router = await SwapRouter.deploy(pancakeFactory.address, bnb.address) as SwapRouter
   await router.deployed();
-  await utils.saveAddress(prefix + "Router", router.address)
-
-  console.log(1)
+  // console.log(router', router.address)
 
   // ==================
-  //  Lottery CAKE-BNB
+  //       Factory
   // ==================
+  const Factory = await hre.ethers.getContractFactory('Factory');
+  const factory = await Factory.deploy(referal.address, ethers.constants.AddressZero, pancakeFactory.address, acct1.address, router.address) as Factory;
 
-  const lotteryAddress = await factory.lotteries(cake.address, bnb.address)
-  await utils.saveAddress(prefix + "Lottery_CAKE_BNB", lotteryAddress)
+  await factory.deployed();
+  // console.log(factory', factory.address)
 
-
+  await referal.setFactoryAddress(factory.address)
 
   const TOKENS_VALUE_20 = BigInt(10 ** 35)
-
-  await cake.connect(acct1).getTokens(TOKENS_VALUE_20);
+  await busd.connect(acct1).getTokens(TOKENS_VALUE_20);
+  await busd.connect(acct2).getTokens(TOKENS_VALUE_20);
 
   await usdt.connect(acct1).getTokens(TOKENS_VALUE_20);
+  await usdt.connect(acct2).getTokens(TOKENS_VALUE_20);
 
-  const lottery = new ethers.Contract(lotteryAddress, json.abi, acct1)
+  await usdc.connect(acct1).getTokens(TOKENS_VALUE_20);
+  await usdc.connect(acct2).getTokens(TOKENS_VALUE_20);
 
-  await cake.approve(router.address, TOKENS_VALUE_20)
-  await bnb.approve(router.address, TOKENS_VALUE_20)
-  await usdt.approve(router.address, TOKENS_VALUE_20)
-  await cake.approve(lotteryAddress, TOKENS_VALUE_20)
+  await usdc.connect(acct2).approve(nonfungiblePositionManager.address, TOKENS_VALUE_20)
+  await usdt.connect(acct2).approve(nonfungiblePositionManager.address, TOKENS_VALUE_20)
+  await busd.connect(acct2).approve(nonfungiblePositionManager.address, TOKENS_VALUE_20)
 
-  await utils.saveAddress(prefix + "LPToken_CAKE_BNB", await pancakeFactory.getPair(cake.address, bnb.address))
-  await utils.saveAddress(prefix + "LPToken_CAKE_USDT", await pancakeFactory.getPair(cake.address, usdt.address))
-  await utils.saveAddress(prefix + "LPToken_BNB_USDT", await pancakeFactory.getPair(bnb.address, usdt.address))
+  await busd.approve(nonfungiblePositionManager.address, TOKENS_VALUE_20)
+  await usdc.approve(nonfungiblePositionManager.address, TOKENS_VALUE_20)
+  await usdt.approve(nonfungiblePositionManager.address, TOKENS_VALUE_20)
 
-  setTimeout(async () => {
-    const value = BigInt(10 ** 14);
-    const power = 1000000
 
-    await utils.saveAddress(prefix + "LPToken_CAKE_BNB", await pancakeFactory.getPair(cake.address, bnb.address))
-    try {
-      await router.addLiquidityETH(cake.address, BigInt(power * 89 * 10 ** 18), 1, 1, acct1.address, Math.round(Date.now() / 1000) + 60 * 20, { value })
-    } catch (error) {
-      console.log(error)
-    }
-    console.log("11")
+  const balanceBeforeBusd = await busd.balanceOf(acct1.address)
+  const balanceBeforeUsdt = await usdt.balanceOf(acct1.address)
 
-    await utils.saveAddress(prefix + "LPToken_CAKE_USDT", await pancakeFactory.getPair(cake.address, usdt.address))
-    try {
-      await router.addLiquidity(cake.address, usdt.address, BigInt(power * 10 ** 18), BigInt(power * 3.64 * 10 ** 18), 1, 1, acct1.address, Math.round(Date.now() / 1000) + 60 * 20)
-    } catch (error) {
-      console.log(error)
-    }
-    console.log("11")
+  await nonfungiblePositionManager.mint({
+    token0: busd.address,
+    token1: usdt.address,
+    fee,
+    tickLower: -100,
+    tickUpper: 100,
+    amount0Desired: BigInt(10 ** 30),
+    amount1Desired: BigInt(10 ** 30),
+    amount0Min: 0,
+    amount1Min: 0,
+    recipient: acct1.address,
+    deadline: 10000000000000
+  })
 
-    await utils.saveAddress(prefix + "LPToken_BNB_USDT", await pancakeFactory.getPair(bnb.address, usdt.address))
-    try {
-      await router.addLiquidityETH(usdt.address, BigInt(power * 323 * 10 ** 18), 1, 1, acct1.address, Math.round(Date.now() / 1000) + 60 * 20, { value })
-    } catch (error) {
-      console.log(error)
-    }
-    console.log("11")
+  console.log(await nonfungiblePositionManager.positions(1))
+  console.log(await pool_busd_usdt.liquidity())
+  console.log("balance0:", (await pool_busd_usdt.balance0()).toString())
+  console.log((await pool_busd_usdt.balance1()).toString())
 
-    try {
-      await lottery.setAll(cake.address, bnb.address, usdt.address, router.address, masterChef.address, await pancakeFactory.getPair(cake.address, bnb.address))
-    } catch (error) {
-      console.log(error)
-    }
+  const balanceAfterBusd = await busd.balanceOf(acct1.address)
+  const balanceAfterUsdt = await usdt.balanceOf(acct1.address)
+  console.log(balanceBeforeBusd.toString())
+  console.log(balanceBeforeUsdt.toString())
+  console.log(balanceAfterBusd.toString())
+  console.log(balanceAfterUsdt.toString())
 
-    try {
-      await masterChef.add(1, await pancakeFactory.getPair(cake.address, bnb.address), false)
-    } catch (error) {
-      console.log(error)
-    }
-  }, 300000);
 
+  await factory.createNewLottery(busd.address, usdt.address, fee, 2, pool_busd_usdt.address, nonfungiblePositionManager.address)
+  const lottery_busd_usdt = new ethers.Contract(await factory.lotteries(busd.address, usdt.address, fee), json.abi, acct1) as FrogLottery
+  await busd.transfer(lottery_busd_usdt.address, BigInt(10 ** 20))
+  await usdt.transfer(lottery_busd_usdt.address, BigInt(10 ** 20))
+  await lottery_busd_usdt.createPosition(-1000, 1000)
+
+
+  // console.log(lottery_busd_usdt', lottery_busd_usdt.address)
+
+
+  await busd.approve(lottery_busd_usdt.address, BigInt(10 ** 35))
+  await usdt.approve(lottery_busd_usdt.address, BigInt(10 ** 35))
+
+
+  return ({ usdc, usdt, busd, pool_busd_usdt, lottery_busd_usdt, SwapRouter, pancakeFactory, router, nonfungiblePositionManager, factory, referal, fee })
 }
-
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});

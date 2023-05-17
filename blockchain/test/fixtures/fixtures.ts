@@ -66,8 +66,12 @@ export async function deployAll() {
     const fee = 500;
 
     await pancakeFactory.createPool(busd.address, usdt.address, fee)
+    await pancakeFactory.createPool(busd.address, usdc.address, fee)
+    await pancakeFactory.createPool(usdt.address, usdc.address, fee)
 
     const pool_busd_usdt = new ethers.Contract(await pancakeFactory.getPool(busd.address, usdt.address, fee), jsonPool.abi, acct1) as UniswapV3Pool
+    const pool_busd_usdc = new ethers.Contract(await pancakeFactory.getPool(busd.address, usdc.address, fee), jsonPool.abi, acct1) as UniswapV3Pool
+    const pool_usdt_usdc = new ethers.Contract(await pancakeFactory.getPool(usdt.address, usdc.address, fee), jsonPool.abi, acct1) as UniswapV3Pool
 
     // 79204448054751562486699905150
     // 79192444239363564201206
@@ -85,14 +89,16 @@ export async function deployAll() {
                 .toString()
         )
     }
-    const rrr = BigInt(79228162514264337593543950336) // encodePriceSqrt(1, 1)
-    // console.log(rrr)
-    // const price = BigInt('111111179192444239363564201206')//BigNumber.from(BigInt(10 ** 18 * 2 ** 96))
-    const price = rrr
+    // console.log(encodePriceSqrt(2, 1))
+    // process.exit()
+    const price = BigInt(79228162514264337593543950336) // encodePriceSqrt(1, 1)
+    // const rrr = BigInt(112045541949572279837330081938) // encodePriceSqrt(2, 1)
 
     await pool_busd_usdt.initialize(price)
-    console.log(await pool_busd_usdt.slot0())
-    console.log(await pool_busd_usdt.liquidity())
+    await pool_busd_usdc.initialize(price)
+    await pool_usdt_usdc.initialize(price)
+    // console.log(await pool_busd_usdt.slot0())
+    // console.log(await pool_busd_usdt.liquidity())
     // console.log(pool_busd_usdt', pool_busd_usdt.address)
 
     // ==================
@@ -145,7 +151,7 @@ export async function deployAll() {
     const balanceBeforeBusd = await busd.balanceOf(acct1.address)
     const balanceBeforeUsdt = await usdt.balanceOf(acct1.address)
 
-    await nonfungiblePositionManager.mint({
+    let params = {
         token0: busd.address,
         token1: usdt.address,
         fee,
@@ -157,22 +163,32 @@ export async function deployAll() {
         amount1Min: 0,
         recipient: acct1.address,
         deadline: 10000000000000
-    })
+    }
 
-    console.log(await nonfungiblePositionManager.positions(1))
-    console.log(await pool_busd_usdt.liquidity())
-    console.log("balance0:", (await pool_busd_usdt.balance0()).toString())
-    console.log((await pool_busd_usdt.balance1()).toString())
+    await nonfungiblePositionManager.mint(params)
+
+    params.token0 = usdt.address
+    params.token1 = usdc.address
+    await nonfungiblePositionManager.mint(params)
+
+    // params.token0 = busd.address
+    // params.token1 = usdc.address
+    // await nonfungiblePositionManager.mint(params)
+
+    // console.log(await nonfungiblePositionManager.positions(1))
+    // console.log(await pool_busd_usdt.liquidity())
+    // console.log("balance0:", (await pool_busd_usdt.balance0()).toString())
+    // console.log((await pool_busd_usdt.balance1()).toString())
 
     const balanceAfterBusd = await busd.balanceOf(acct1.address)
     const balanceAfterUsdt = await usdt.balanceOf(acct1.address)
-    console.log(balanceBeforeBusd.toString())
-    console.log(balanceBeforeUsdt.toString())
-    console.log(balanceAfterBusd.toString())
-    console.log(balanceAfterUsdt.toString())
+    // console.log(balanceBeforeBusd.toString())
+    // console.log(balanceBeforeUsdt.toString())
+    // console.log(balanceAfterBusd.toString())
+    // console.log(balanceAfterUsdt.toString())
 
 
-    await factory.createNewLottery(busd.address, usdt.address, fee, 2, pool_busd_usdt.address, nonfungiblePositionManager.address)
+    await factory.createNewLottery(busd.address, usdt.address, fee, 2, pool_busd_usdt.address, nonfungiblePositionManager.address, usdc.address)
     const lottery_busd_usdt = new ethers.Contract(await factory.lotteries(busd.address, usdt.address, fee), json.abi, acct1) as FrogLottery
     await busd.transfer(lottery_busd_usdt.address, BigInt(10 ** 20))
     await usdt.transfer(lottery_busd_usdt.address, BigInt(10 ** 20))
@@ -184,8 +200,15 @@ export async function deployAll() {
 
     await busd.approve(lottery_busd_usdt.address, BigInt(10 ** 35))
     await usdt.approve(lottery_busd_usdt.address, BigInt(10 ** 35))
+    await usdc.approve(lottery_busd_usdt.address, BigInt(10 ** 35))
+    await busd.connect(acct2).approve(lottery_busd_usdt.address, BigInt(10 ** 35))
+    await usdt.connect(acct2).approve(lottery_busd_usdt.address, BigInt(10 ** 35))
+    await usdc.connect(acct2).approve(lottery_busd_usdt.address, BigInt(10 ** 35))
 
 
+    await busd.approve(router.address, BigInt(10 ** 36))
+    await usdt.approve(router.address, BigInt(10 ** 36))
+    await usdc.approve(router.address, BigInt(10 ** 36))
 
     // await pancakeFactory.createPair(cake.address, bnb.address, true)
     // await pancakeFactory.createPair(cake.address, usdt.address, false)
@@ -282,5 +305,5 @@ export async function deployAll() {
     // await masterChef.add(1, await pancakeFactory.getPair(cake.address, usdt.address), false)
 
     // return { cake, bnb, usdt, router, lottery, masterChef, pancakeFactory, syrupBar, factory, referal, lotteryERC20, usdc } as allContractsFromDeploy
-    return ({ usdc, usdt, busd, pool_busd_usdt, lottery_busd_usdt, SwapRouter, pancakeFactory, router, nonfungiblePositionManager, factory, referal, fee })
+    return ({ usdc, usdt, busd, pool_busd_usdt, lottery_busd_usdt, pancakeFactory, router, nonfungiblePositionManager, factory, referal, fee })
 }

@@ -60,11 +60,12 @@ contract FrogReferal is Ownable, IFrogReferal{
         balance[token][msg.sender] = 0;
     }
 
-     function accrueRewardFromWinningReferral(ReferersRewardInfo[] calldata data, address token) override public onlyLottery{
+     function accrueRewardFromWinningReferral(ReferersRewardInfo[] calldata data, address token0, address token1) override public onlyLottery{
         uint len = data.length;
         for (uint i = 0; i < len; i++) {
-            balance[token][data[i].wallet] += data[i].reward;
-            emit ReferalReward(data[i].wallet, msg.sender, data[i].reward);
+            balance[token0][data[i].wallet] += data[i].reward0;
+            balance[token1][data[i].wallet] += data[i].reward1;
+            emit ReferalReward(data[i].wallet, msg.sender, data[i].reward0);
         }
     }
 

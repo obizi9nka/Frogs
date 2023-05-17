@@ -7,9 +7,10 @@
           <div class="pool__header">
             <div class="pool__title">CAKE-BNB</div>
           </div>
+
           <template v-if="$store.state.account">
             <div class="pool__body">
-              <div class="pool__token">
+              <!-- <div class="pool__token">
                 <div class="pool__token__header">
                   <label class="pool__token__name">CAKE</label>
                   <div class="pool__token__balance">balance: <span>{{ wallet.cake }}</span></div>
@@ -21,13 +22,42 @@
                   <btn-link class="pool__token__max" @click="formDepositCakeMaximize">max</btn-link>
                 </div>
               </div>
-              <div class="pool__plus">+</div>
+              <div class="pool__plus">+</div> -->
+              <div class="choose_token">
+                <div class="token_area" :class="{ active: this.tokenSelcted == 0 }" @click="changeToken(0)">
+                  <div class="token">
+                    BUSD
+                  </div>
+                </div>
+                <div class="token_area" :class="{ active: this.tokenSelcted == 1 }" @click="changeToken(1)">
+                  <div class="token">
+                    USDT
+                  </div>
+                </div>
+                <div class="token_area" :class="{ active: this.tokenSelcted == 2 }" @click="changeToken(2)">
+                  <div class="token">
+                    USDC
+                  </div>
+                </div>
+              </div>
               <div class="pool__token">
                 <div class="pool__token__header">
                   <label class="pool__token__name">BNB</label>
                   <div class="pool__token__balance">balance: <span>{{ wallet.bnb }}</span></div>
                 </div>
-                <input-text class="pool__token__count" v-model="form.deposit.bnb" @input="formDepositCakeSync" />
+                <div class="pool__token__header">
+                  <label class="pool__token__name">USDT</label>
+                  <div class="pool__token__balance">balance: <span>{{ wallet.usdt }}</span></div>
+                </div>
+                <div class="pool__token__header">
+                  <label class="pool__token__name">USDC</label>
+                  <div class="pool__token__balance">balance: <span>{{ wallet.usdc }}</span></div>
+                </div>
+                <div class="pool__token__header">
+                  <label class="pool__token__name">BUSD</label>
+                  <div class="pool__token__balance">balance: <span>{{ wallet.busd }}</span></div>
+                </div>
+                <input-text class="pool__token__count" v-model="form.deposit.token" @input="formDepositCakeSync" />
                 <div class="pool__token__footer">
                   <div class="pool__token__estimate">~<span>{{ form.deposit.bnb * pancake.rates.bnbusdt }}</span> USD
                   </div>
@@ -36,12 +66,12 @@
               </div>
               <div class="pool__rates">
                 <div class="pool__rate">
-                  <div class="pool-rate__value">{{ pancake.rates.bnbcake }}</div>
-                  <div class="pool-rate__label">CAKE per BNB</div>
+                  <div class="pool-rate__value">{{ pancake.rates.t0_t1 }}</div>
+                  <div class="pool-rate__label">BUSD per USDT</div>
                 </div>
                 <div class="pool__rate">
-                  <div class="pool-rate__value">{{ pancake.rates.cakebnb }}</div>
-                  <div class="pool-rate__label">BNB per CAKE</div>
+                  <div class="pool-rate__value">{{ pancake.rates.t1_t0 }}</div>
+                  <div class="pool-rate__label">USDT per BUSD</div>
                 </div>
               </div>
               <div>
@@ -51,14 +81,14 @@
                 <tr>
                   <th>Your</th>
                   <th>LP</th>
-                  <th>CAKE</th>
-                  <th>BNB</th>
+                  <!-- <th>CAKE</th> -->
+                  <th>BUSD</th>
                   <th>USDT</th>
                 </tr>
                 <tr>
                   <td>deposit</td>
                   <td><small>{{ frog.user.deposit }}</small></td>
-                  <td><small>{{ frog.user.deposit * pancake.rates.lpcake }}</small></td>
+                  <!-- <td><small>{{ frog.user.deposit * pancake.rates.lpcake }}</small></td> -->
                   <td><small>{{ frog.user.deposit * pancake.rates.lpbnb }}</small></td>
                   <td><small>{{ frog.user.deposit * (pancake.rates.lpcake * pancake.rates.cakeusdt + pancake.rates.lpbnb *
                     pancake.rates.bnbusdt) }}</small></td>
@@ -66,7 +96,7 @@
                 <tr>
                   <td>balance</td>
                   <td><small>{{ frog.user.balance }}</small></td>
-                  <td><small>{{ frog.user.balance * pancake.rates.lpcake }}</small></td>
+                  <!-- <td><small>{{ frog.user.balance * pancake.rates.lpcake }}</small></td> -->
                   <td><small>{{ frog.user.balance * pancake.rates.lpbnb }}</small></td>
                   <td><small>{{ frog.user.balance * (pancake.rates.lpcake * pancake.rates.cakeusdt + pancake.rates.lpbnb *
                     pancake.rates.bnbusdt) }}</small></td>
@@ -74,7 +104,7 @@
                 <tr>
                   <td>withdraw</td>
                   <td><small>{{ frog.user.withdraw }}</small></td>
-                  <td><small>{{ frog.user.withdraw * pancake.rates.lpcake }}</small></td>
+                  <!-- <td><small>{{ frog.user.withdraw * pancake.rates.lpcake }}</small></td> -->
                   <td><small>{{ frog.user.withdraw * pancake.rates.lpbnb }}</small></td>
                   <td><small>{{ frog.user.withdraw * (pancake.rates.lpcake * pancake.rates.cakeusdt + pancake.rates.lpbnb
                     * pancake.rates.bnbusdt) }}</small></td>
@@ -92,7 +122,10 @@
                 <h3>Total Farm: {{ frog.farmTotal }}</h3>
               </div>
               <div>
-                <h3>Your Reward: {{ frog.user.reward }}</h3>
+                <h3>Your Reward: {{ frog.user.rewardOfToken0 }}</h3>
+              </div>
+              <div>
+                <h3>Your Reward: {{ frog.user.rewardOfToken1 }}</h3>
               </div>
               <div>
                 <h3>Your Referer: {{ frog.referalInfo.referer }}</h3>
@@ -109,7 +142,8 @@
               <div>
                 <h3>Beneficiary : {{ frog.beneficiaryAmount }}</h3>
               </div>
-              <btn-primary @click="claimReward" v-if="frog.user.reward">Claim Reward</btn-primary>
+              <btn-primary @click="claimReward" v-if="frog.user.rewardOfToken0 || frog.user.rewardOfToken1">Claim
+                Reward</btn-primary>
               <btn-primary @click="claimReferalReward" v-if="frog.user.referalReward">Claim Referal Reward</btn-primary>
             </div>
           </template>
@@ -124,6 +158,7 @@
         </div>
       </div> <!-- .pools -->
       <btn-primary @click="getCake">getCake</btn-primary>
+      <btn-primary @click="swap">swap</btn-primary>
       <h2>Set referer</h2>
       <form @submit.prevent class="admin-form">
         <input-text v-model="this.frog.referalInfo.inputReferer" placeholder="Address" class="input" />
@@ -154,13 +189,15 @@
             <thead>
               <th>Address</th>
               <th>LP</th>
-              <th>Reward</th>
+              <th>rewardOfToken0</th>
+              <th>rewardOfToken1</th>
             </thead>
             <tbody>
               <tr v-for="participant in frog.participants">
                 <td>{{ participant.address }}</td>
                 <td>{{ participant.balance }}</td>
-                <td>{{ participant.reward }}</td>
+                <td>{{ participant.rewardOfToken0 }}</td>
+                <td>{{ participant.rewardOfToken1 }}</td>
               </tr>
             </tbody>
           </table>
@@ -216,6 +253,8 @@ import BtnPrimary from "@/components/UI/BtnPrimary";
 import constants from "../../../blockchain/scripts/json/constants.json"
 import { ethers } from "ethers"
 import config from "../../config.json"
+import JSBI from "jsbi"
+import { TickMath, FullMath } from "@uniswap/v3-sdk"
 
 import cakeAbi from '../../../blockchain/artifacts/contracts/pancekeswap-fork/utils/CakeToken.sol/CakeToken.json'
 import bnbAbi from '../../../blockchain/artifacts/contracts/frogs/ERC20.sol/ERC20Token.json'
@@ -224,10 +263,16 @@ import factoryAbi from '../../../blockchain/artifacts/contracts/frogs/Factory.so
 import referalAbi from "../../../blockchain/artifacts/contracts/frogs/FrogReferal.sol/FrogReferal.json"
 import routerAbi from "../../../blockchain/artifacts/contracts/pancekeswap-fork/router.sol/PancakeRouter.json"
 import pairAbi from "../../../blockchain/artifacts/contracts/pancekeswap-fork/pancakepair.sol/PancakePair.json"
+import PoolAbi from "../../../blockchain/artifacts/contracts/core/UniswapV3Pool.sol/UniswapV3Pool.json"
+import PositionManager from "../../../blockchain/artifacts/contracts/periphery/NonfungiblePositionManager.sol/NonfungiblePositionManager.json"
+import Router from "../../../blockchain/artifacts/contracts/periphery/SwapRouter.sol/SwapRouter.json"
+import BigNumber from 'bignumber.js';
 
 const bnbChainId = '0x38';
 const bnbRpcUrl = 'https://bsc-dataseed.binance.org';
-const prefix = 'sepolia_'
+const prefix = config.prefix
+
+const ERC20TokenABI = bnbAbi.abi
 
 const CakeContractABI = cakeAbi.abi
 const CakeContractAddress = constants.addresses[prefix + 'CAKE'];
@@ -236,7 +281,7 @@ const BnbContractABI = bnbAbi.abi
 const BnbContractAddress = constants.addresses[prefix + 'BNB'];
 
 const FrogContractABI = lotteryAbi.abi
-const FrogContractAddress = constants.addresses[prefix + 'Lottery_CAKE_BNB'];
+const FrogContractAddress = constants.addresses[prefix + 'Lottery_busd_usdt'];
 
 const FactoryABI = factoryAbi.abi
 const FactoryAddress = constants.addresses[prefix + 'Factory'];
@@ -269,6 +314,7 @@ export default {
         deposit: {
           cake: 0,
           bnb: 0,
+          token: 0
         },
         withdraw: {
           lp: 0,
@@ -284,10 +330,11 @@ export default {
         nowIn: -1,
         beneficiaryAmount: -1,
         user: {
-          deposit: 0,
-          balance: 0,
-          withdraw: 0,
-          reward: 0,
+          deposit: -1,
+          balance: -1,
+          withdraw: -1,
+          rewardOfToken0: -1,
+          rewardOfToken1: -1,
           referalReward: -1
         },
         referalInfo:
@@ -301,15 +348,18 @@ export default {
         victories: [],
       },
       wallet: {
-        cake: 0,
-        bnb: 0
+        cake: -1,
+        bnb: -1,
+        usdt: -1,
+        usdc: -1,
+        busd: -1
       },
       pancake: {
         rates: {
           bnbusdt: 0,
           cakeusdt: 0,
-          bnbcake: 0,
-          cakebnb: 0,
+          t0_t1: 0,
+          t1_t0: 0,
           lpcake: 0,
           lpbnb: 0,
           cakelp: 0,
@@ -318,34 +368,45 @@ export default {
       },
       modalVisible: false,
       modalContent: '',
+      tokenSelcted: 0,
     }
   },
   methods: {
     async updateParams() {
       const web3 = new Web3(window.ethereum)
-      const pancakeRouter = new web3.eth.Contract(PancakeRouterABI, PancakeRouterAddress)
+      const pool = new web3.eth.Contract(PoolAbi.abi, constants.addresses[prefix + 'Pool_busd_usdt'])
 
-      await pancakeRouter.methods.getAmountsOut(web3.utils.toWei('1', 'ether'), [BnbContractAddress, UsdtContractAddress]).call()
-        .then(amountsOut => {
-          if (!amountsOut[1]) this.pancake.rates.bnbusdt = 0;
-          else this.pancake.rates.bnbusdt = web3.utils.fromWei(amountsOut[1]);
-        })
-      await pancakeRouter.methods.getAmountsOut(web3.utils.toWei('1', 'ether'), [CakeContractAddress, UsdtContractAddress]).call()
-        .then(amountsOut => {
-          if (!amountsOut[1]) this.pancake.rates.cakeusdt = 0;
-          else this.pancake.rates.cakeusdt = web3.utils.fromWei(amountsOut[1]);
-        })
+      let provider
+      if (prefix == 'sepolia_')
+        provider = new ethers.providers.InfuraProvider(11155111, '')
+      else
+        provider = new ethers.providers.JsonRpcProvider()
 
-      this.pancake.rates.bnbcake = (this.pancake.rates.bnbusdt / this.pancake.rates.cakeusdt).toFixed(2)
-      this.pancake.rates.cakebnb = (this.pancake.rates.cakeusdt / this.pancake.rates.bnbusdt).toFixed(4)
+      function getPrice(amount, sqrtRatioX96, token0Decimals, token1Decimals) {
+        const ratioX192 = BigInt(sqrtRatioX96 * sqrtRatioX96) // JSBI.multiply(sqrtRatioX96, sqrtRatioX96)
 
-      const pancakePairCakeWbnb = new web3.eth.Contract(PancakePairCakeWbnbABI, PancakePairCakeWbnbAddress);
-      const reserves = await pancakePairCakeWbnb.methods.getReserves().call()
-      const supply = await pancakePairCakeWbnb.methods.totalSupply().call()
-      this.pancake.rates.lpcake = reserves._reserve0 / supply
-      this.pancake.rates.lpbnb = reserves._reserve1 / supply
-      this.pancake.rates.cakelp = supply / reserves._reserve0;
-      this.pancake.rates.bnblp = supply / reserves._reserve1;
+        const baseAmount = JSBI.BigInt(amount * (10 ** token0Decimals))
+
+        const shift = JSBI.leftShift(JSBI.BigInt(1), JSBI.BigInt(192))
+        const quote = BigNumber(ratioX192).times(baseAmount).dividedBy(shift.toString()) // FullMath.mulDivRoundingUp(ratioX192, baseAmount, shift)
+        return quote.toString() / (10 ** token1Decimals)
+      }
+
+      console.log('price', 1 / getPrice(1, BigInt(1857259621983179994159796290), 18, 18))
+      // console.log('price', 1 / getPrice(1, (await pool.methods.slot0().call()).sqrtPriceX96, 18, 18))
+      const token0PerToken1 = getPrice(1, (await pool.methods.slot0().call()).sqrtPriceX96, 18, 18)
+      const token1PerToken0 = 1 / token0PerToken1
+
+      this.pancake.rates.t0_t1 = token0PerToken1.toFixed(2)
+      this.pancake.rates.t1_t0 = token1PerToken0.toFixed(4)
+
+      // const pancakePairCakeWbnb = new web3.eth.Contract(PancakePairCakeWbnbABI, PancakePairCakeWbnbAddress);
+      // const reserves = await pancakePairCakeWbnb.methods.getReserves().call()
+      // const supply = await pancakePairCakeWbnb.methods.totalSupply().call()
+      // this.pancake.rates.lpcake = reserves._reserve0 / supply
+      // this.pancake.rates.lpbnb = reserves._reserve1 / supply
+      // this.pancake.rates.cakelp = supply / reserves._reserve0;
+      // this.pancake.rates.bnblp = supply / reserves._reserve1;
 
 
       const FrogContract = new web3.eth.Contract(FrogContractABI, FrogContractAddress);
@@ -363,12 +424,25 @@ export default {
     async updateBalances() {
       if (this.$store.state.account) {
         const web3 = new Web3(window.ethereum)
-        new web3.eth.Contract(CakeContractABI, CakeContractAddress)
-          .methods.balanceOf(this.$store.state.account.toLowerCase()).call()
+        const busd = new web3.eth.Contract(ERC20TokenABI, constants.addresses[prefix + 'BUSD'])
+        const usdt = new web3.eth.Contract(ERC20TokenABI, constants.addresses[prefix + 'USDT'])
+        const usdc = new web3.eth.Contract(ERC20TokenABI, constants.addresses[prefix + 'USDC'])
+
+        busd.methods.balanceOf(this.$store.state.account.toLowerCase()).call()
           .then(balance => {
-            console.log("cake:", balance)
-            this.wallet.cake = parseFloat(web3.utils.fromWei(balance))
+            this.wallet.busd = parseFloat(web3.utils.fromWei(balance))
           })
+
+        usdt.methods.balanceOf(this.$store.state.account.toLowerCase()).call()
+          .then(balance => {
+            this.wallet.usdt = parseFloat(web3.utils.fromWei(balance))
+          })
+
+        usdc.methods.balanceOf(this.$store.state.account.toLowerCase()).call()
+          .then(balance => {
+            this.wallet.usdc = parseFloat(web3.utils.fromWei(balance))
+          })
+
         new web3.eth.getBalance(this.$store.state.account.toLowerCase())
           .then(balance => {
             this.wallet.bnb = parseFloat(web3.utils.fromWei(balance))
@@ -391,26 +465,30 @@ export default {
             this.frog.user.withdraw = parseFloat(web3.utils.fromWei(balance))
           })
 
-        frog.methods.rewardOf(this.$store.state.account).call()
+        frog.methods.rewardOfToken0(this.$store.state.account).call()
           .then(balance => {
-            this.frog.user.reward = parseFloat(web3.utils.fromWei(balance))
+            this.frog.user.rewardOfToken0 = parseFloat(web3.utils.fromWei(balance))
           })
 
-        const Cake = new web3.eth.Contract(BnbContractABI, CakeContractAddress)
+        frog.methods.rewardOfToken1(this.$store.state.account).call()
+          .then(balance => {
+            this.frog.user.rewardOfToken1 = parseFloat(web3.utils.fromWei(balance))
+          })
 
-        await Cake.methods.balanceOf(FrogContractAddress).call()
+        const BUSD = new web3.eth.Contract(ERC20TokenABI, constants.addresses[prefix + 'BUSD'])
+
+        await BUSD.methods.balanceOf(FrogContractAddress).call()
           .then(balance => {
             this.frog.nowIn = parseFloat(web3.utils.fromWei(balance))
           })
 
-        await Cake.methods.balanceOf(FactoryAddress).call()
+        await BUSD.methods.balanceOf(await frog.methods.beneficiary().call()).call()
           .then(balance => {
             this.frog.beneficiaryAmount = parseFloat(web3.utils.fromWei(balance))
           })
 
         const FrogReferal = new web3.eth.Contract(FrogReferalABI, FrogReferalAddress)
-
-        await FrogReferal.methods.balance(CakeContractAddress, this.$store.state.account).call()
+        await FrogReferal.methods.balance(constants.addresses[prefix + 'BUSD'], this.$store.state.account).call()
           .then(balance => {
             this.frog.user.referalReward = parseFloat(web3.utils.fromWei(balance))
           })
@@ -445,7 +523,8 @@ export default {
         const participant = {
           address: _participant,
           balance: web3.utils.fromWei(await FrogContract.methods.balanceOf(_participant).call()),
-          reward: web3.utils.fromWei(await FrogContract.methods.rewardOf(_participant).call()),
+          rewardOfToken0: web3.utils.fromWei(await FrogContract.methods.rewardOfToken0(_participant).call()),
+          rewardOfToken1: web3.utils.fromWei(await FrogContract.methods.rewardOfToken1(_participant).call()),
         }
         _participants.push(participant)
       }
@@ -527,20 +606,46 @@ export default {
       this.form.deposit.bnb = this.wallet.bnb
       this.formDepositCakeSync()
     },
+    async swap() {
+      const web3 = new Web3(window.ethereum)
+      const manager = new web3.eth.Contract(Router.abi, constants.addresses[prefix + 'SwapRouter'])
+      await manager.methods.exactInputSingle({
+        tokenIn: constants.addresses[prefix + 'BUSD'],
+        tokenOut: constants.addresses[prefix + 'USDT'],
+        fee: constants.addresses[prefix + 'Pool_busd_usdt_fee'],
+        recipient: this.$store.state.account,
+        deadline: 100000000000,
+        amountIn: BigInt(10 ** 18),
+        amountOutMinimum: 0,
+        sqrtPriceLimitX96: 0
+      })
+        .send({
+          from: this.$store.state.account
+        })
+        .on('sending', () => {
+          this.showModal('Waiting for confirmation')
+        })
+        .on('error', (error) => {
+          this.showModal('Transaction error: ' + JSON.stringify(error))
+        })
+        .on('receipt', (receipt) => {
+          this.showModal('Swap complete!')
+        })
+    },
     async deposit() {
       var errors = [];
 
-      if (this.wallet.cake < this.form.deposit.cake) {
-        errors.push("Not enough CAKE")
-      }
-      if (this.wallet.bnb < this.form.deposit.bnb) {
-        errors.push("Not enough BNB")
-      }
-      const futureBalance = (this.frog.user.balance + this.frog.user.deposit - this.frog.user.withdraw) * (this.pancake.rates.lpcake * this.pancake.rates.cakeusdt + this.pancake.rates.lpbnb * this.pancake.rates.bnbusdt)
-      const deposit = this.form.deposit.cake * this.pancake.rates.cakeusdt + this.form.deposit.bnb * this.pancake.rates.bnbusdt
-      if (futureBalance + deposit < this.frog.minUsd || futureBalance + deposit > this.frog.maxUsd) {
-        errors.push('Amount of balance must be in $' + this.frog.minUsd + ' .. $' + this.frog.maxUsd + "")
-      }
+      // if (this.wallet.busd < this.form.deposit.cake) {
+      //   errors.push("Not enough CAKE")
+      // }
+      // if (this.wallet.bnb < this.form.deposit.bnb) {
+      //   errors.push("Not enough BNB")
+      // }
+      // const futureBalance = (this.frog.user.balance + this.frog.user.deposit - this.frog.user.withdraw) * (this.pancake.rates.lpcake * this.pancake.rates.cakeusdt + this.pancake.rates.lpbnb * this.pancake.rates.bnbusdt)
+      // const deposit = this.form.deposit.cake * this.pancake.rates.cakeusdt + this.form.deposit.bnb * this.pancake.rates.bnbusdt
+      // if (futureBalance + deposit < this.frog.minUsd || futureBalance + deposit > this.frog.maxUsd) {
+      //   errors.push('Amount of balance must be in $' + this.frog.minUsd + ' .. $' + this.frog.maxUsd + "")
+      // }
       if (errors.length) {
         this.showModal(errors.join(', '))
       } else {
@@ -548,37 +653,55 @@ export default {
         const FrogReferal = new web3.eth.Contract(FrogReferalABI, FrogReferalAddress)
         const isPartisipant = await FrogReferal.methods.alreadyParticipant(this.$store.state.account).call()
         console.log(isPartisipant, "isPartisipant")
-        if (this.frog.referalInfo.referer == '-11') {
+        const condition = '-111'
+        if (this.frog.referalInfo.referer == condition) {
           this.showModal('Not a referal')
         } else if (confirm("You want to send: \n" + this.form.deposit.cake + " CAKE\n" + this.form.deposit.bnb + " BNB")) {
-          const allowance0 = web3.utils.fromWei(await new web3.eth.Contract(CakeContractABI, CakeContractAddress)
-            .methods.allowance(this.$store.state.account, FrogContractAddress).call());
-          if (allowance0 < this.form.deposit.cake) {
-            const approveCake = await new web3.eth.Contract(CakeContractABI, CakeContractAddress)
-              .methods.approve(FrogContractAddress, web3.utils.toWei(this.form.deposit.cake.toString()))
-              .send({
-                from: this.$store.state.account
-              })
-              .on('sending', () => {
-                this.showModal('Waiting for confirmation')
-              })
-            if (approveCake.status != true) {
-              this.showModal('Something went wrong with tCake approve!')
-              return
+          console.log("fefrfrfrfr")
+          // const allowance0 = web3.utils.fromWei(await new web3.eth.Contract(CakeContractABI, CakeContractAddress)
+          //   .methods.allowance(this.$store.state.account, FrogContractAddress).call());
+          // if (allowance0 < this.form.deposit.cake) {
+          //   const approveCake = await new web3.eth.Contract(CakeContractABI, CakeContractAddress)
+          //     .methods.approve(FrogContractAddress, web3.utils.toWei(this.form.deposit.cake.toString()))
+          //     .send({
+          //       from: this.$store.state.account
+          //     })
+          //     .on('sending', () => {
+          //       this.showModal('Waiting for confirmation')
+          //     })
+          //   if (approveCake.status != true) {
+          //     this.showModal('Something went wrong with tCake approve!')
+          //     return
+          //   }
+          // }
+
+          const amount = web3.utils.toWei(this.form.deposit.token.toString().substring(0, 20));
+          // const amountToken1 = web3.utils.toWei(this.form.deposit.bnb.toString().substring(0, 20));
+          const FrogContract = new web3.eth.Contract(FrogContractABI, FrogContractAddress)
+          let tokenForDepositAddress;
+          switch (this.tokenSelcted) {
+            case 0: {
+              tokenForDepositAddress = constants.addresses[prefix + 'BUSD']
+              break;
+            }
+            case 1: {
+              tokenForDepositAddress = constants.addresses[prefix + 'USDT']
+              break;
+            }
+            case 2: {
+              tokenForDepositAddress = constants.addresses[prefix + 'USDC']
+              break;
             }
           }
-
-          const amountToken0 = web3.utils.toWei(this.form.deposit.cake.toString().substring(0, 20));
-          const amountToken1 = web3.utils.toWei(this.form.deposit.bnb.toString().substring(0, 20));
-          const FrogContract = new web3.eth.Contract(FrogContractABI, FrogContractAddress)
+          console.log(tokenForDepositAddress, this.tokenSelcted)
           if (isPartisipant) {
             await FrogContract.methods.deposit(
-              amountToken0,
-              amountToken1
+              tokenForDepositAddress,
+              amount
             )
               .send({
                 from: this.$store.state.account,
-                value: amountToken1
+                value: 0
               })
               .on('sending', () => {
                 this.showModal('Waiting for confirmation')
@@ -588,18 +711,18 @@ export default {
               })
               .on('receipt', (receipt) => {
                 this.showModal('Your tokens sent to deposit!')
-                this.form.deposit.cake = 0;
-                this.form.deposit.bnb = 0;
+                this.form.deposit.token = 0;
+                // this.form.deposit.bnb = 0;
               })
           } else {
             const { message, v, r, s } = await this.sigAddress(this.$store.state.account)
             await FrogContract.methods.registerBeforeDeposit(message, v, r, s,
-              amountToken0,
-              amountToken1
+              tokenForDepositAddress,
+              amount
             )
               .send({
                 from: this.$store.state.account,
-                value: amountToken1
+                value: 0
               })
               .on('sending', () => {
                 this.showModal('Waiting for confirmation')
@@ -825,9 +948,14 @@ export default {
       };
       const { message, v, r, s } = await sig(['address'], [user], new ethers.Wallet(constants[prefix + 'privateKey']))
       return { message, v, r, s }
+    },
+    changeToken(index) {
+      this.tokenSelcted = index
+      this.$forceUpdate()
     }
   },
   created() {
+    this.tokenSelcted = 0
     this.updateBalances()
     this.updateParams()
     this.updateParticipants()
@@ -889,6 +1017,32 @@ button {
   margin-bottom: 25px;
   min-height: 500px;
   position: relative;
+}
+
+.token_area {
+  border-width: 2px;
+  border-color: black;
+  border-radius: 12px;
+  padding: 20px;
+  border-style: solid;
+  display: flex;
+}
+
+.token_area.active {
+  background-color: rgb(83, 83, 200);
+}
+
+.token {
+  justify-self: center;
+  align-self: center;
+  font-weight: bold;
+}
+
+.choose_token {
+  display: flex;
+  height: 100px;
+  justify-content: space-between;
+  padding: 30px;
 }
 
 .pool__header,

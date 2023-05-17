@@ -19,9 +19,10 @@ interface IFrogReferal {
     ///////////////////////////////////////////////////
     struct ReferersRewardInfo {
         address wallet;
-        uint reward;
+        uint reward0;
+        uint reward1;
     }
-    function accrueRewardFromWinningReferral(ReferersRewardInfo[] memory info,address token) external;
+    function accrueRewardFromWinningReferral(ReferersRewardInfo[] memory info, address token0, address token1) external;
 
     function registerReferal(bytes calldata message, uint8 _v, bytes32 _r, bytes32 _s) external  returns (bool result);
 }
