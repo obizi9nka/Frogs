@@ -42,7 +42,7 @@ describe("FrogLottery MainLogic", function () {
             const balance = await lottery.balanceOf(acct1.address)
             await lottery.withdraw(balance)
         })
-        it('swap to generate fee', async () => {
+        const generateFee = async () => {
             const [acct1, acct2] = await ethers.getSigners();
 
             let params = {
@@ -60,7 +60,9 @@ describe("FrogLottery MainLogic", function () {
             params.tokenIn = all.usdt.address
             params.tokenOut = all.busd.address
             await all.router.exactInputSingle(params)
-
+        }
+        it('swap to generate fee', async () => {
+            await generateFee()
         })
         let isFirstWinner = false;
         it("second draw with participants", async () => {
@@ -101,7 +103,9 @@ describe("FrogLottery MainLogic", function () {
             expect(balanceAfterBusd).to.be.equal(balanceBeforeBusd.add(rewardOfToken0))
             expect(balanceAfterUsdt).to.be.equal(balanceBeforeUsdt.add(rewardOfToken1))
         })
-
+        it('swap to generate fee', async () => {
+            await generateFee()
+        })
         it("third draw for 100% referal system activate", async () => {
             const [acct1, acct2] = await ethers.getSigners();
             await lottery.draw()
@@ -123,6 +127,7 @@ describe("FrogLottery MainLogic", function () {
             const balanceAfterBusd = await all.busd.balanceOf(acct1.address)
             const balanceAfterUsdt = await all.usdt.balanceOf(acct1.address)
 
+            console.log('referer rewards', rewardOfToken0, rewardOfToken1)
             expect(rewardOfToken0).not.to.be.eq(0)
             expect(rewardOfToken1).not.to.be.eq(0)
             expect(balanceAfterBusd).to.be.equal(balanceBeforeBusd.add(rewardOfToken0))
@@ -130,8 +135,15 @@ describe("FrogLottery MainLogic", function () {
         })
         it("deposit", async () => {
             const [acct1, acct2, acct3] = await ethers.getSigners();
-
+            const balanceBeforeUsdc = await all.usdc.balanceOf(acct1.address)
             await lottery.deposit(all.usdc.address, decimals);
+            const balanceAfterUsdc = await all.usdc.balanceOf(acct1.address)
+            console.log(balanceBeforeUsdc)
+            console.log(balanceAfterUsdc)
+            // 6863326338668303424
+            // 1000000000000000000
+            // 5863326338668303424
+            expect(BigInt(balanceAfterUsdc.toString())).to.be.eq(BigInt(balanceBeforeUsdc.toString()) - decimals)
         });
     }
     mainLogic(true)

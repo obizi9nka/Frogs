@@ -71,13 +71,8 @@ abstract contract LiquidityManagement is IUniswapV3MintCallback, PeripheryImmuta
         // compute the liquidity amount
         {
             (uint160 sqrtPriceX96, , , , , , ) = pool.slot0();
-            // console.log('sqrtPriceX96',sqrtPriceX96);
             uint160 sqrtRatioAX96 = TickMath.getSqrtRatioAtTick(params.tickLower);
             uint160 sqrtRatioBX96 = TickMath.getSqrtRatioAtTick(params.tickUpper);
-            console.log('sqrtRatioAX96',sqrtRatioAX96);
-            console.log('sqrtRatioBX96',sqrtRatioBX96);
-            console.log(params.amount0Desired);
-            console.log(params.amount1Desired);
 
             liquidity = LiquidityAmounts.getLiquidityForAmounts(
                 sqrtPriceX96,
@@ -86,10 +81,6 @@ abstract contract LiquidityManagement is IUniswapV3MintCallback, PeripheryImmuta
                 params.amount0Desired,
                 params.amount1Desired
             );
-            //  79208487693028943765174 // dai/usdt 100
-            //  79228162514264337593543950336 // 28
-            //  7922816251426434139029504 // 24
-            //  79228162514264334008320 // 22
         }
         console.log('liq',liquidity);
 

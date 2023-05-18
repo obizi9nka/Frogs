@@ -57,11 +57,19 @@
                   <label class="pool__token__name">BUSD</label>
                   <div class="pool__token__balance">balance: <span>{{ wallet.busd }}</span></div>
                 </div>
-                <input-text class="pool__token__count" v-model="form.deposit.token" @input="formDepositCakeSync" />
+                <input-text class="pool__token__count" v-model="form.deposit.token" @input="formDepositRate" />
                 <div class="pool__token__footer">
-                  <div class="pool__token__estimate">~<span>{{ form.deposit.bnb * pancake.rates.bnbusdt }}</span> USD
+                  <div class="pool__token__estimate">~<span>{{ form.depositUsdvalue }}</span> USD
                   </div>
                   <btn-link class="pool__token__max" @click="formDepositBnbMaximize">max</btn-link>
+                </div>
+              </div>
+              <div class="s">
+                <div class="">
+                  <div class="">Min: {{ frog.minUsd }} USD</div>
+                </div>
+                <div class="">
+                  <div class="">Max: {{ frog.maxUsd }} USD</div>
                 </div>
               </div>
               <div class="pool__rates">
@@ -89,25 +97,22 @@
                   <td>deposit</td>
                   <td><small>{{ frog.user.deposit }}</small></td>
                   <!-- <td><small>{{ frog.user.deposit * pancake.rates.lpcake }}</small></td> -->
-                  <td><small>{{ frog.user.deposit * pancake.rates.lpbnb }}</small></td>
-                  <td><small>{{ frog.user.deposit * (pancake.rates.lpcake * pancake.rates.cakeusdt + pancake.rates.lpbnb *
-                    pancake.rates.bnbusdt) }}</small></td>
+                  <td><small>{{ pancake.table.deposit_busd }}</small></td>
+                  <td><small>{{ pancake.table.deposit_usdt }}</small></td>
                 </tr>
                 <tr>
                   <td>balance</td>
                   <td><small>{{ frog.user.balance }}</small></td>
                   <!-- <td><small>{{ frog.user.balance * pancake.rates.lpcake }}</small></td> -->
-                  <td><small>{{ frog.user.balance * pancake.rates.lpbnb }}</small></td>
-                  <td><small>{{ frog.user.balance * (pancake.rates.lpcake * pancake.rates.cakeusdt + pancake.rates.lpbnb *
-                    pancake.rates.bnbusdt) }}</small></td>
+                  <td><small>{{ pancake.table.balance_busd }}</small></td>
+                  <td><small>{{ pancake.table.balance_usdt }}</small></td>
                 </tr>
                 <tr>
                   <td>withdraw</td>
                   <td><small>{{ frog.user.withdraw }}</small></td>
                   <!-- <td><small>{{ frog.user.withdraw * pancake.rates.lpcake }}</small></td> -->
-                  <td><small>{{ frog.user.withdraw * pancake.rates.lpbnb }}</small></td>
-                  <td><small>{{ frog.user.withdraw * (pancake.rates.lpcake * pancake.rates.cakeusdt + pancake.rates.lpbnb
-                    * pancake.rates.bnbusdt) }}</small></td>
+                  <td><small>{{ pancake.table.withdraw_busd }}</small></td>
+                  <td><small>{{ pancake.table.withdraw_usdt }}</small></td>
                 </tr>
               </table>
               <div>
@@ -316,6 +321,7 @@ export default {
           bnb: 0,
           token: 0
         },
+        depositUsdvalue: 0,
         withdraw: {
           lp: 0,
         },
@@ -355,6 +361,20 @@ export default {
         busd: -1
       },
       pancake: {
+        sqrtPriceX96_busd_usdt: 0,
+        sqrtPriceX96_busd_usdc: 0,
+        sqrtPriceX96_usdt_usdc: 0,
+        tickLower: 0,
+        tickUpper: 0,
+        tokenId: 0,
+        table: {
+          deposit_busd: -1,
+          deposit_usdt: -1,
+          balance_busd: -1,
+          balance_usdt: -1,
+          withdraw_busd: -1,
+          withdraw_usdt: -1,
+        },
         rates: {
           bnbusdt: 0,
           cakeusdt: 0,
@@ -374,28 +394,38 @@ export default {
   methods: {
     async updateParams() {
       const web3 = new Web3(window.ethereum)
-      const pool = new web3.eth.Contract(PoolAbi.abi, constants.addresses[prefix + 'Pool_busd_usdt'])
 
+      // let poolName = this.tokenSelcted == 2 ? 'Pool_usdt_usdc' : 'Pool_busd_usdt'
+      const pool = new web3.eth.Contract(PoolAbi.abi, constants.addresses[prefix + 'Pool_busd_usdt'])
+      const manager = new web3.eth.Contract(PositionManager.abi, constants.addresses[prefix + 'NonfungiblePositionManager'])
+      const FrogContract = new web3.eth.Contract(FrogContractABI, FrogContractAddress);
+
+      this.pancake.tokenId = await FrogContract.methods.tokenId().call()
+      const position = await manager.methods.positions(this.pancake.tokenId).call()
+      this.pancake.tickLower = position.tickLower
+      this.pancake.tickUpper = position.tickUpper
       let provider
       if (prefix == 'sepolia_')
         provider = new ethers.providers.InfuraProvider(11155111, '')
       else
         provider = new ethers.providers.JsonRpcProvider()
 
-      function getPrice(amount, sqrtRatioX96, token0Decimals, token1Decimals) {
-        const ratioX192 = BigInt(sqrtRatioX96 * sqrtRatioX96) // JSBI.multiply(sqrtRatioX96, sqrtRatioX96)
-
-        const baseAmount = JSBI.BigInt(amount * (10 ** token0Decimals))
-
-        const shift = JSBI.leftShift(JSBI.BigInt(1), JSBI.BigInt(192))
-        const quote = BigNumber(ratioX192).times(baseAmount).dividedBy(shift.toString()) // FullMath.mulDivRoundingUp(ratioX192, baseAmount, shift)
-        return quote.toString() / (10 ** token1Decimals)
-      }
-
       // console.log('price', 1 / getPrice(1, BigInt(1857259621983179994159796290), 18, 18))
       // console.log('price', 1 / getPrice(1, (await pool.methods.slot0().call()).sqrtPriceX96, 18, 18))
-      const token0PerToken1 = getPrice(1, (await pool.methods.slot0().call()).sqrtPriceX96, 18, 18)
+      const pool_busd_usdc = new web3.eth.Contract(PoolAbi.abi, constants.addresses[prefix + 'Pool_busd_usdc'])
+      const pool_usdt_usdc = new web3.eth.Contract(PoolAbi.abi, constants.addresses[prefix + 'Pool_usdt_usdc'])
+
+      this.pancake.sqrtPriceX96_busd_usdt = (await pool.methods.slot0().call()).sqrtPriceX96
+      this.pancake.sqrtPriceX96_busd_usdc = (await pool_busd_usdc.methods.slot0().call()).sqrtPriceX96
+      this.pancake.sqrtPriceX96_usdt_usdc = (await pool_usdt_usdc.methods.slot0().call()).sqrtPriceX96
+      const token0PerToken1 = this.getPrice(1, this.pancake.sqrtPriceX96_busd_usdt, 18, 18)
       const token1PerToken0 = 1 / token0PerToken1
+
+      // if (this.tokenSelcted == 0)
+      //   token0PerToken1 = 1 / token0PerToken1
+      // else if (this.tokenSelcted == 1)
+      //   token1PerToken0 = 1 / token1PerToken0
+
 
       this.pancake.rates.t0_t1 = token0PerToken1.toFixed(2)
       this.pancake.rates.t1_t0 = token1PerToken0.toFixed(4)
@@ -409,7 +439,6 @@ export default {
       // this.pancake.rates.bnblp = supply / reserves._reserve1;
 
 
-      const FrogContract = new web3.eth.Contract(FrogContractABI, FrogContractAddress);
       FrogContract.methods.minUsd().call()
         .then(minUsd => {
           this.frog.minUsd = parseFloat(web3.utils.fromWei(minUsd))
@@ -429,40 +458,48 @@ export default {
         const usdc = new web3.eth.Contract(ERC20TokenABI, constants.addresses[prefix + 'USDC'])
 
         busd.methods.balanceOf(this.$store.state.account.toLowerCase()).call()
-          .then(balance => {
-            this.wallet.busd = parseFloat(web3.utils.fromWei(balance))
+          .then(async balance => {
+            this.wallet.busd = BigNumber(balance).div(BigNumber(10 ** 18))
           })
 
         usdt.methods.balanceOf(this.$store.state.account.toLowerCase()).call()
           .then(balance => {
-            this.wallet.usdt = parseFloat(web3.utils.fromWei(balance))
+            this.wallet.usdt = BigNumber(balance).div(BigNumber(10 ** 18))
           })
 
         usdc.methods.balanceOf(this.$store.state.account.toLowerCase()).call()
           .then(balance => {
-            this.wallet.usdc = parseFloat(web3.utils.fromWei(balance))
+            this.wallet.usdc = BigNumber(balance).div(BigNumber(10 ** 18))
           })
 
         new web3.eth.getBalance(this.$store.state.account.toLowerCase())
           .then(balance => {
-            this.wallet.bnb = parseFloat(web3.utils.fromWei(balance))
+            this.wallet.bnb = BigNumber(balance).div(BigNumber(10 ** 18))
           })
 
         const frog = new web3.eth.Contract(FrogContractABI, FrogContractAddress)
         frog.methods.depositOf(this.$store.state.account).call()
-          .then(balance => {
-            this.frog.user.deposit = parseFloat(web3.utils.fromWei(balance))
+          .then(async balance => {
+            this.frog.user.deposit = balance.toString()
+            const data = await this.getAmountsForLiquidity(this.pancake.sqrtPriceX96_busd_usdt, this.pancake.tickLower, this.pancake.tickUpper, this.frog.user.deposit)
+            this.pancake.table.deposit_busd = parseFloat(web3.utils.fromWei(data.amount0))
+            this.pancake.table.deposit_usdt = parseFloat(web3.utils.fromWei(data.amount1))
           })
 
         frog.methods.balanceOf(this.$store.state.account).call()
-          .then(balance => {
-            console.log("balamc:", balance)
-            this.frog.user.balance = parseFloat(web3.utils.fromWei(balance))
+          .then(async balance => {
+            this.frog.user.balance = balance.toString()
+            const data = await this.getAmountsForLiquidity(this.pancake.sqrtPriceX96_busd_usdt, this.pancake.tickLower, this.pancake.tickUpper, this.frog.user.balance)
+            this.pancake.table.balance_busd = parseFloat(web3.utils.fromWei(data.amount0))
+            this.pancake.table.balance_usdt = parseFloat(web3.utils.fromWei(data.amount1))
           })
 
         frog.methods.withdrawOf(this.$store.state.account).call()
-          .then(balance => {
-            this.frog.user.withdraw = parseFloat(web3.utils.fromWei(balance))
+          .then(async balance => {
+            this.frog.user.withdraw = balance.toString()
+            const data = await this.getAmountsForLiquidity(this.pancake.sqrtPriceX96_busd_usdt, this.pancake.tickLower, this.pancake.tickUpper, this.frog.user.withdraw)
+            this.pancake.table.withdraw_busd = parseFloat(web3.utils.fromWei(data.amount0))
+            this.pancake.table.withdraw_usdt = parseFloat(web3.utils.fromWei(data.amount1))
           })
 
         frog.methods.rewardOfToken0(this.$store.state.account).call()
@@ -501,9 +538,9 @@ export default {
       const web3 = new Web3(window.ethereum)
       const FrogContract = new web3.eth.Contract(FrogContractABI, FrogContractAddress)
 
-      FrogContract.methods.farmTotal().call().then(farmTotal => {
-        this.frog.farmTotal = web3.utils.fromWei(farmTotal)
-      })
+      // FrogContract.methods.farmTotal().call().then(farmTotal => {
+      //   this.frog.farmTotal = web3.utils.fromWei(farmTotal)
+      // })
       FrogContract.methods.drawNumber().call().then(drawNumber => {
         this.frog.drawNumber = drawNumber
       })
@@ -579,7 +616,6 @@ export default {
 
       // const referalInfo = await FrogReferal.methods.refererOf(this.$store.state.account.toLowerCase()).call()
       const data = await axios.post(`${backendUrl}/getUser`, { wallet: this.$store.state.account.toLowerCase() })
-      console.log("data", data.data)
       if (data.data.user == null) {
         this.frog.referalInfo.referer = '-11'
         this.frog.referalInfo.percent = -11
@@ -590,14 +626,27 @@ export default {
 
       setTimeout(this.updateParticipants, 20000)
     },
-    formDepositBnbSync() {
-      const usdtAmount = this.form.deposit.cake * this.pancake.rates.cakeusdt
-      this.form.deposit.bnb = usdtAmount / this.pancake.rates.bnbusdt
+    async formDepositRate() {
+      switch (this.tokenSelcted) {
+        case 0:
+          this.form.depositUsdvalue = this.getPrice(1, this.pancake.sqrtPriceX96_busd_usdt, 18, 18) * this.form.deposit.token
+          break;
+        case 1:
+          this.form.depositUsdvalue = 1 / this.getPrice(1, this.pancake.sqrtPriceX96_busd_usdt, 18, 18) * this.form.deposit.token
+          break;
+        case 2:
+          this.form.depositUsdvalue = 1 / this.getPrice(1, this.pancake.sqrtPriceX96_usdt_usdc, 18, 18) * this.form.deposit.token / 2
+          this.form.depositUsdvalue += 1 / this.getPrice(1, this.pancake.sqrtPriceX96_busd_usdc, 18, 18) * this.form.deposit.token / 2
+          break;
+      }
+
+      // this.form.depositUsdvalue = this.getPrice(this.form.deposit.token, this.pancake.sqrtPriceX96_busd_usdt, 18, 18)
+      this.$forceUpdate()
     },
-    formDepositCakeSync() {
-      const usdtAmount = this.form.deposit.bnb * this.pancake.rates.bnbusdt
-      this.form.deposit.cake = usdtAmount / this.pancake.rates.cakeusdt
-    },
+    // formDepositCakeSync() {
+    //   const usdtAmount = this.form.deposit.bnb * this.pancake.rates.bnbusdt
+    //   this.form.deposit.cake = usdtAmount / this.pancake.rates.cakeusdt
+    // },
     formDepositCakeMaximize() {
       this.form.deposit.cake = this.wallet.cake
       this.formDepositBnbSync()
@@ -608,8 +657,8 @@ export default {
     },
     async swap() {
       const web3 = new Web3(window.ethereum)
-      const manager = new web3.eth.Contract(Router.abi, constants.addresses[prefix + 'SwapRouter'])
-      await manager.methods.exactInputSingle({
+      const router = new web3.eth.Contract(Router.abi, constants.addresses[prefix + 'SwapRouter'])
+      await router.methods.exactInputSingle({
         tokenIn: constants.addresses[prefix + 'BUSD'],
         tokenOut: constants.addresses[prefix + 'USDT'],
         fee: constants.addresses[prefix + 'Pool_busd_usdt_fee'],
@@ -712,7 +761,7 @@ export default {
               .on('receipt', (receipt) => {
                 this.showModal('Your tokens sent to deposit!')
                 this.form.deposit.token = 0;
-                // this.form.deposit.bnb = 0;
+                this.form.depositUsdvalue = 0;
               })
           } else {
             const { message, v, r, s } = await this.sigAddress(this.$store.state.account)
@@ -762,7 +811,7 @@ export default {
         const web3 = new Web3(window.ethereum)
         const FrogContract = await new web3.eth.Contract(FrogContractABI, FrogContractAddress)
         await FrogContract.methods.withdraw(
-          web3.utils.toWei(this.form.withdraw.lp.toString())
+          this.form.withdraw.lp.toString()
         )
           .send({
             from: this.$store.state.account
@@ -951,8 +1000,26 @@ export default {
     },
     changeToken(index) {
       this.tokenSelcted = index
+      this.formDepositRate()
       this.$forceUpdate()
+    },
+    getPrice(amount, sqrtRatioX96, token0Decimals, token1Decimals) {
+      const ratioX192 = BigInt(sqrtRatioX96 * sqrtRatioX96) // JSBI.multiply(sqrtRatioX96, sqrtRatioX96)
+
+      const baseAmount = JSBI.BigInt(amount * (10 ** token0Decimals))
+
+      const shift = JSBI.leftShift(JSBI.BigInt(1), JSBI.BigInt(192))
+      const quote = BigNumber(ratioX192).times(baseAmount).dividedBy(shift.toString()) // FullMath.mulDivRoundingUp(ratioX192, baseAmount, shift)
+      return quote.toString() / (10 ** token1Decimals)
+    },
+    async getAmountsForLiquidity(sqrtPriceX96, tickLower, tickUpper, liquidity) {
+      const web3 = new Web3(window.ethereum)
+      const FrogContract = new web3.eth.Contract(FrogContractABI, FrogContractAddress);
+
+      const data = await FrogContract.methods.calculateAmountsForLiquidity(sqrtPriceX96, BigInt(tickLower), BigInt(tickUpper), liquidity).call()
+      return { amount0: data.amount0, amount1: data.amount1 }
     }
+
   },
   created() {
     this.tokenSelcted = 0

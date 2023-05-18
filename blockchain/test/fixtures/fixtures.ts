@@ -164,7 +164,6 @@ export async function deployAll() {
         recipient: acct1.address,
         deadline: 10000000000000
     }
-
     await nonfungiblePositionManager.mint(params)
 
     params.token0 = usdt.address
@@ -305,5 +304,5 @@ export async function deployAll() {
     // await masterChef.add(1, await pancakeFactory.getPair(cake.address, usdt.address), false)
 
     // return { cake, bnb, usdt, router, lottery, masterChef, pancakeFactory, syrupBar, factory, referal, lotteryERC20, usdc } as allContractsFromDeploy
-    return ({ usdc, usdt, busd, pool_busd_usdt, lottery_busd_usdt, pancakeFactory, router, nonfungiblePositionManager, factory, referal, fee })
+    return ({ usdc, usdt, busd, pool_busd_usdt, pool_busd_usdc, pool_usdt_usdc, lottery_busd_usdt, pancakeFactory, router, nonfungiblePositionManager, factory, referal, fee })
 }

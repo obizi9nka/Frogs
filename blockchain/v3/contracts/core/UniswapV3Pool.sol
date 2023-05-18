@@ -315,7 +315,7 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
             int256 amount1
         )
     {
-        // console.log('_modifyPosition');
+        console.log('_modifyPosition');
 
         checkTicks(params.tickLower, params.tickUpper);
 
@@ -328,7 +328,7 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
             params.liquidityDelta,
             _slot0.tick
         );
-        // console.log("rrrrrrrrrrrrrrr");
+        console.log("rrrrrrrrrrrrrrr");
         // console.log(uint(params.liquidityDelta));
         // console.log(uint(_slot0.tick));
         // console.log(uint(params.tickLower));
@@ -395,7 +395,7 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
         int128 liquidityDelta,
         int24 tick
     ) private returns (Position.Info storage position) {
-        // console.log('_updatePosition');
+        console.log('_updatePosition');
         position = positions.get(owner, tickLower, tickUpper);
 
         uint256 _feeGrowthGlobal0X128 = feeGrowthGlobal0X128; // SLOAD for gas optimization
@@ -454,7 +454,7 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
             }
         }
 
-        // console.log('getFeeGrowthInside');
+        console.log('getFeeGrowthInside');
         (uint256 feeGrowthInside0X128, uint256 feeGrowthInside1X128) =
             ticks.getFeeGrowthInside(tickLower, tickUpper, tick, _feeGrowthGlobal0X128, _feeGrowthGlobal1X128);
 
