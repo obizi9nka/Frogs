@@ -55,9 +55,13 @@ contract FrogReferal is Ownable, IFrogReferal{
     }
 
 
-    function claimReward(address token) public override{
-        require(IERC20(token).transfer(msg.sender, balance[token][msg.sender]), 'claimReward: transfer faild');
-        balance[token][msg.sender] = 0;
+    function claimReward(address[] calldata tokens) public override{
+        uint len = tokens.length;
+        for (uint i = 0; i < len; i++) {
+            require(IERC20(tokens[i]).transfer(msg.sender, balance[tokens[i]][msg.sender]), 'claimReward: transfer faild');
+            balance[tokens[i]][msg.sender] = 0;
+        }
+        
     }
 
      function accrueRewardFromWinningReferral(ReferersRewardInfo[] calldata data, address token0, address token1) override public onlyLottery{

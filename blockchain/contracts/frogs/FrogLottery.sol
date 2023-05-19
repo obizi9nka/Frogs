@@ -61,7 +61,7 @@ contract FrogLottery is Random, Ownable{
 
     event BeneficiaryChanged(address indexed _oldBeneficiary, address indexed _newBeneficiary);
     event FeePercentChanged(uint indexed _oldFeePercent, uint indexed _newFeePercent);
-    event Draw(uint indexed _drawNumber, uint _rewardToken0, uint _rewardToken1, uint _rewardRefralToken0, uint _rewardRefralToken1);
+    event Draw(uint indexed _drawNumber, uint _rewardToken0, uint _rewardToken1, uint _prticipantsRewardToken0, uint _prticipantsRewardToken1);
     event Victory(uint indexed _drawNumber, address indexed _winner, uint256 _amountToken0, uint256 _amountToken1);
     event Deposit(address indexed _participant, uint _amount, uint _oldBalance);
     event Withdraw(address indexed _participant, uint _amount, uint _oldBalance);
@@ -86,8 +86,8 @@ contract FrogLottery is Random, Ownable{
         beneficiary     = _beneficiary;
         maxFeePercent   = 3000; // 30%
         feePercent      = maxFeePercent;
-        minUsd         = 0.1 ether; // @TODO change to 50-500
-        maxUsd         = 100 ether; // @TODO change to 50-500
+        minUsd         = 5 ether; // @TODO change to 50-500
+        maxUsd         = 50 ether; // @TODO change to 50-500
         pancakePID      = _pancakePID;
         isEthLottery    = _isEthLottery;
         setToken0ContractAddress(_token0); // setToken0ContractAddress(0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82);

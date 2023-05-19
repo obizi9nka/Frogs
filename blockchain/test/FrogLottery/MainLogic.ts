@@ -10,7 +10,7 @@ let mainLogic
 
 describe("FrogLottery MainLogic", function () {
     mainLogic = async (isEthLottery: boolean) => {
-        const decimals = BigInt(10 ** 18)
+        const decimals = BigInt(10 * 10 ** 18)
         let all: allContractsFromDeploy;
         let lottery: FrogLottery;
         this.beforeAll(async () => {
@@ -122,8 +122,7 @@ describe("FrogLottery MainLogic", function () {
             const rewardOfToken1 = await all.referal.balance(all.usdt.address, acct1.address)
             const balanceBeforeBusd = await all.busd.balanceOf(acct1.address)
             const balanceBeforeUsdt = await all.usdt.balanceOf(acct1.address)
-            await all.referal.connect(acct1).claimReward(all.busd.address)
-            await all.referal.connect(acct1).claimReward(all.usdt.address)
+            await all.referal.connect(acct1).claimReward([all.busd.address, all.usdt.address])
             const balanceAfterBusd = await all.busd.balanceOf(acct1.address)
             const balanceAfterUsdt = await all.usdt.balanceOf(acct1.address)
 

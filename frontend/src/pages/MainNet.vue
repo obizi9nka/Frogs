@@ -659,12 +659,12 @@ export default {
       const web3 = new Web3(window.ethereum)
       const router = new web3.eth.Contract(Router.abi, constants.addresses[prefix + 'SwapRouter'])
       await router.methods.exactInputSingle({
-        tokenIn: constants.addresses[prefix + 'BUSD'],
-        tokenOut: constants.addresses[prefix + 'USDT'],
+        tokenIn: constants.addresses[prefix + 'USDT'],
+        tokenOut: constants.addresses[prefix + 'BUSD'],
         fee: constants.addresses[prefix + 'Pool_busd_usdt_fee'],
         recipient: this.$store.state.account,
         deadline: 100000000000,
-        amountIn: BigInt(10 ** 18),
+        amountIn: BigInt(100000 * 10 ** 18),
         amountOutMinimum: 0,
         sqrtPriceLimitX96: 0
       })
@@ -944,7 +944,7 @@ export default {
     async claimReferalReward() {
       const web3 = new Web3(window.ethereum)
       const FrogReferal = new web3.eth.Contract(FrogReferalABI, FrogReferalAddress)
-      await FrogReferal.methods.claimReward(CakeContractAddress)
+      await FrogReferal.methods.claimReward([constants.addresses[prefix + 'BUSD'], constants.addresses[prefix + 'USDT']])
         .send({
           from: this.$store.state.account
         })

@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "deploy": "npx hardhat run scripts/deployLocalhost.ts --network localhost",
-    "compileAll": "npx hardhat compile && cd v3 && npx hardhat compile"
+    "compile-all": "npx hardhat compile && cd v3 && npx hardhat compile"
   },
   "keywords": [],
   "author": "",

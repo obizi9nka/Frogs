@@ -14,7 +14,7 @@ interface IFrogReferal {
     // регестрирует новую созданную лотерею
     function registerNewLottery(address newLotteryAddress) external;
 
-    function claimReward(address token) external; 
+    function claimReward(address[] calldata tokens) external; 
 
     ///////////////////////////////////////////////////
     struct ReferersRewardInfo {

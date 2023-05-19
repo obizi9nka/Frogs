@@ -1,6 +1,6 @@
 {
-    "backendUrl_replaceMe": "http://127.0.0.1:3001",
-    "backendUrl": "https://frogs-api.test-mvp.ru",
+    "backendUrl": "http://127.0.0.1:3001",
+    "backendUrl_replaceMe": "https://frogs-api.test-mvp.ru",
     "prefix_replaceMe": "sepolia_",
     "prefix": "localhost_"
 }
