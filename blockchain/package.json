@@ -4,7 +4,9 @@
   "main": "index.js",
   "scripts": {
     "deploy": "npx hardhat run scripts/deployLocalhost.ts --network localhost",
-    "compile-all": "npx hardhat compile && cd v3 && npx hardhat compile"
+    "compile-all": "npx hardhat compile && cd v3 && npx hardhat compile",
+    "main-logic": "npx hardhat test --grep MainLogic",
+    "test-mn": "npx hardhat run scripts/testDeployBeforeMainnet.ts --network sepolia"
   },
   "keywords": [],
   "author": "",

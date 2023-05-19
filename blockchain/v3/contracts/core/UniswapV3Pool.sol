@@ -315,7 +315,7 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
             int256 amount1
         )
     {
-        console.log('_modifyPosition');
+        // console.log('_modifyPosition');
 
         checkTicks(params.tickLower, params.tickUpper);
 
@@ -328,7 +328,7 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
             params.liquidityDelta,
             _slot0.tick
         );
-        console.log("rrrrrrrrrrrrrrr");
+        // console.log("rrrrrrrrrrrrrrr");
         // console.log(uint(params.liquidityDelta));
         // console.log(uint(_slot0.tick));
         // console.log(uint(params.tickLower));
@@ -395,7 +395,7 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
         int128 liquidityDelta,
         int24 tick
     ) private returns (Position.Info storage position) {
-        console.log('_updatePosition');
+        // console.log('_updatePosition');
         position = positions.get(owner, tickLower, tickUpper);
 
         uint256 _feeGrowthGlobal0X128 = feeGrowthGlobal0X128; // SLOAD for gas optimization
@@ -454,7 +454,7 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
             }
         }
 
-        console.log('getFeeGrowthInside');
+        // console.log('getFeeGrowthInside');
         (uint256 feeGrowthInside0X128, uint256 feeGrowthInside1X128) =
             ticks.getFeeGrowthInside(tickLower, tickUpper, tick, _feeGrowthGlobal0X128, _feeGrowthGlobal1X128);
 
@@ -497,14 +497,14 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
         amount0 = uint256(amount0Int);
         amount1 = uint256(amount1Int);
 
-        console.log("liquidity to add",amount0,amount1);
+        // console.log("liquidity to add",amount0,amount1);
 
         uint256 balance0Before;
         uint256 balance1Before;
         if (amount0 > 0) balance0Before = balance0();
         if (amount1 > 0) balance1Before = balance1();
         IUniswapV3MintCallback(msg.sender).uniswapV3MintCallback(amount0, amount1, data);
-        console.log("MO!!!!!!!!!!!!!!!!!!!!!!", balance0Before.add(amount0), balance0());
+        // console.log("MO!!!!!!!!!!!!!!!!!!!!!!", balance0Before.add(amount0), balance0());
         // 1000000000000000019884624838656
         // 1000000000000000019884624836064
         // if (amount0 > 0) require(balance0Before.add(amount0) <= balance0(), 'M0');

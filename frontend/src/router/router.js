@@ -1,7 +1,6 @@
 import MainNet from "@/pages/MainNet";
 import PanCake from "@/pages/PanCake";
 import Lottery from "@/pages/Lottery";
-import TestNet from "@/pages/TestNet";
 import Admin from "@/pages/Admin";
 import { createRouter, createWebHistory } from "vue-router";
 
@@ -20,11 +19,6 @@ const routes = [
         name: 'pancake',
         path: '/cake/',
         component: PanCake
-    },
-    {
-        name: 'test-net',
-        path: '/test/',
-        component: TestNet
     },
     // {
     //     name: 'admin',

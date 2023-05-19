@@ -8,7 +8,7 @@ import "../v3-interfaces/IUniswapV3Factory.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import 'hardhat/console.sol';
 
-contract Factory is Ownable{
+contract FrogFactory is Ownable{
     mapping(address => mapping(address => mapping(uint24 => address))) public lotteries;
 
     address frogReferalAddress;
@@ -25,7 +25,7 @@ contract Factory is Ownable{
         swapRouter = _swapRouter;
     }
 
-    function createNewLottery(address token0, address token1, uint24 fee, uint pancakePID, address _pool, address nonfungiblePositionManager, address stable) public onlyOwner{
+    function createNewLottery(address token0, address token1, uint24 fee, address _pool, address nonfungiblePositionManager, address stable) public onlyOwner{
         require(IUniswapV3Factory(pancakeFactory).getPool(token0,token1, fee) != address(0), "pair dont exist");
         require(lotteries[token0][token1][fee] == address(0), "lottery exist");
         bool isEth = false;
@@ -38,7 +38,7 @@ contract Factory is Ownable{
             isEth = true;
         }
         // console.log('tiks',uint(tickUpper), uint(tickLower));
-        address newLottery = address(new FrogLottery(token0,token1,fee,frogReferalAddress,isEth,beneficiary,pancakePID, _pool, nonfungiblePositionManager,swapRouter,pancakeFactory,stable));
+        address newLottery = address(new FrogLottery(token0,token1,fee,frogReferalAddress,isEth,beneficiary, _pool, nonfungiblePositionManager,swapRouter,pancakeFactory,stable));
         lotteries[token0][token1][fee] = newLottery;
         lotteries[token1][token0][fee] = newLottery;
         IFrogReferal(frogReferalAddress).registerNewLottery(newLottery);

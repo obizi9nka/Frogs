@@ -25,12 +25,10 @@ const config: HardhatUserConfig = {
         hardhat: {
             allowUnlimitedContractSize: true
         },
-        testnet: {
+        tbsc: {
             url: "https://data-seed-prebsc-1-s1.binance.org:8545",
             chainId: 97,
-            gasPrice: 20000000000,
-            allowUnlimitedContractSize: true
-            // accounts: [PRIVATE_KEY_1],
+            accounts: [PRIVATE_KEY_1],
         },
         mainnet: {
             url: "https://bsc-dataseed.binance.org/",

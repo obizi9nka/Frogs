@@ -2,11 +2,14 @@ import hre from "hardhat";
 import { ethers } from 'hardhat';
 import json from "../../artifacts/contracts/frogs/FrogLottery.sol/FrogLottery.json";
 import jsonPool from "../../artifacts/contracts/core/UniswapV3Pool.sol/UniswapV3Pool.json"
-import { ERC20Token, Factory, FrogLottery, FrogReferal, TBnb } from "../../typechain-types";
+import { ERC20Token, FrogFactory, FrogLottery, FrogReferal, TBnb } from "../../typechain-types";
 import { allContractsFromDeploy } from "../../@types";
 import { NonfungiblePositionManager, SwapRouter, UniswapV3Factory, UniswapV3Pool } from "../../v3/typechain-types";
 import { BigNumber } from "ethers";
 import bn from 'bignumber.js'
+
+
+const fee = 500;
 
 export async function deployAll() {
     const [acct1, acct2, acct3, acct4] = await ethers.getSigners();
@@ -63,7 +66,6 @@ export async function deployAll() {
     await pancakeFactory.deployed();
     // console.log(pancakeFactory.address)
 
-    const fee = 500;
 
     await pancakeFactory.createPool(busd.address, usdt.address, fee)
     await pancakeFactory.createPool(busd.address, usdc.address, fee)
@@ -97,9 +99,6 @@ export async function deployAll() {
     await pool_busd_usdt.initialize(price)
     await pool_busd_usdc.initialize(price)
     await pool_usdt_usdc.initialize(price)
-    // console.log(await pool_busd_usdt.slot0())
-    // console.log(await pool_busd_usdt.liquidity())
-    // console.log(pool_busd_usdt', pool_busd_usdt.address)
 
     // ==================
     //  NonfungiblePositionManager
@@ -108,7 +107,6 @@ export async function deployAll() {
     const nonfungiblePositionManager = await NonfungiblePositionManager.deploy(pancakeFactory.address, ethers.constants.AddressZero, ethers.constants.AddressZero) as NonfungiblePositionManager;
 
     await nonfungiblePositionManager.deployed();
-    // console.log(nonfungiblePositionManager', nonfungiblePositionManager.address)
 
     // ==================
     //       Router
@@ -116,13 +114,12 @@ export async function deployAll() {
     const SwapRouter = await hre.ethers.getContractFactory('SwapRouter');
     const router = await SwapRouter.deploy(pancakeFactory.address, bnb.address) as SwapRouter
     await router.deployed();
-    // console.log(router', router.address)
 
     // ==================
-    //       Factory
+    //       FrogFactory
     // ==================
-    const Factory = await hre.ethers.getContractFactory('Factory');
-    const factory = await Factory.deploy(referal.address, ethers.constants.AddressZero, pancakeFactory.address, acct1.address, router.address) as Factory;
+    const FrogFactory = await hre.ethers.getContractFactory('FrogFactory');
+    const factory = await FrogFactory.deploy(referal.address, ethers.constants.AddressZero, pancakeFactory.address, acct1.address, router.address) as FrogFactory;
 
     await factory.deployed();
     // console.log(factory', factory.address)
@@ -147,9 +144,6 @@ export async function deployAll() {
     await usdc.approve(nonfungiblePositionManager.address, TOKENS_VALUE_20)
     await usdt.approve(nonfungiblePositionManager.address, TOKENS_VALUE_20)
 
-
-    const balanceBeforeBusd = await busd.balanceOf(acct1.address)
-    const balanceBeforeUsdt = await usdt.balanceOf(acct1.address)
 
     let params = {
         token0: busd.address,
@@ -187,10 +181,10 @@ export async function deployAll() {
     // console.log(balanceAfterUsdt.toString())
 
 
-    await factory.createNewLottery(busd.address, usdt.address, fee, 2, pool_busd_usdt.address, nonfungiblePositionManager.address, usdc.address)
+    await factory.createNewLottery(busd.address, usdt.address, fee, pool_busd_usdt.address, nonfungiblePositionManager.address, usdc.address)
     const lottery_busd_usdt = new ethers.Contract(await factory.lotteries(busd.address, usdt.address, fee), json.abi, acct1) as FrogLottery
-    await busd.transfer(lottery_busd_usdt.address, 1)
-    await usdt.transfer(lottery_busd_usdt.address, 1)
+    await busd.approve(lottery_busd_usdt.address, 1)
+    await usdt.approve(lottery_busd_usdt.address, 1)
     await lottery_busd_usdt.createPosition(-1000, 1000)
 
 
@@ -215,10 +209,10 @@ export async function deployAll() {
     // await pancakeFactory.createPair(bnb.address, usdt.address, false)
     // await pancakeFactory.createPair(usdt.address, usdc.address, false)
     // // ==================
-    // //       Factory
+    // //       FrogFactory
     // // ==================
-    // const Factory = await hre.ethers.getContractFactory('Factory');
-    // const factory = await Factory.deploy(referal.address, bnb.address, pancakeFactory.address, acct1.address);
+    // const FrogFactory = await hre.ethers.getContractFactory('FrogFactory');
+    // const factory = await FrogFactory.deploy(referal.address, bnb.address, pancakeFactory.address, acct1.address);
 
     // await factory.deployed();
     // await referal.setBeneficiary(acct4.address) // for coverage

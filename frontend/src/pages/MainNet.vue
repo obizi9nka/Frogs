@@ -264,7 +264,7 @@ import { TickMath, FullMath } from "@uniswap/v3-sdk"
 import cakeAbi from '../../../blockchain/artifacts/contracts/pancekeswap-fork/utils/CakeToken.sol/CakeToken.json'
 import bnbAbi from '../../../blockchain/artifacts/contracts/frogs/ERC20.sol/ERC20Token.json'
 import lotteryAbi from '../../../blockchain/artifacts/contracts/frogs/FrogLottery.sol/FrogLottery.json'
-import factoryAbi from '../../../blockchain/artifacts/contracts/frogs/Factory.sol/Factory.json'
+import factoryAbi from '../../../blockchain/artifacts/contracts/frogs/FrogFactory.sol/FrogFactory.json'
 import referalAbi from "../../../blockchain/artifacts/contracts/frogs/FrogReferal.sol/FrogReferal.json"
 import routerAbi from "../../../blockchain/artifacts/contracts/pancekeswap-fork/router.sol/PancakeRouter.json"
 import pairAbi from "../../../blockchain/artifacts/contracts/pancekeswap-fork/pancakepair.sol/PancakePair.json"
@@ -683,18 +683,40 @@ export default {
     },
     async deposit() {
       var errors = [];
+      let tokenForDepositAddress;
+      let tokenBalance
+      switch (this.tokenSelcted) {
+        case 0: {
+          tokenForDepositAddress = constants.addresses[prefix + 'BUSD']
+          tokenBalance = parseFloat(this.wallet.busd)
+          break;
+        }
+        case 1: {
+          tokenForDepositAddress = constants.addresses[prefix + 'USDT']
+          tokenBalance = parseFloat(this.wallet.usdt)
+          break;
+        }
+        case 2: {
+          tokenForDepositAddress = constants.addresses[prefix + 'USDC']
+          tokenBalance = parseFloat(this.wallet.usdc)
+          break;
+        }
+      }
+      console.log(tokenBalance, this.form.deposit.token)
 
-      // if (this.wallet.busd < this.form.deposit.cake) {
-      //   errors.push("Not enough CAKE")
-      // }
-      // if (this.wallet.bnb < this.form.deposit.bnb) {
-      //   errors.push("Not enough BNB")
-      // }
-      // const futureBalance = (this.frog.user.balance + this.frog.user.deposit - this.frog.user.withdraw) * (this.pancake.rates.lpcake * this.pancake.rates.cakeusdt + this.pancake.rates.lpbnb * this.pancake.rates.bnbusdt)
-      // const deposit = this.form.deposit.cake * this.pancake.rates.cakeusdt + this.form.deposit.bnb * this.pancake.rates.bnbusdt
-      // if (futureBalance + deposit < this.frog.minUsd || futureBalance + deposit > this.frog.maxUsd) {
-      //   errors.push('Amount of balance must be in $' + this.frog.minUsd + ' .. $' + this.frog.maxUsd + "")
-      // }
+      if (tokenBalance < parseFloat(this.form.deposit.token)) {
+        errors.push("Not enough tokens")
+      }
+      const data = await this.getAmountsForLiquidity(this.pancake.sqrtPriceX96_busd_usdt, this.pancake.tickLower, this.pancake.tickUpper, this.frog.user.deposit + this.frog.user.deposit - this.frog.user.withdraw)
+      const price = this.getPrice(1, this.pancake.sqrtPriceX96_busd_usdt, 18, 18)
+
+      const futureBalance = price * data.amount0 + 1 / price * data.amount1  //(this.frog.user.balance + this.frog.user.deposit - this.frog.user.withdraw) * (this.pancake.rates.lpcake * this.pancake.rates.cakeusdt + this.pancake.rates.lpbnb * this.pancake.rates.bnbusdt)
+      const deposit = this.form.depositUsdvalue
+      console.log(futureBalance)
+      console.log(deposit)
+      if (futureBalance + deposit < this.frog.minUsd || futureBalance + deposit > this.frog.maxUsd) {
+        errors.push('Amount of balance must be in $' + this.frog.minUsd + ' .. $' + this.frog.maxUsd + "")
+      }
       if (errors.length) {
         this.showModal(errors.join(', '))
       } else {
@@ -706,11 +728,28 @@ export default {
         if (this.frog.referalInfo.referer == condition) {
           this.showModal('Not a referal')
         } else if (confirm("You want to send: \n" + this.form.deposit.cake + " CAKE\n" + this.form.deposit.bnb + " BNB")) {
-          console.log("fefrfrfrfr")
-          // const allowance0 = web3.utils.fromWei(await new web3.eth.Contract(CakeContractABI, CakeContractAddress)
+
+          const allowance0 = web3.utils.fromWei(await new web3.eth.Contract(ERC20TokenABI, tokenForDepositAddress)
+            .methods.allowance(this.$store.state.account, FrogContractAddress).call());
+          if (allowance0 < tokenBalance) {
+            const approveCake = await new web3.eth.Contract(ERC20TokenABI, tokenForDepositAddress)
+              .methods.approve(FrogContractAddress, web3.utils.toWei(this.form.deposit.cake.toString()))
+              .send({
+                from: this.$store.state.account
+              })
+              .on('sending', () => {
+                this.showModal('Waiting for confirmation')
+              })
+            if (approveCake.status != true) {
+              this.showModal('Something went wrong with tCake approve!')
+              return
+            }
+          }
+
+          // const allowance1 = web3.utils.fromWei(await new web3.eth.Contract(ERC20TokenABI, constants.addresses[prefix + "USDT"])
           //   .methods.allowance(this.$store.state.account, FrogContractAddress).call());
-          // if (allowance0 < this.form.deposit.cake) {
-          //   const approveCake = await new web3.eth.Contract(CakeContractABI, CakeContractAddress)
+          // if (allowance1 < this.form.deposit.cake) {
+          //   const approveCake = await new web3.eth.Contract(ERC20TokenABI, constants.addresses[prefix + "USDT"])
           //     .methods.approve(FrogContractAddress, web3.utils.toWei(this.form.deposit.cake.toString()))
           //     .send({
           //       from: this.$store.state.account
@@ -727,21 +766,7 @@ export default {
           const amount = web3.utils.toWei(this.form.deposit.token.toString().substring(0, 20));
           // const amountToken1 = web3.utils.toWei(this.form.deposit.bnb.toString().substring(0, 20));
           const FrogContract = new web3.eth.Contract(FrogContractABI, FrogContractAddress)
-          let tokenForDepositAddress;
-          switch (this.tokenSelcted) {
-            case 0: {
-              tokenForDepositAddress = constants.addresses[prefix + 'BUSD']
-              break;
-            }
-            case 1: {
-              tokenForDepositAddress = constants.addresses[prefix + 'USDT']
-              break;
-            }
-            case 2: {
-              tokenForDepositAddress = constants.addresses[prefix + 'USDC']
-              break;
-            }
-          }
+
           console.log(tokenForDepositAddress, this.tokenSelcted)
           if (isPartisipant) {
             await FrogContract.methods.deposit(
@@ -962,7 +987,7 @@ export default {
     },
     async getCake() {
       const web3 = new Web3(window.ethereum)
-      const cake = new web3.eth.Contract(CakeContractABI, CakeContractAddress)
+      const cake = new web3.eth.Contract(ERC20TokenABI, constants.addresses[prefix + "BUSD"])
       await cake.methods.getTokens(BigInt(10 ** 32))
         .send({
           from: this.$store.state.account

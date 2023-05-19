@@ -126,7 +126,7 @@ contract SwapRouter is
             SwapCallbackData({path: abi.encodePacked(params.tokenIn, params.fee, params.tokenOut), payer: msg.sender})
         );
 
-        console.log("exactInputSingle",amountOut);
+        // console.log("exactInputSingle",amountOut);
         require(amountOut >= params.amountOutMinimum, 'Too little received');
     }
 
