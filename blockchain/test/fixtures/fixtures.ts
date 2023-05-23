@@ -5,8 +5,8 @@ import jsonPool from "../../artifacts/contracts/core/UniswapV3Pool.sol/UniswapV3
 import { ERC20Token, FrogFactory, FrogLottery, FrogReferal, TBnb } from "../../typechain-types";
 import { allContractsFromDeploy } from "../../@types";
 import { NonfungiblePositionManager, SwapRouter, UniswapV3Factory, UniswapV3Pool } from "../../v3/typechain-types";
-import { BigNumber } from "ethers";
-import bn from 'bignumber.js'
+// import { BigNumber } from "ethers";
+import BigNumber from 'bignumber.js'
 
 
 const fee = 500;
@@ -42,10 +42,10 @@ export async function deployAll() {
     //        BNB
     // ==================
     const BNB = await hre.ethers.getContractFactory('TBnb');
-    const bnb = await BNB.deploy() as TBnb;
+    const wbnb = await BNB.deploy() as TBnb;
 
-    await bnb.deployed();
-    // console.log(bnb.address)
+    await wbnb.deployed();
+    // console.log(wbnb.address)
 
     // ==================
     //     FrogReferal
@@ -82,19 +82,19 @@ export async function deployAll() {
     // 80000000000000000000000000000000000000 // не норм в ремиксе 10 ** 18
     // 211113179192444239363564201206 // норм в ремиксе 7
     function encodePriceSqrt(reserve1: any, reserve0: any): BigNumber {
-        return BigNumber.from(
-            new bn(reserve1)
-                .div(reserve0)
-                .sqrt()
-                .multipliedBy(new bn(2).pow(96))
-                .integerValue(3)
-                .toString()
-        )
+        const t = new BigNumber(reserve1)
+            .div(reserve0)
+            .sqrt()
+            .multipliedBy(new BigNumber(2).pow(96))
+            .integerValue(3)
+        console.log(t)
+        return t
     }
     // console.log(encodePriceSqrt(2, 1))
     // process.exit()
-    const price = BigInt(79228162514264337593543950336) // encodePriceSqrt(1, 1)
-    // const rrr = BigInt(112045541949572279837330081938) // encodePriceSqrt(2, 1)
+    // const price = BigInt(79228162514264337593543950336) // encodePriceSqrt(1, 1)
+    const price = BigInt(encodePriceSqrt(1.5, 1).toNumber())
+    console.log(price.toString())
 
     await pool_busd_usdt.initialize(price)
     await pool_busd_usdc.initialize(price)
@@ -112,7 +112,7 @@ export async function deployAll() {
     //       Router
     // ==================
     const SwapRouter = await hre.ethers.getContractFactory('SwapRouter');
-    const router = await SwapRouter.deploy(pancakeFactory.address, bnb.address) as SwapRouter
+    const router = await SwapRouter.deploy(pancakeFactory.address, wbnb.address) as SwapRouter
     await router.deployed();
 
     // ==================
@@ -203,25 +203,25 @@ export async function deployAll() {
     await usdt.approve(router.address, BigInt(10 ** 36))
     await usdc.approve(router.address, BigInt(10 ** 36))
 
-    // await pancakeFactory.createPair(cake.address, bnb.address, true)
+    // await pancakeFactory.createPair(cake.address, wbnb.address, true)
     // await pancakeFactory.createPair(cake.address, usdt.address, false)
     // await pancakeFactory.createPair(cake.address, usdc.address, false)
-    // await pancakeFactory.createPair(bnb.address, usdt.address, false)
+    // await pancakeFactory.createPair(wbnb.address, usdt.address, false)
     // await pancakeFactory.createPair(usdt.address, usdc.address, false)
     // // ==================
     // //       FrogFactory
     // // ==================
     // const FrogFactory = await hre.ethers.getContractFactory('FrogFactory');
-    // const factory = await FrogFactory.deploy(referal.address, bnb.address, pancakeFactory.address, acct1.address);
+    // const factory = await FrogFactory.deploy(referal.address, wbnb.address, pancakeFactory.address, acct1.address);
 
     // await factory.deployed();
     // await referal.setBeneficiary(acct4.address) // for coverage
     // await referal.connect(acct4).setFactoryAddress(factory.address) // acct4 for coverage
     // await referal.connect(acct4).setBeneficiary(acct1.address) // for coverage
 
-    // await factory.createNewLottery(cake.address, bnb.address, 1)
+    // await factory.createNewLottery(cake.address, wbnb.address, 1)
     // await factory.createNewLottery(cake.address, usdt.address, 2)
-    // await factory.createNewLottery(bnb.address, usdt.address, 2) // just for coverage
+    // await factory.createNewLottery(wbnb.address, usdt.address, 2) // just for coverage
 
     // // ==================
     // //     MasterChef
@@ -239,11 +239,11 @@ export async function deployAll() {
     // //       Router
     // // ==================
     // const Router = await hre.ethers.getContractFactory('PancakeRouter');
-    // const router = await Router.deploy(pancakeFactory.address, bnb.address);
+    // const router = await Router.deploy(pancakeFactory.address, wbnb.address);
     // await router.deployed();
 
 
-    // const lotteryAddress = await factory.lotteries(cake.address, bnb.address)
+    // const lotteryAddress = await factory.lotteries(cake.address, wbnb.address)
     // const lotteryAddressERC20 = await factory.lotteries(cake.address, usdt.address)
 
     // const TOKENS_VALUE_20 = BigInt(10 ** 35)
@@ -260,7 +260,7 @@ export async function deployAll() {
     // const lotteryERC20 = new ethers.Contract(lotteryAddressERC20, json.abi, acct1) as FrogLottery
 
     // await cake.approve(router.address, TOKENS_VALUE_20)
-    // await bnb.approve(router.address, TOKENS_VALUE_20)
+    // await wbnb.approve(router.address, TOKENS_VALUE_20)
     // await usdc.approve(router.address, TOKENS_VALUE_20)
     // await usdt.approve(router.address, TOKENS_VALUE_20)
     // await usdt.approve(lotteryAddress, TOKENS_VALUE_20)
@@ -269,7 +269,7 @@ export async function deployAll() {
     // await cake.approve(lotteryAddressERC20, TOKENS_VALUE_20)
 
     // await cake.connect(acct2).approve(router.address, TOKENS_VALUE_20)
-    // await bnb.connect(acct2).approve(router.address, TOKENS_VALUE_20)
+    // await wbnb.connect(acct2).approve(router.address, TOKENS_VALUE_20)
     // await usdc.connect(acct2).approve(router.address, TOKENS_VALUE_20)
     // await usdt.connect(acct2).approve(router.address, TOKENS_VALUE_20)
     // await usdt.connect(acct2).approve(lotteryAddress, TOKENS_VALUE_20)
@@ -277,7 +277,7 @@ export async function deployAll() {
     // await cake.connect(acct2).approve(lotteryAddress, TOKENS_VALUE_20)
     // await cake.connect(acct2).approve(lotteryAddressERC20, TOKENS_VALUE_20)
 
-    // console.log("cake: ", cake.address, "\nbnb: ", bnb.address, "\nusdt: ", usdt.address, '\nusdc: ', usdc.address)
+    // console.log("cake: ", cake.address, "\nbnb: ", wbnb.address, "\nusdt: ", usdt.address, '\nusdc: ', usdc.address)
 
     // const value = BigInt(10 ** 16);
     // const power = 1000000 // 1 || 1000000
@@ -288,15 +288,15 @@ export async function deployAll() {
     // await router.addLiquidity(cake.address, usdc.address, BigInt(power * 10 ** 18), BigInt(power * 3.64 * 10 ** 18), 1, 1, acct1.address, Math.round(Date.now() / 1000) + 60 * 20)
     // await router.addLiquidity(usdt.address, usdc.address, BigInt(power * 10 ** 18), BigInt(power * 10 ** 18), 1, 1, acct1.address, Math.round(Date.now() / 1000) + 60 * 20)
 
-    // // await bnb.deposit({ value })
+    // // await wbnb.deposit({ value })
 
     // await router.addLiquidityETH(usdt.address, BigInt(power * 323 * 10 ** 18), 1, 1, acct1.address, Math.round(Date.now() / 1000) + 60 * 20, { value })
 
-    // await lottery.setAll(cake.address, bnb.address, usdt.address, router.address, masterChef.address, await pancakeFactory.getPair(cake.address, bnb.address));
+    // await lottery.setAll(cake.address, wbnb.address, usdt.address, router.address, masterChef.address, await pancakeFactory.getPair(cake.address, wbnb.address));
     // await lotteryERC20.setAll(cake.address, usdt.address, usdc.address, router.address, masterChef.address, await pancakeFactory.getPair(cake.address, usdt.address))
-    // await masterChef.add(1, await pancakeFactory.getPair(cake.address, bnb.address), false)
+    // await masterChef.add(1, await pancakeFactory.getPair(cake.address, wbnb.address), false)
     // await masterChef.add(1, await pancakeFactory.getPair(cake.address, usdt.address), false)
 
-    // return { cake, bnb, usdt, router, lottery, masterChef, pancakeFactory, syrupBar, factory, referal, lotteryERC20, usdc } as allContractsFromDeploy
+    // return { cake, wbnb, usdt, router, lottery, masterChef, pancakeFactory, syrupBar, factory, referal, lotteryERC20, usdc } as allContractsFromDeploy
     return ({ usdc, usdt, busd, pool_busd_usdt, pool_busd_usdc, pool_usdt_usdc, lottery_busd_usdt, pancakeFactory, router, nonfungiblePositionManager, factory, referal, fee })
 }

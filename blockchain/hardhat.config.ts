@@ -3,7 +3,7 @@ require("@nomiclabs/hardhat-etherscan");
 require('hardhat-contract-sizer');
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
-import 'solidity-coverage';
+// import 'solidity-coverage';
 import { PRIVATE_KEY_1, bscscanApiKey, ethscanApiKey } from './secrets.json';
 
 const config: HardhatUserConfig = {

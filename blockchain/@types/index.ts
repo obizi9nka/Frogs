@@ -1,4 +1,4 @@
-import { CakeToken, TBnb, ERC20Token, PancakeRouter, FrogLottery, MasterChef, PancakeFactory, SyrupBar, Factory, FrogReferal } from "../typechain-types";
+import { ERC20Token, FrogLottery, FrogReferal, FrogFactory } from "../typechain-types";
 import { UniswapV3Pool, UniswapV3Factory, NonfungiblePositionManager, SwapRouter } from "../v3/typechain-types"
 
 export type allContractsFromDeploy = {
@@ -11,7 +11,7 @@ export type allContractsFromDeploy = {
     lottery_busd_usdt: FrogLottery;
     pancakeFactory: UniswapV3Factory;
     nonfungiblePositionManager: NonfungiblePositionManager;
-    factory: Factory;
+    factory: FrogFactory;
     referal: FrogReferal;
     router: SwapRouter;
     fee: number;
