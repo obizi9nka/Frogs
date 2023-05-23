@@ -126,7 +126,6 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
 
     /// @dev Common checks for valid tick inputs.
     function checkTicks(int24 tickLower, int24 tickUpper) private view {
-        // console.log(uint(tickLower),uint(tickUpper));
         require(tickLower < tickUpper, 'TLU');
         require(tickLower >= TickMath.MIN_TICK, 'TLM');
         require(tickUpper <= TickMath.MAX_TICK, 'TUM');
@@ -315,7 +314,6 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
             int256 amount1
         )
     {
-        // console.log('_modifyPosition');
 
         checkTicks(params.tickLower, params.tickUpper);
 
@@ -628,7 +626,6 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
         bytes calldata data
     ) external override noDelegateCall returns (int256 amount0, int256 amount1) {
         require(amountSpecified != 0, 'AS');
-
         Slot0 memory slot0Start = slot0;
 
         require(slot0Start.unlocked, 'LOK');
@@ -812,6 +809,7 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
 
         emit Swap(msg.sender, recipient, amount0, amount1, state.sqrtPriceX96, state.liquidity, state.tick);
         slot0.unlocked = true;
+
     }
 
     /// @inheritdoc IUniswapV3PoolActions

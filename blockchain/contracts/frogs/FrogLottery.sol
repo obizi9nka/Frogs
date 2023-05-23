@@ -112,8 +112,8 @@ contract FrogLottery is Random, Ownable{
         beneficiary     = _beneficiary;
         maxFeePercent   = 3000; // 30%
         feePercent      = maxFeePercent;
-        minUsd         = 5 * decimalsContoller; // @TODO change to 50-500
-        maxUsd         = 50 * decimalsContoller; // @TODO change to 50-500
+        minUsd         = 5 * decimalsContoller - 10**16; // @TODO change to 50-500
+        maxUsd         = 50 * decimalsContoller - 10**16; // @TODO change to 50-500
         isEthLottery    = _isEthLottery;
         setToken0ContractAddress(_token0); 
         setToken1ContractAddress(_token1);       
@@ -277,6 +277,7 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
         }
         }
         console.log("rrrrrr", amountToken0, amountToken1);
+        // uint amountToken = amountToken0 > amountToken1 ? amountToken1 : amountToken0;
         uint amount0_active;
         uint amount1_active;
         int24 tickLower;
@@ -289,17 +290,22 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
         }
 
         uint futureBalanceUsd = getPriceWithDecimalsContoller(token0, uint128(amount0_active)) + getPriceWithDecimalsContoller(token1, uint128(amount1_active));
-        uint withdrawUsd = getPriceWithDecimalsContoller(token0, uint128(amountToken0)) + getPriceWithDecimalsContoller(token1, uint128(amountToken1));
+        uint depositUsd = getPriceWithDecimalsContoller(token0, uint128(amountToken0)) + getPriceWithDecimalsContoller(token1, uint128(amountToken1));
 
-        console.log(futureBalanceUsd,withdrawUsd);
+        console.log(futureBalanceUsd, depositUsd);
+
+
+        console.log(1<<18);
+        console.log(getPriceWithDecimalsContoller(token0, 10**18));
+        console.log(getPriceWithDecimalsContoller(token1, 10**18));
         console.log(getPriceWithDecimalsContoller(token0, uint128(amount0_active)));
         console.log(getPriceWithDecimalsContoller(token1, uint128(amount1_active)));
         console.log(getPriceWithDecimalsContoller(token0, uint128(amountToken0)));
         console.log(getPriceWithDecimalsContoller(token1, uint128(amountToken1)));
 
 // 2.474090713541702947
-        require(futureBalanceUsd + withdrawUsd >= minUsd, 'Total balance less than minUSD');
-        require(futureBalanceUsd + withdrawUsd <= maxUsd, 'Total balance great than maxUSD');
+        require(futureBalanceUsd + depositUsd >= minUsd, 'Total balance less than minUSD');
+        require(futureBalanceUsd + depositUsd <= maxUsd, 'Total balance great than maxUSD');
         {
             TransferHelper.safeTransferFrom(token0, msg.sender, address(this), amountToken0);
             TransferHelper.safeTransferFrom(token1, msg.sender, address(this), amountToken1);
@@ -327,7 +333,13 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
         }
         depositOf[msg.sender] += liquidity;
 
-        console.log('liquidity deposited:' ,liquidity);
+        // 1250000000000000000
+        // 2498749999996434484
+
+        // 311113944341538466
+        // 2498749999996434484
+
+        console.log('liquidity deposited:', liquidity, amount0, amount1);
 
 
         if(!isParticipant(msg.sender)){
@@ -386,20 +398,23 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
         }
     }
 
-    function getQuoteAtTick(int24 tick, uint128 baseAmount, address baseToken, address quoteToken) internal pure returns (uint256 quoteAmount) {
+    function getQuoteAtTick(int24 tick, uint128 baseAmount, address baseToken, address quoteToken) internal view returns (uint256 quoteAmount) {
         uint160 sqrtRatioX96 = TickMath.getSqrtRatioAtTick(tick);
+        // console.log('????',baseToken < quoteToken);
 
         // Calculate quoteAmount with better precision if it doesn't overflow when multiplied by itself
         if (sqrtRatioX96 <= type(uint128).max) {
             uint256 ratioX192 = uint256(sqrtRatioX96) * sqrtRatioX96;
-            quoteAmount = baseToken < quoteToken
-                ? FullMath.mulDiv(ratioX192, baseAmount, 1 << 192)
-                : FullMath.mulDiv(1 << 192, baseAmount, ratioX192);
+            quoteAmount = FullMath.mulDiv(1 << 192, baseAmount, ratioX192);
+            // quoteAmount = baseToken < quoteToken
+            //     ? FullMath.mulDiv(ratioX192, baseAmount, 1 << 192)
+            //     : FullMath.mulDiv(1 << 192, baseAmount, ratioX192);
         } else {
             uint256 ratioX128 = FullMath.mulDiv(sqrtRatioX96, sqrtRatioX96, 1 << 64);
-            quoteAmount = baseToken < quoteToken
-                ? FullMath.mulDiv(ratioX128, baseAmount, 1 << 128)
-                : FullMath.mulDiv(1 << 128, baseAmount, ratioX128);
+            quoteAmount = FullMath.mulDiv(1 << 128, baseAmount, ratioX128);
+            // quoteAmount = baseToken < quoteToken
+            //     ? FullMath.mulDiv(ratioX128, baseAmount, 1 << 128)
+            //     : FullMath.mulDiv(1 << 128, baseAmount, ratioX128);
         }
     }
 
@@ -407,7 +422,10 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
         address _pool = IUniswapV3Factory(pancakeFactory).getPool(tokenIn,stableCoinAddress,poolFee);
         (, int24 tick,,,,,) = IUniswapV3Pool(_pool).slot0();
         uint8 decimals = Deimals(stableCoinAddress).decimals();
-        amountOut = getQuoteAtTick(tick,amount,tokenIn, stableCoinAddress) * decimalsContoller / uint(10**decimals);
+        uint quote = getQuoteAtTick(tick, uint128(amount* decimalsContoller), tokenIn, stableCoinAddress);
+        // console.log('quote',quote, uint(int256(tick)));
+        amountOut = quote / uint(10**decimals);
+        
     }
     
     uint power = 10000000000;
@@ -456,6 +474,8 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
                         });
 
                         (uint amount0Collect, uint amount1Collect) = INonfungiblePositionManager(nonfungiblePositionManager).collect(paramsCollect);
+                        console.log('wihdraw busd', amount0Collect);
+                        console.log('wihdraw usdt', amount1Collect);
                         IERC20(token0).transfer(user,amount0Collect);
                         IERC20(token1).transfer(user,amount1Collect);
                     }

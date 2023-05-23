@@ -95,7 +95,6 @@ contract SwapRouter is
         if (recipient == address(0)) recipient = address(this);
 
         (address tokenIn, address tokenOut, uint24 fee) = data.path.decodeFirstPool();
-
         bool zeroForOne = tokenIn < tokenOut;
 
         (int256 amount0, int256 amount1) =
@@ -126,7 +125,6 @@ contract SwapRouter is
             SwapCallbackData({path: abi.encodePacked(params.tokenIn, params.fee, params.tokenOut), payer: msg.sender})
         );
 
-        // console.log("exactInputSingle",amountOut);
         require(amountOut >= params.amountOutMinimum, 'Too little received');
     }
 

@@ -5,12 +5,15 @@ import { deployAll } from "../fixtures/fixtures"
 import { allContractsFromDeploy } from "../../@types";
 import { FrogLottery } from "../../typechain-types";
 import { sig } from "../../sdk";
+// import { TickMath, FullMath } from "@uniswap/v3-sdk"
 
 let mainLogic
 
 describe("FrogLottery MainLogic", function () {
     mainLogic = async (isEthLottery: boolean) => {
         const decimals = BigInt(10 * 10 ** 18)
+        // 1.300000000000000000
+        // 0.649674999999155752
         // 102.474568424912758913
         // 522.620298966930423808
         // 1024.745684249127550976
@@ -22,8 +25,11 @@ describe("FrogLottery MainLogic", function () {
         })
         it("deposit", async () => {
             const [acct1, acct2] = await ethers.getSigners();
-
-            await lottery.deposit(all.busd.address, decimals);
+            // const _all = all as any
+            // for (const key in _all) {
+            //     console.log(key, _all[key].address)
+            // }
+            await lottery.deposit(all.busd.address, BigInt(10 * 10 ** 18));
 
             const { message, v, r, s } = await sig(['address'], [acct2.address], acct1)
             await lottery.connect(acct2).registerBeforeDeposit(message, v, r, s, all.usdt.address, decimals)
@@ -147,11 +153,9 @@ describe("FrogLottery MainLogic", function () {
             const balanceAfterUsdc = await all.usdc.balanceOf(acct1.address)
             expect(BigInt(balanceAfterUsdc.toString())).to.be.eq(BigInt(balanceBeforeUsdc.toString()) - decimals)
         });
-
         it('swap to generate fee', async () => {
             await generateFee(false, true)
         })
-
         it("fourth draw", async () => {
             const [acct1, acct2] = await ethers.getSigners();
             await lottery.connect(acct2).claimReward() // for next rewardOfTOken0 == 0
@@ -162,7 +166,6 @@ describe("FrogLottery MainLogic", function () {
             const refererReward1 = data[2].args._amountToken1.div(100).mul(3)
             await lottery.afterDraw([{ wallet: acct1.address, reward0: refererReward0, reward1: refererReward1 }], refererReward0, refererReward1)
         })
-
         it('claim reward', async () => {
             const [acct1, acct2] = await ethers.getSigners();
             let operator = acct2
