@@ -24,13 +24,16 @@ describe("FrogLottery MainLogic", function () {
             lottery = all.lottery_busd_usdt
         })
         it("deposit", async () => {
+            console.log('==================')
+            console.log('    MAIN LOGIC    ')
+            console.log('==================')
+
             const [acct1, acct2] = await ethers.getSigners();
             // const _all = all as any
             // for (const key in _all) {
             //     console.log(key, _all[key].address)
             // }
-            await lottery.deposit(all.busd.address, BigInt(10 * 10 ** 18));
-
+            await lottery.deposit(all.busd.address, BigInt(2.65 * 10 ** 18));
             const { message, v, r, s } = await sig(['address'], [acct2.address], acct1)
             await lottery.connect(acct2).registerBeforeDeposit(message, v, r, s, all.usdt.address, decimals)
         });

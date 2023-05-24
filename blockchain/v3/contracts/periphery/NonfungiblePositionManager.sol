@@ -139,7 +139,7 @@ contract NonfungiblePositionManager is
         )
     {
         IUniswapV3Pool pool;
-        console.log('mint');
+        // console.log('mint');
         (liquidity, amount0, amount1, pool) = addLiquidity(
             AddLiquidityParams({
                 token0: params.token0,
@@ -154,9 +154,9 @@ contract NonfungiblePositionManager is
                 amount1Min: params.amount1Min
             })
         );
-        // console.log('mint2');
+        // console.log('minted', liquidity, amount0, amount1);
         _mint(params.recipient, (tokenId = _nextId++));
-        console.log(liquidity, amount0, amount1, address(pool));
+        // console.log(liquidity, amount0, amount1, address(pool));
 
         // // console.log(_nextId);
         bytes32 positionKey = PositionKey.compute(address(this), params.tickLower, params.tickUpper);

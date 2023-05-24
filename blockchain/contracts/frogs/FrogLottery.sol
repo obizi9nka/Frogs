@@ -277,7 +277,33 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
         }
         }
         console.log("rrrrrr", amountToken0, amountToken1);
-        // uint amountToken = amountToken0 > amountToken1 ? amountToken1 : amountToken0;
+        console.log('one');
+        console.log(getPriceWithDecimalsContoller(token0, 10**18));
+        console.log(getPriceWithDecimalsContoller(token1, 10**18));
+
+        
+        uint liquidity;
+        uint amount0;
+        uint amount1;
+        TransferHelper.safeTransferFrom(token0, msg.sender, address(this), amountToken0);
+        TransferHelper.safeTransferFrom(token1, msg.sender, address(this), amountToken1);
+
+        if(isEthLottery){
+            
+        } else {
+            INonfungiblePositionManager.IncreaseLiquidityParams memory params =
+            INonfungiblePositionManager.IncreaseLiquidityParams({
+                tokenId: tokenId,
+                amount0Desired: amountToken0,
+                amount1Desired: amountToken1,
+                amount0Min: amountToken0 / 10000 * 8500,
+                amount1Min: amountToken1 / 10000 * 8500,
+                deadline: block.timestamp
+            });
+            (liquidity, amount0, amount1) = INonfungiblePositionManager(nonfungiblePositionManager).increaseLiquidity(params);
+
+        }
+
         uint amount0_active;
         uint amount1_active;
         int24 tickLower;
@@ -290,63 +316,38 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
         }
 
         uint futureBalanceUsd = getPriceWithDecimalsContoller(token0, uint128(amount0_active)) + getPriceWithDecimalsContoller(token1, uint128(amount1_active));
-        uint depositUsd = getPriceWithDecimalsContoller(token0, uint128(amountToken0)) + getPriceWithDecimalsContoller(token1, uint128(amountToken1));
+        uint depositUsd = getPriceWithDecimalsContoller(token0, uint128(amount0)) + getPriceWithDecimalsContoller(token1, uint128(amount1));
 
+        console.log("rrrrrr", amountToken0, amountToken1);
+        console.log('liquidity deposited:', liquidity, amount0, amount1);
         console.log(futureBalanceUsd, depositUsd);
+        // 4688032186634739176
 
-
-        console.log(1<<18);
-        console.log(getPriceWithDecimalsContoller(token0, 10**18));
-        console.log(getPriceWithDecimalsContoller(token1, 10**18));
+        console.log('active');
         console.log(getPriceWithDecimalsContoller(token0, uint128(amount0_active)));
         console.log(getPriceWithDecimalsContoller(token1, uint128(amount1_active)));
-        console.log(getPriceWithDecimalsContoller(token0, uint128(amountToken0)));
-        console.log(getPriceWithDecimalsContoller(token1, uint128(amountToken1)));
+        console.log('new');
+        console.log(getPriceWithDecimalsContoller(token0, uint128(amount0)));
+        console.log(getPriceWithDecimalsContoller(token1, uint128(amount1)));
+        console.log('req');
+        
 
-// 2.474090713541702947
         require(futureBalanceUsd + depositUsd >= minUsd, 'Total balance less than minUSD');
         require(futureBalanceUsd + depositUsd <= maxUsd, 'Total balance great than maxUSD');
-        {
-            TransferHelper.safeTransferFrom(token0, msg.sender, address(this), amountToken0);
-            TransferHelper.safeTransferFrom(token1, msg.sender, address(this), amountToken1);
-        }
 
-        
-        uint liquidity;
-        uint amount0;
-        uint amount1;
-
-        if(isEthLottery){
-            
-        } else {
-            INonfungiblePositionManager.IncreaseLiquidityParams memory params =
-            INonfungiblePositionManager.IncreaseLiquidityParams({
-                tokenId: tokenId,
-                amount0Desired: amountToken0,
-                amount1Desired: amountToken1,
-                amount0Min: 0,
-                amount1Min: 0,
-                deadline: block.timestamp
-            });
-            (liquidity, amount0, amount1) = INonfungiblePositionManager(nonfungiblePositionManager).increaseLiquidity(params);
-
-        }
         depositOf[msg.sender] += liquidity;
-
-        // 1250000000000000000
-        // 2498749999996434484
-
-        // 311113944341538466
-        // 2498749999996434484
-
-        console.log('liquidity deposited:', liquidity, amount0, amount1);
-
 
         if(!isParticipant(msg.sender)){
             alreadyParticipant[msg.sender] = true;
             participants.push(msg.sender);
             emit NewParticipant(msg.sender);
         }
+        // if(amountToken0 - amount0 != 0){
+        //     TransferHelper.safeTransfer(token0, msg.sender, amountToken0 - amount0);
+        // }
+        // if(amountToken1 - amount1 != 0){
+        //     TransferHelper.safeTransfer(token1, msg.sender, amountToken1 - amount1);
+        // }
 
         return true;
     }
@@ -400,32 +401,31 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
 
     function getQuoteAtTick(int24 tick, uint128 baseAmount, address baseToken, address quoteToken) internal view returns (uint256 quoteAmount) {
         uint160 sqrtRatioX96 = TickMath.getSqrtRatioAtTick(tick);
-        // console.log('????',baseToken < quoteToken);
+        // console.log();
 
         // Calculate quoteAmount with better precision if it doesn't overflow when multiplied by itself
         if (sqrtRatioX96 <= type(uint128).max) {
             uint256 ratioX192 = uint256(sqrtRatioX96) * sqrtRatioX96;
-            quoteAmount = FullMath.mulDiv(1 << 192, baseAmount, ratioX192);
-            // quoteAmount = baseToken < quoteToken
-            //     ? FullMath.mulDiv(ratioX192, baseAmount, 1 << 192)
-            //     : FullMath.mulDiv(1 << 192, baseAmount, ratioX192);
+            // quoteAmount = FullMath.mulDiv(1 << 192, baseAmount, ratioX192);
+            quoteAmount = baseToken < quoteToken
+                ? FullMath.mulDiv(ratioX192, baseAmount, 1 << 192)
+                : FullMath.mulDiv(1 << 192, baseAmount, ratioX192);
         } else {
             uint256 ratioX128 = FullMath.mulDiv(sqrtRatioX96, sqrtRatioX96, 1 << 64);
-            quoteAmount = FullMath.mulDiv(1 << 128, baseAmount, ratioX128);
-            // quoteAmount = baseToken < quoteToken
-            //     ? FullMath.mulDiv(ratioX128, baseAmount, 1 << 128)
-            //     : FullMath.mulDiv(1 << 128, baseAmount, ratioX128);
+            // quoteAmount = FullMath.mulDiv(1 << 128, baseAmount, ratioX128);
+            quoteAmount = baseToken < quoteToken
+                ? FullMath.mulDiv(ratioX128, baseAmount, 1 << 128)
+                : FullMath.mulDiv(1 << 128, baseAmount, ratioX128);
         }
     }
 
     function getPriceWithDecimalsContoller(address tokenIn, uint128 amount) public view returns (uint amountOut) {
         address _pool = IUniswapV3Factory(pancakeFactory).getPool(tokenIn,stableCoinAddress,poolFee);
-        (, int24 tick,,,,,) = IUniswapV3Pool(_pool).slot0();
+        (uint160 sqrt, int24 tick,,,,,) = IUniswapV3Pool(_pool).slot0();
         uint8 decimals = Deimals(stableCoinAddress).decimals();
         uint quote = getQuoteAtTick(tick, uint128(amount* decimalsContoller), tokenIn, stableCoinAddress);
-        // console.log('quote',quote, uint(int256(tick)));
         amountOut = quote / uint(10**decimals);
-        
+
     }
     
     uint power = 10000000000;

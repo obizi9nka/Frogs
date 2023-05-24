@@ -495,7 +495,12 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
         amount0 = uint256(amount0Int);
         amount1 = uint256(amount1Int);
 
-        // console.log("liquidity to add",amount0,amount1);
+        console.log("liquidity to add",amount0,amount1);
+        // 455877329633683197
+        // 2492499999996198749
+
+        // 452676586095608533
+        // 2474999999996251934
 
         uint256 balance0Before;
         uint256 balance1Before;

@@ -25,8 +25,8 @@ contract FrogFactory is Ownable{
         swapRouter = _swapRouter;
     }
 
-    function createNewLottery(address token0, address token1, uint24 fee, address _pool, address nonfungiblePositionManager, address stable) public onlyOwner{
-        // (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
+    function createNewLottery(address tokenA, address tokenB, uint24 fee, address _pool, address nonfungiblePositionManager, address stable) public onlyOwner{
+        (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
         require(IUniswapV3Factory(pancakeFactory).getPool(token0,token1, fee) != address(0), "pool dont exist");
         require(lotteries[token0][token1][fee] == address(0), "lottery exist");
         bool isEth = false;

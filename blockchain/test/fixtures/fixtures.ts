@@ -22,7 +22,6 @@ export async function deployAll() {
     const usdc = await USDC.deploy('USDC', "usdc") as ERC20Token;
 
     await usdc.deployed();
-    // console.log(usdc.address)
     // ==================
     //        USDT
     // ==================
@@ -30,7 +29,6 @@ export async function deployAll() {
     const usdt = await USDT.deploy('USDT', "usdt") as ERC20Token;
 
     await usdt.deployed();
-    // console.log(usdt.address)
     // ==================
     //        BUSD
     // ==================
@@ -38,7 +36,6 @@ export async function deployAll() {
     const busd = await BUSD.deploy('BUSD', "busd") as ERC20Token;
 
     await busd.deployed();
-    // console.log(busd.address)
 
     // ==================
     //        BNB
@@ -47,7 +44,6 @@ export async function deployAll() {
     const wbnb = await BNB.deploy() as TBnb;
 
     await wbnb.deployed();
-    // console.log(wbnb.address)
 
     // ==================
     //     FrogReferal
@@ -56,7 +52,6 @@ export async function deployAll() {
     const referal = await Referal.deploy(acct1.address, acct1.address) as FrogReferal;
 
     await referal.deployed();
-    // console.log(referal.address)
 
 
     // ==================
@@ -66,23 +61,17 @@ export async function deployAll() {
     const pancakeFactory = await PancakeFactory.deploy() as UniswapV3Factory;
 
     await pancakeFactory.deployed();
-    // console.log(pancakeFactory.address)
 
 
     await pancakeFactory.createPool(busd.address, usdt.address, fee)
     await pancakeFactory.createPool(busd.address, usdc.address, fee)
     await pancakeFactory.createPool(usdt.address, usdc.address, fee)
 
+
     const pool_busd_usdt = new ethers.Contract(await pancakeFactory.getPool(busd.address, usdt.address, fee), jsonPool.abi, acct1) as UniswapV3Pool
     const pool_busd_usdc = new ethers.Contract(await pancakeFactory.getPool(busd.address, usdc.address, fee), jsonPool.abi, acct1) as UniswapV3Pool
     const pool_usdt_usdc = new ethers.Contract(await pancakeFactory.getPool(usdt.address, usdc.address, fee), jsonPool.abi, acct1) as UniswapV3Pool
 
-    // 79204448054751562486699905150
-    // 79192444239363564201206
-    // 1771580069046490802230235074
-    // 111111179192444239363564201206 // норм в ремиксе 1
-    // 80000000000000000000000000000000000000 // не норм в ремиксе 10 ** 18
-    // 211113179192444239363564201206 // норм в ремиксе 7
     // отдаешь х - получаешь y
     function encodePriceSqrt(reserve1: any, reserve0: any): BigNumber {
         const t = new BigNumber(reserve1)
@@ -92,28 +81,44 @@ export async function deployAll() {
             .integerValue(3)
         return t
     }
-    // console.log(encodePriceSqrt(2, 1))
-    // process.exit()
     // const price = BigInt(79228162514264337593543950336) // encodePriceSqrt(1, 1)
-    console.log(BigNumber(encodePriceSqrt(1, 2).toNumber()).pow(2).div(2 ** 192).toString())
-    console.log(BigNumber(encodePriceSqrt(1, 1).toNumber()).pow(2).div(2 ** 192).toString())
-    console.log(BigNumber(encodePriceSqrt(2, 1).toNumber()).pow(2).div(2 ** 192).toString())
-    const price_busd_usdt = BigInt(encodePriceSqrt(2, 1).toNumber())   // 21 // 1busd == 2usdt 
-    const price_busd_stable = BigInt(encodePriceSqrt(2, 1).toNumber()) // 12
-    const price_usdt_stable = BigInt(encodePriceSqrt(1, 1).toNumber()) // 11
+    const sqrtPrice_0dot5 = BigInt(encodePriceSqrt(2, 3).toNumber())
+    const sqrtPrice_1 = BigInt(encodePriceSqrt(2, 1).toNumber())
+    const sqrtPrice_2 = BigInt(encodePriceSqrt(3, 1).toNumber())
+
+    const rates = {
+        busd_usdt: {
+            token0: 3,
+            token1: 2
+        },
+        busd_usdc: {
+            token0: 3,
+            token1: 1
+        },
+        usdt_usdc: {
+            token0: 2,
+            token1: 1
+        },
+    }
+
+    const price_busd_usdt = await pool_busd_usdt.token0() == busd.address ? BigInt(encodePriceSqrt(rates.busd_usdt.token0, rates.busd_usdt.token1).toNumber()) : BigInt(encodePriceSqrt(rates.busd_usdt.token1, rates.busd_usdt.token0).toNumber()) // 2x1
+    const price_busd_stable = await pool_busd_usdc.token0() == busd.address ? BigInt(encodePriceSqrt(rates.busd_usdc.token0, rates.busd_usdc.token1).toNumber()) : BigInt(encodePriceSqrt(rates.busd_usdc.token1, rates.busd_usdc.token0).toNumber()) // 2x1
+    const price_usdt_stable = await pool_usdt_usdc.token0() == usdt.address ? BigInt(encodePriceSqrt(rates.usdt_usdc.token0, rates.usdt_usdc.token1).toNumber()) : BigInt(encodePriceSqrt(rates.usdt_usdc.token1, rates.usdt_usdc.token0).toNumber()) // 2x1
 
     await pool_busd_usdt.initialize(price_busd_usdt)
     await pool_busd_usdc.initialize(price_busd_stable)
     await pool_usdt_usdc.initialize(price_usdt_stable)
 
-    console.log(await pool_busd_usdc.token0() == busd.address)
-    console.log(await pool_busd_usdt.token0() == busd.address)
-    console.log(await pool_usdt_usdc.token0() == usdt.address)
+    console.log(await pool_busd_usdt.token0() != busd.address)
+    console.log(await pool_busd_usdc.token0() != busd.address)
+    console.log(await pool_usdt_usdc.token0() != usdt.address)
 
     console.log('pool_busd_usdt', (await pool_busd_usdt.slot0()).sqrtPriceX96.pow(2).div(BigInt(2 ** 192)))
     console.log('pool_busd_usdc', (await pool_busd_usdc.slot0()).sqrtPriceX96.pow(2).div(BigInt(2 ** 192)))
     console.log('pool_usdt_usdc', (await pool_usdt_usdc.slot0()).sqrtPriceX96.pow(2).div(BigInt(2 ** 192)))
-
+    console.log('pool_busd_usdt-tick', (await pool_busd_usdt.slot0()).tick)
+    console.log('pool_busd_usdc-tick', (await pool_busd_usdc.slot0()).tick)
+    console.log('pool_usdt_usdc-tick', (await pool_usdt_usdc.slot0()).tick)
     // ==================
     //  NonfungiblePositionManager
     // ==================
@@ -136,7 +141,6 @@ export async function deployAll() {
     const factory = await FrogFactory.deploy(referal.address, ethers.constants.AddressZero, pancakeFactory.address, acct1.address, router.address) as FrogFactory;
 
     await factory.deployed();
-    // console.log(factory', factory.address)
 
     await referal.setFactoryAddress(factory.address)
 
@@ -158,8 +162,23 @@ export async function deployAll() {
     await usdc.approve(nonfungiblePositionManager.address, TOKENS_VALUE_20)
     await usdt.approve(nonfungiblePositionManager.address, TOKENS_VALUE_20)
 
-    const tickLower = -10000
-    const tickUpper = 10000
+    const positionData = await pool_busd_usdt.slot0()
+    const tickSpacing = await pool_busd_usdt.tickSpacing()
+
+    const tickLower = positionData.tick - positionData.tick % tickSpacing - tickSpacing * 30
+    const tickUpper = positionData.tick - positionData.tick % tickSpacing + tickSpacing * 30
+
+    const _positionData = await pool_busd_usdc.slot0()
+    const _tickSpacing = await pool_busd_usdc.tickSpacing()
+
+    const _tickLower = _positionData.tick - _positionData.tick % _tickSpacing - _tickSpacing * 30
+    const _tickUpper = _positionData.tick - _positionData.tick % _tickSpacing + _tickSpacing * 30
+
+    const __positionData = await pool_usdt_usdc.slot0()
+    const __tickSpacing = await pool_usdt_usdc.tickSpacing()
+
+    const __tickLower = __positionData.tick - __positionData.tick % __tickSpacing - __tickSpacing * 30
+    const __tickUpper = __positionData.tick - __positionData.tick % __tickSpacing + __tickSpacing * 30
 
     let params = {
         token0: busd.address,
@@ -167,22 +186,52 @@ export async function deployAll() {
         fee,
         tickLower,
         tickUpper,
-        amount0Desired: BigInt(10 ** 30),
-        amount1Desired: BigInt(10 ** 30),
+        amount0Desired: BigInt(10 ** 31),
+        amount1Desired: BigInt(10 ** 31),
         amount0Min: 1,
         amount1Min: 1,
         recipient: acct1.address,
         deadline: 10000000000000
     }
+
+
+    let _params = {
+        token0: busd.address,
+        token1: usdc.address,
+        fee,
+        tickLower: _tickLower,
+        tickUpper: _tickUpper,
+        amount0Desired: BigInt(10 ** 31),
+        amount1Desired: BigInt(10 ** 31),
+        amount0Min: 1,
+        amount1Min: 1,
+        recipient: acct1.address,
+        deadline: 10000000000000
+    }
+
+    let paramsStable = {
+        token0: usdt.address,
+        token1: usdc.address,
+        fee,
+        tickLower: __tickLower,
+        tickUpper: __tickUpper,
+        amount0Desired: BigInt(10 ** 31),
+        amount1Desired: BigInt(10 ** 31),
+        amount0Min: 1,
+        amount1Min: 1,
+        recipient: acct1.address,
+        deadline: 10000000000000
+    }
+
     await nonfungiblePositionManager.mint(params)
 
-    params.token0 = usdt.address
-    params.token1 = usdc.address
-    await nonfungiblePositionManager.mint(params)
+    // params.token0 = usdt.address
+    // params.token1 = usdc.address
+    await nonfungiblePositionManager.mint(paramsStable)
 
     params.token0 = busd.address
     params.token1 = usdc.address
-    await nonfungiblePositionManager.mint(params)
+    await nonfungiblePositionManager.mint(_params)
 
     // console.log(await nonfungiblePositionManager.positions(1))
     // console.log(await pool_busd_usdt.liquidity())
@@ -201,10 +250,7 @@ export async function deployAll() {
     const lottery_busd_usdt = new ethers.Contract(await factory.lotteries(busd.address, usdt.address, fee), json.abi, acct1) as FrogLottery
     await busd.approve(lottery_busd_usdt.address, 1)
     await usdt.approve(lottery_busd_usdt.address, 1)
-    await lottery_busd_usdt.createPosition(-10000, 10000)
-
-
-    // console.log(lottery_busd_usdt', lottery_busd_usdt.address)
+    await lottery_busd_usdt.createPosition(tickLower, tickUpper)
 
 
     await busd.approve(lottery_busd_usdt.address, BigInt(10 ** 35))

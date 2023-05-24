@@ -82,7 +82,7 @@ abstract contract LiquidityManagement is IUniswapV3MintCallback, PeripheryImmuta
                 params.amount1Desired
             );
         }
-        // console.log('liq',liquidity);
+        console.log('liq',liquidity);
 
         (amount0, amount1) = pool.mint(
             params.recipient,
@@ -92,8 +92,13 @@ abstract contract LiquidityManagement is IUniswapV3MintCallback, PeripheryImmuta
             abi.encode(MintCallbackData({poolKey: poolKey, payer: msg.sender}))
         );
 
-        // console.log('minted',amount0, amount1);
-        
+        console.log('minted amount',amount0, amount1);
+        console.log(params.amount0Desired, params.amount1Desired);
+        console.log(params.amount0Min, params.amount1Min);
+// minted amount 1250000000000000000 2188236761388579640
+        // 1250000000000000000 2498749999999716089
+        // 1187500000000000000 2373812499999724500
+
 
         require(amount0 >= params.amount0Min && amount1 >= params.amount1Min, 'Price slippage check');
         // console.log('addLiquidity end');

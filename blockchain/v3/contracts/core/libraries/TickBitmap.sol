@@ -2,6 +2,7 @@
 pragma solidity 0.7.6;
 
 import './BitMath.sol';
+import 'hardhat/console.sol';
 
 /// @title Packed tick initialized state library
 /// @notice Stores a packed mapping of tick index to its initialized state
@@ -25,7 +26,8 @@ library TickBitmap {
         int24 tick,
         int24 tickSpacing
     ) internal {
-        require(tick % tickSpacing == 0); // ensure that the tick is spaced
+        console.log(uint(tick),uint(tickSpacing));
+        require(tick % tickSpacing == 0, 'tickBitmap: tick mod'); // ensure that the tick is spaced
         (int16 wordPos, uint8 bitPos) = position(tick / tickSpacing);
         uint256 mask = 1 << bitPos;
         self[wordPos] ^= mask;
