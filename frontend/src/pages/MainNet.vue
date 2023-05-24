@@ -75,11 +75,11 @@
               <div class="pool__rates">
                 <div class="pool__rate">
                   <div class="pool-rate__value">{{ pancake.rates.t0_t1 }}</div>
-                  <div class="pool-rate__label">BUSD per USDT</div>
+                  <div class="pool-rate__label">USDT per BUSD</div>
                 </div>
                 <div class="pool__rate">
                   <div class="pool-rate__value">{{ pancake.rates.t1_t0 }}</div>
-                  <div class="pool-rate__label">USDT per BUSD</div>
+                  <div class="pool-rate__label">BUSD per USDT</div>
                 </div>
               </div>
               <div class="pool__rates">
@@ -435,8 +435,12 @@ export default {
       this.pancake.sqrtPriceX96_token0_token1 = data.sqrtPriceX96
       this.pancake.sqrtPriceX96_token0_stable = (await pool_token0_stable.methods.slot0().call()).sqrtPriceX96
       this.pancake.sqrtPriceX96_token1_stable = (await pool_token1_stable.methods.slot0().call()).sqrtPriceX96
-      const token1PerToken0 = this.getPrice(1, this.pancake.sqrtPriceX96_token0_token1, 18, 18)
-      const token0PerToken1 = 1 / token1PerToken0
+      const token0PerToken1 = this.getPrice(1, this.pancake.sqrtPriceX96_token0_token1, 18, 18)
+      const token1PerToken0 = 1 / token0PerToken1
+
+      console.log('pool_busd_usdt', BigNumber((await pool.methods.slot0().call()).sqrtPriceX96).pow(2).div(BigInt(2 ** 192)).toString())
+      console.log('pool_busd_usdc', BigNumber((await pool_token0_stable.methods.slot0().call()).sqrtPriceX96).pow(2).div(BigInt(2 ** 192)).toString())
+      console.log('pool_usdt_usdc', BigNumber((await pool_token1_stable.methods.slot0().call()).sqrtPriceX96).pow(2).div(BigInt(2 ** 192)).toString())
 
       // if (this.tokenSelcted == 0)
       //   token0PerToken1 = 1 / token0PerToken1
@@ -448,8 +452,8 @@ export default {
       this.pancake.rates.t1_t0 = token1PerToken0.toFixed(4)
       // console.log(this.pancake.sqrtPriceX96_token0_stable)
       // console.log(this.pancake.sqrtPriceX96_token1_stable)
-      this.pancake.rates.t0_stbl = (1 / this.getPrice(1, this.pancake.sqrtPriceX96_token0_stable, 18, 18)).toFixed(4)
-      this.pancake.rates.t1_stbl = (1 / this.getPrice(1, this.pancake.sqrtPriceX96_token1_stable, 18, 18)).toFixed(4)
+      this.pancake.rates.t0_stbl = (this.getPrice(1, this.pancake.sqrtPriceX96_token0_stable, 18, 18)).toFixed(4)
+      this.pancake.rates.t1_stbl = (this.getPrice(1, this.pancake.sqrtPriceX96_token1_stable, 18, 18)).toFixed(4)
 
       // const pancakePairCakeWbnb = new web3.eth.Contract(PancakePairCakeWbnbABI, PancakePairCakeWbnbAddress);
       // const reserves = await pancakePairCakeWbnb.methods.getReserves().call()
@@ -654,14 +658,14 @@ export default {
       let secndPart;
       switch (this.tokenSelcted) {
         case 0:
-          firstPart = (1 / this.getPrice(1, this.pancake.sqrtPriceX96_token0_stable, 18, 18) * (this.form.deposit.token / 2)) //
-          secndPart = (1 / this.getPrice(1, this.pancake.sqrtPriceX96_token1_stable, 18, 18) * (this.form.deposit.token / 2 * (this.pancake.rates.t1_t0))) //
+          firstPart = (this.getPrice(1, this.pancake.sqrtPriceX96_token0_stable, 18, 18) * (this.form.deposit.token / 2)) //
+          secndPart = (this.getPrice(1, this.pancake.sqrtPriceX96_token1_stable, 18, 18) * (this.form.deposit.token / 2 * (this.pancake.rates.t0_t1))) //
           this.form.depositUsdvalue = firstPart
           this.form.depositUsdvalue += secndPart
           break;
         case 1:
-          firstPart = (1 / this.getPrice(1, this.pancake.sqrtPriceX96_token0_stable, 18, 18) * (this.form.deposit.token / 2 * (this.pancake.rates.t0_t1))) //
-          secndPart = (1 / this.getPrice(1, this.pancake.sqrtPriceX96_token1_stable, 18, 18) * (this.form.deposit.token / 2)) //
+          firstPart = (this.getPrice(1, this.pancake.sqrtPriceX96_token0_stable, 18, 18) * (this.form.deposit.token / 2 * (this.pancake.rates.t1_t0))) //
+          secndPart = (this.getPrice(1, this.pancake.sqrtPriceX96_token1_stable, 18, 18) * (this.form.deposit.token / 2)) //
           this.form.depositUsdvalue = firstPart
           this.form.depositUsdvalue += secndPart
           break;
@@ -675,8 +679,8 @@ export default {
           // console.log(1 / this.pancake.rates.t1_stbl)
           // console.log(1 / this.getPrice(1, this.pancake.sqrtPriceX96_token0_stable, 18, 18), this.form.deposit.token / 2 * 1 / this.pancake.rates.t0_stbl)
           // console.log(1 / this.getPrice(1, this.pancake.sqrtPriceX96_token1_stable, 18, 18), this.form.deposit.token / 2 * 1 / this.pancake.rates.t1_stbl)
-          firstPart = (this.getPrice(1, this.pancake.sqrtPriceX96_token0_stable, 18, 18) * (this.form.deposit.token / 2 * (this.pancake.rates.t0_stbl))) //
-          secndPart = (this.getPrice(1, this.pancake.sqrtPriceX96_token1_stable, 18, 18) * (this.form.deposit.token / 2 * (this.pancake.rates.t1_stbl))) //
+          firstPart = (this.getPrice(1, this.pancake.sqrtPriceX96_token0_stable, 18, 18) * (this.form.deposit.token / 2 * (1 / this.pancake.rates.t0_stbl))) //
+          secndPart = (this.getPrice(1, this.pancake.sqrtPriceX96_token1_stable, 18, 18) * (this.form.deposit.token / 2 * (1 / this.pancake.rates.t1_stbl))) //
           // console.log(firstPart)
           // console.log(secndPart)
           this.form.depositUsdvalue = firstPart
