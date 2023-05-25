@@ -4,12 +4,14 @@ pragma solidity ^0.8.0;
 
 import "./FrogLottery.sol";
 import "./IFrogReferal.sol";
+// import "./FrogSponsor.sol";
 import "../v3-interfaces/IUniswapV3Factory.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import 'hardhat/console.sol';
 
 contract FrogFactory is Ownable{
     mapping(address => mapping(address => mapping(uint24 => address))) public lotteries;
+    mapping(address => address) public sponsorContracts;
 
     address frogReferalAddress;
     address beneficiary;
@@ -40,8 +42,10 @@ contract FrogFactory is Ownable{
         }
         // console.log('tiks',uint(tickUpper), uint(tickLower));
         address newLottery = address(new FrogLottery(token0,token1,fee,frogReferalAddress,isEth,beneficiary, _pool, nonfungiblePositionManager,swapRouter,pancakeFactory,stable));
+        // address newSponsor = address(new FrogSponsor(token0,token1,fee,frogReferalAddress,isEth,beneficiary, _pool, nonfungiblePositionManager,swapRouter,pancakeFactory,stable,newLottery));
         lotteries[token0][token1][fee] = newLottery;
         lotteries[token1][token0][fee] = newLottery;
+        // sponsorContracts[newLottery] = newSponsor;
         IFrogReferal(frogReferalAddress).registerNewLottery(newLottery);
     }
 

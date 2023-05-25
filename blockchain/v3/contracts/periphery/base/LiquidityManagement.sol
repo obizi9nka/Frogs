@@ -32,9 +32,9 @@ abstract contract LiquidityManagement is IUniswapV3MintCallback, PeripheryImmuta
         MintCallbackData memory decoded = abi.decode(data, (MintCallbackData));
         CallbackValidation.verifyCallback(factory, decoded.poolKey);
 
-        // console.log(decoded.poolKey.token0, decoded.payer, msg.sender, amount0Owed);
+        console.log(decoded.poolKey.token0, decoded.payer, msg.sender, amount0Owed);
         if (amount0Owed > 0) pay(decoded.poolKey.token0, decoded.payer, msg.sender, amount0Owed);
-        // console.log(decoded.poolKey.token1, decoded.payer, msg.sender, amount0Owed);
+        console.log(decoded.poolKey.token1, decoded.payer, msg.sender, amount0Owed);
         if (amount1Owed > 0) pay(decoded.poolKey.token1, decoded.payer, msg.sender, amount1Owed);
     }
 

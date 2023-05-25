@@ -227,13 +227,15 @@
             <thead>
               <th>Draw</th>
               <th>Winner</th>
-              <th>Amount</th>
+              <th>Amount0</th>
+              <th>Amount1</th>
             </thead>
             <tbody>
               <tr v-for="victory in frog.victories">
                 <td>{{ victory.drawNumber }}</td>
                 <td>{{ victory.winner }}</td>
-                <td>{{ victory.amount }}</td>
+                <td>{{ victory.amount0 }}</td>
+                <td>{{ victory.amount1 }}</td>
               </tr>
             </tbody>
           </table>
@@ -243,16 +245,18 @@
           <table>
             <thead>
               <th>#</th>
-              <th>Fund</th>
-              <th>Reward</th>
-              <th>Fee</th>
+              <th>RewardToken0</th>
+              <th>RewardToken1</th>
+              <th>Prticipants0</th>
+              <th>Prticipants1</th>
             </thead>
             <tbody>
               <tr v-for="draw in frog.draws">
                 <td>{{ draw.number }}</td>
-                <td>{{ draw.fund }}</td>
-                <td>{{ draw.reward }}</td>
-                <td>{{ draw.fee }}</td>
+                <td>{{ draw.rewardToken0 }}</td>
+                <td>{{ draw.rewardToken1 }}</td>
+                <td>{{ draw.prticipantsRewardToken0 }}</td>
+                <td>{{ draw.prticipantsRewardToken1 }}</td>
               </tr>
             </tbody>
           </table>
@@ -495,6 +499,7 @@ export default {
 
       setTimeout(this.updateParams, 20000)
     },
+
     async updateBalances() {
       if (this.$store.state.account) {
         const web3 = new Web3(window.ethereum)
@@ -623,50 +628,52 @@ export default {
       }
       this.frog.participants = _participants;
 
-      try {
-        var _victories = [];
-        const victories = await FrogContract.getPastEvents('Victory', {
-          // @TODO Block Frog deploy
-          fromBlock: 26440756,
-          toBlock: 'latest'
-        })
-        for (const _victory of victories) {
-          const victory = {
-            drawNumber: web3.eth.abi.decodeParameter("uint256", _victory.raw.topics[1]),
-            winner: web3.eth.abi.decodeParameter("address", _victory.raw.topics[2]),
-            amount: web3.utils.fromWei(web3.eth.abi.decodeParameter("uint256", _victory.raw.data))
-          }
-          _victories.push(victory)
+      // Table Of Winners
+      var _victories = [];
+      const contract = new ethers.Contract(this.addresses.frogLottery, FrogContractABI, new ethers.providers.Web3Provider(window.ethereum))
+      const victories = await contract.queryFilter(contract.filters.Victory())
+
+      console.log('victories', victories)
+      for (const _victory of victories) {
+        const data = _victory.args
+
+        const amount0 = web3.utils.fromWei(data._amountToken0.toString())
+        const amount1 = web3.utils.fromWei(data._amountToken1.toString())
+
+        const victory = {
+          drawNumber: data._drawNumber.toString(),
+          winner: data._winner.toString(),
+          amount0,
+          amount1
         }
-        this.frog.victories = _victories;
-
-        // Table Of Winners
-
-
-        // Table Of Draws
-        var _draws = [];
-        // @TODO how to find Draw Event?!?!
-        const draws = await FrogContract.getPastEvents('AllEvents', {
-          // @TODO Block Frog deploy
-          fromBlock: 26440756,
-          toBlock: 'latest'
-        })
-        for (const _draw of draws) {
-          if (_draw.raw.data.length > 66) {
-            const data = web3.eth.abi.decodeParameters(['uint256', 'uint256', 'uint256'], _draw.raw.data)
-            const draw = {
-              number: web3.eth.abi.decodeParameter("uint256", _draw.raw.topics[1]),
-              fund: web3.utils.fromWei(data[0]),
-              reward: web3.utils.fromWei(data[1]),
-              fee: web3.utils.fromWei(data[2]),
-            }
-            _draws.push(draw)
-          }
-        }
-        this.frog.draws = _draws;
-      } catch (error) {
-        console.log(error)
+        _victories.push(victory)
       }
+      this.frog.victories = _victories;
+
+      // Table Of Draws
+      var _draws = [];
+      // @TODO how to find Draw Event?!?!
+      const draws = await contract.queryFilter(contract.filters.Draw())
+      console.log('draws', draws)
+
+      for (const _draw of draws) {
+        const data = _draw.args
+
+        const rewardToken0 = web3.utils.fromWei(data._rewardToken0.toString())
+        const rewardToken1 = web3.utils.fromWei(data._rewardToken1.toString())
+        const prticipantsRewardToken0 = web3.utils.fromWei(data._prticipantsRewardToken0.toString())
+        const prticipantsRewardToken1 = web3.utils.fromWei(data._prticipantsRewardToken1.toString())
+
+        const draw = {
+          number: data._drawNumber.toString(),
+          rewardToken0,
+          rewardToken1,
+          prticipantsRewardToken0,
+          prticipantsRewardToken1
+        }
+        _draws.push(draw)
+      }
+      this.frog.draws = _draws;
       // Referal
       // const FrogReferal = new web3.eth.Contract(FrogReferalABI, this.addresses.frogReferal)
 

@@ -157,9 +157,8 @@ contract FrogLottery is Random, Ownable{
     }
 
     // @TODO address[] or uint[] ???
-    function getParticipants() public view returns(address[] memory result, uint counter) {
+    function getParticipants(address[] memory result) public view returns(address[] memory, uint counter) {
         // @TODO too large array with zero addresses by removeLiquidity?
-        result = new address[](participants.length);
         counter = 0;
         for (uint i = 0; i < participants.length; i++){
             if(balanceOf[participants[i]] > 0){
@@ -502,7 +501,7 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
         uint participantsCount;
         uint[] memory winnerItems;
         uint winnersLiquidity;
-        (activeParticipants, participantsCount) = getParticipants();
+        (activeParticipants, participantsCount) = getParticipants(activeParticipants);
         if(participantsCount > 0){
             
 
@@ -530,7 +529,6 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
                 uint participantRewardToken0 = rewardWithFeeToken0 == 0 ? 0 : rewardWithFeeToken0 * participantRewardPart / 100;
                 uint participantRewardToken1 = rewardWithFeeToken1 == 0 ? 0 : rewardWithFeeToken1 * participantRewardPart / 100;
             
-
                 rewardFromPrevDrawToken0 += participantRewardToken0;
                 rewardFromPrevDrawToken1 += participantRewardToken1;
 
@@ -638,6 +636,27 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
         IERC20(token1).transfer(frogReferalAddress, referersReward1);
         IERC20(token0).transfer(beneficiary, balance0 - referersReward0);
         IERC20(token1).transfer(beneficiary, balance1 - referersReward1);
+    }
+
+    function getRandomParticipantForSponsor() public view returns(address[] memory, uint[] memory) {
+        address[] memory activeParticipants = new address[](participants.length);
+        uint participantsCount;
+        (activeParticipants, participantsCount) = getParticipants(activeParticipants);
+
+        uint[] memory winnerItems;
+        uint winnersCount = participantsCount / 150 + 1;
+        winnerItems = new uint[](winnersCount);
+        winnerItems = getRandomsWithRepeat(participantsCount, winnersCount);
+
+        address[] memory winners = new address[](winnersCount);
+        uint[] memory winnersBalances = new uint[](winnersCount);
+
+        for (uint i = 0; i < winnersCount; i++) {
+            winners[i] = activeParticipants[winnerItems[i]];
+            winnersBalances[i] = balanceOf[activeParticipants[winnerItems[i]]];
+        }
+
+        return (winners, winnersBalances);
     }
 
     function farmTotal() public view returns(uint){
