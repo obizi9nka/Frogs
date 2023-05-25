@@ -6,7 +6,7 @@ import { deployAll } from "../test/fixtures/fixtures";
 const prefix = 'localhost_'
 
 async function main() {
-  const { usdc, usdt, busd, pool_busd_usdt, pool_busd_usdc, pool_usdt_usdc, lottery_busd_usdt, pancakeFactory, router, nonfungiblePositionManager, factory, referal, fee } = await deployAll()
+  const { usdc, usdt, busd, pool_busd_usdt, pool_busd_usdc, pool_usdt_usdc, lottery_busd_usdt, pancakeFactory, router, nonfungiblePositionManager, factory, referal, fee, frogSponsorfactory } = await deployAll()
 
   await utils.saveAddress(prefix + "Pool_busd_usdt_fee", fee)
 
@@ -17,6 +17,7 @@ async function main() {
   await utils.saveAddress(prefix + "FrogReferal", referal.address)
   await utils.saveAddress(prefix + "FrogFactory", factory.address)
   await utils.saveAddress(prefix + "Lottery_busd_usdt", lottery_busd_usdt.address)
+  await utils.saveAddress(prefix + "FrogSponsorFactory", frogSponsorfactory.address)
 
   await utils.saveAddress(prefix + "Pool_busd_usdt", pool_busd_usdt.address)
   await utils.saveAddress(prefix + "Pool_busd_usdc", pool_busd_usdc.address)

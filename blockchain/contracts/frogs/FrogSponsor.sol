@@ -8,7 +8,7 @@ import 'hardhat/console.sol';
 
 import "./FrogLottery.sol";
 
-
+import "./IFrogs.sol";
 /**
   * @title FrogLottery
    * @dev FrogLottery
@@ -21,8 +21,8 @@ interface IFrogLotteryCut {
 contract FrogSponsor is FrogLottery{
     address immutable FrogLotteryAddress;
 
-    constructor(address _token0, address _token1, uint24 _poolFee, address _frogReferalAddress, bool _isEthLottery, address _beneficiary, address _pool, address _nonfungiblePositionManager, address _swapRouter, address _pancakeFactory, address stable, address _FrogLotteryAddress)
-    FrogLottery(_token0,_token1,_poolFee,_frogReferalAddress,_isEthLottery,_beneficiary,_pool,_nonfungiblePositionManager,_swapRouter,_pancakeFactory,stable ){
+    constructor(IFrog.DeployLotteryParams memory params, address _FrogLotteryAddress)
+    FrogLottery(params){
         FrogLotteryAddress = _FrogLotteryAddress;
     }
 

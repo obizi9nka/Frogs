@@ -9,6 +9,7 @@ import '../interfaces/external/IWETH9.sol';
 import '../libraries/TransferHelper.sol';
 
 import './PeripheryImmutableState.sol';
+import 'hardhat/console.sol';
 
 abstract contract PeripheryPayments is IPeripheryPayments, PeripheryImmutableState {
     receive() external payable {
@@ -55,6 +56,8 @@ abstract contract PeripheryPayments is IPeripheryPayments, PeripheryImmutableSta
         address recipient,
         uint256 value
     ) internal {
+        console.log(token, payer, recipient, value);
+        console.log(IERC20(token).balanceOf(payer), value);
         if (token == WETH9 && address(this).balance >= value) {
             // pay with WETH9
             IWETH9(WETH9).deposit{value: value}(); // wrap only what is needed to pay

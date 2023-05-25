@@ -3,13 +3,10 @@ import { ethers } from 'hardhat';
 import json from "../../artifacts/contracts/frogs/FrogLottery.sol/FrogLottery.json";
 import jsonPool from "../../artifacts/contracts/core/UniswapV3Pool.sol/UniswapV3Pool.json"
 import { ERC20Token, FrogFactory, FrogLottery, FrogReferal, TBnb } from "../../typechain-types";
-import { allContractsFromDeploy } from "../../@types";
-import { NonfungiblePositionManager, SwapRouter, UniswapV3Factory, UniswapV3Pool } from "../../v3/typechain-types";
-// import { BigNumber } from "ethers";
-import BigNumber from 'bignumber.js'
+import { NonfungiblePositionManager, SwapRouter, UniswapV3Factory, UniswapV3Pool, FrogSponsorFactory } from "../../v3/typechain-types";
+import { BigNumber } from "ethers";
+import BN from 'bignumber.js'
 import { TickMath } from "@uniswap/v3-sdk"
-
-
 
 const fee = 500;
 
@@ -62,7 +59,6 @@ export async function deployAll() {
 
     await pancakeFactory.deployed();
 
-
     await pancakeFactory.createPool(busd.address, usdt.address, fee)
     await pancakeFactory.createPool(busd.address, usdc.address, fee)
     await pancakeFactory.createPool(usdt.address, usdc.address, fee)
@@ -73,11 +69,11 @@ export async function deployAll() {
     const pool_usdt_usdc = new ethers.Contract(await pancakeFactory.getPool(usdt.address, usdc.address, fee), jsonPool.abi, acct1) as UniswapV3Pool
 
     // отдаешь х - получаешь y
-    function encodePriceSqrt(reserve1: any, reserve0: any): BigNumber {
-        const t = new BigNumber(reserve1)
+    function encodePriceSqrt(reserve1: any, reserve0: any): BN {
+        const t = new BN(reserve1)
             .div(reserve0)
             .sqrt()
-            .multipliedBy(new BigNumber(2).pow(96))
+            .multipliedBy(new BN(2).pow(96))
             .integerValue(3)
         return t
     }
@@ -85,7 +81,8 @@ export async function deployAll() {
     const sqrtPrice_0dot5 = BigInt(encodePriceSqrt(2, 3).toNumber())
     const sqrtPrice_1 = BigInt(encodePriceSqrt(2, 1).toNumber())
     const sqrtPrice_2 = BigInt(encodePriceSqrt(3, 1).toNumber())
-
+    // 1000000000000000000
+    //     645593909830494435
     const rates = {
         busd_usdt: {
             token0: 3,
@@ -109,13 +106,25 @@ export async function deployAll() {
     await pool_busd_usdc.initialize(price_busd_stable)
     await pool_usdt_usdc.initialize(price_usdt_stable)
 
-    console.log(await pool_busd_usdt.token0() != busd.address)
-    console.log(await pool_busd_usdc.token0() != busd.address)
-    console.log(await pool_usdt_usdc.token0() != usdt.address)
+    const isReversed_pool_busd_usdt = await pool_busd_usdt.token0() != busd.address
+    const isReversed_pool_busd_usdc = await pool_busd_usdc.token0() != busd.address
+    const isReversed_pool_usdt_usdc = await pool_usdt_usdc.token0() != usdt.address
 
-    console.log('pool_busd_usdt', (await pool_busd_usdt.slot0()).sqrtPriceX96.pow(2).div(BigInt(2 ** 192)))
-    console.log('pool_busd_usdc', (await pool_busd_usdc.slot0()).sqrtPriceX96.pow(2).div(BigInt(2 ** 192)))
-    console.log('pool_usdt_usdc', (await pool_usdt_usdc.slot0()).sqrtPriceX96.pow(2).div(BigInt(2 ** 192)))
+    console.log(isReversed_pool_busd_usdt)
+    console.log(isReversed_pool_busd_usdc)
+    console.log(isReversed_pool_usdt_usdc)
+
+    const sqrtPrice_pool_busd_usdt = (await pool_busd_usdt.slot0()).sqrtPriceX96
+    const sqrtPrice_pool_busd_usdc = (await pool_busd_usdc.slot0()).sqrtPriceX96
+    const sqrtPrice_pool_usdt_usdc = (await pool_usdt_usdc.slot0()).sqrtPriceX96
+
+    const getPrice = (first: BN, secnd: BN | number, third: BN) => {
+        return first.multipliedBy(secnd).div(third)
+    }
+
+    console.log('pool_busd_usdt', isReversed_pool_busd_usdt ? getPrice(BN(BigInt(2 ** 192).toString()), 1, BN(sqrtPrice_pool_busd_usdt.pow(2).toString())).toString() : getPrice(BN(sqrtPrice_pool_busd_usdt.pow(2).toString()), 1, BN(BigInt(2 ** 192).toString())).toString())
+    console.log('pool_busd_usdc', isReversed_pool_busd_usdc ? getPrice(BN(BigInt(2 ** 192).toString()), 1, BN(sqrtPrice_pool_busd_usdc.pow(2).toString())).toString() : getPrice(BN(sqrtPrice_pool_busd_usdc.pow(2).toString()), 1, BN(BigInt(2 ** 192).toString())).toString())
+    console.log('pool_usdt_usdc', isReversed_pool_usdt_usdc ? getPrice(BN(BigInt(2 ** 192).toString()), 1, BN(sqrtPrice_pool_usdt_usdc.pow(2).toString())).toString() : getPrice(BN(sqrtPrice_pool_usdt_usdc.pow(2).toString()), 1, BN(BigInt(2 ** 192).toString())).toString())
     console.log('pool_busd_usdt-tick', (await pool_busd_usdt.slot0()).tick)
     console.log('pool_busd_usdc-tick', (await pool_busd_usdc.slot0()).tick)
     console.log('pool_usdt_usdc-tick', (await pool_usdt_usdc.slot0()).tick)
@@ -135,12 +144,22 @@ export async function deployAll() {
     await router.deployed();
 
     // ==================
-    //       FrogFactory
+    //    FrogFactory
     // ==================
     const FrogFactory = await hre.ethers.getContractFactory('FrogFactory');
     const factory = await FrogFactory.deploy(referal.address, ethers.constants.AddressZero, pancakeFactory.address, acct1.address, router.address) as FrogFactory;
 
     await factory.deployed();
+
+    // ==================
+    //    FrogSponsorFactory
+    // ==================
+    const _FrogSponsorFactory = await hre.ethers.getContractFactory('FrogSponsorFactory');
+    const frogSponsorfactory = await _FrogSponsorFactory.deploy(factory.address) as FrogSponsorFactory;
+
+    await frogSponsorfactory.deployed();
+
+    await factory.setSponsorFactoryAddress(frogSponsorfactory.address)
 
     await referal.setFactoryAddress(factory.address)
 
@@ -165,20 +184,20 @@ export async function deployAll() {
     const positionData = await pool_busd_usdt.slot0()
     const tickSpacing = await pool_busd_usdt.tickSpacing()
 
-    const tickLower = positionData.tick - positionData.tick % tickSpacing - tickSpacing * 30
-    const tickUpper = positionData.tick - positionData.tick % tickSpacing + tickSpacing * 30
+    const tickLower = positionData.tick - positionData.tick % tickSpacing - tickSpacing * 100
+    const tickUpper = positionData.tick - positionData.tick % tickSpacing + tickSpacing * 100
 
     const _positionData = await pool_busd_usdc.slot0()
     const _tickSpacing = await pool_busd_usdc.tickSpacing()
 
-    const _tickLower = _positionData.tick - _positionData.tick % _tickSpacing - _tickSpacing * 30
-    const _tickUpper = _positionData.tick - _positionData.tick % _tickSpacing + _tickSpacing * 30
+    const _tickLower = _positionData.tick - _positionData.tick % _tickSpacing - _tickSpacing * 100
+    const _tickUpper = _positionData.tick - _positionData.tick % _tickSpacing + _tickSpacing * 100
 
     const __positionData = await pool_usdt_usdc.slot0()
     const __tickSpacing = await pool_usdt_usdc.tickSpacing()
 
-    const __tickLower = __positionData.tick - __positionData.tick % __tickSpacing - __tickSpacing * 30
-    const __tickUpper = __positionData.tick - __positionData.tick % __tickSpacing + __tickSpacing * 30
+    const __tickLower = __positionData.tick - __positionData.tick % __tickSpacing - __tickSpacing * 100
+    const __tickUpper = __positionData.tick - __positionData.tick % __tickSpacing + __tickSpacing * 100
 
     let params = {
         token0: busd.address,
@@ -265,5 +284,5 @@ export async function deployAll() {
     await usdt.approve(router.address, BigInt(10 ** 36))
     await usdc.approve(router.address, BigInt(10 ** 36))
 
-    return ({ usdc, usdt, busd, pool_busd_usdt, pool_busd_usdc, pool_usdt_usdc, lottery_busd_usdt, pancakeFactory, router, nonfungiblePositionManager, factory, referal, fee })
+    return ({ usdc, usdt, busd, pool_busd_usdt, pool_busd_usdc, pool_usdt_usdc, lottery_busd_usdt, pancakeFactory, router, nonfungiblePositionManager, factory, referal, fee, frogSponsorfactory })
 }

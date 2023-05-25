@@ -16,3 +16,17 @@ export type allContractsFromDeploy = {
     router: SwapRouter;
     fee: number;
 }
+
+export type DeployLotteryParams = {
+    token0: string;
+    token1: string;
+    poolFee: number;
+    frogReferalAddress: string;
+    isEthLottery: boolean;
+    beneficiary: string;
+    pool: string;
+    nonfungiblePositionManager: string;
+    swapRouter: string;
+    pancakeFactory: string;
+    stable: string;
+}

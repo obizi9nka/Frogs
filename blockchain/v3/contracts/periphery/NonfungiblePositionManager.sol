@@ -215,6 +215,9 @@ contract NonfungiblePositionManager is
         PoolAddress.PoolKey memory poolKey = _poolIdToPoolKey[position.poolId];
 
         IUniswapV3Pool pool;
+        console.log('increaseLiquidity');
+        console.log(poolKey.token0, params.amount0Desired);
+        console.log(poolKey.token1, params.amount1Desired);
         (liquidity, amount0, amount1, pool) = addLiquidity(
             AddLiquidityParams({
                 token0: poolKey.token0,

@@ -153,7 +153,10 @@
                 <h3>Your Percent: {{ frog.referalInfo.percent }}</h3>
               </div>
               <div>
-                <h3>Your Referal Reward: {{ frog.user.referalReward }}</h3>
+                <h3>Your Referal Reward0: {{ frog.user.referalReward0 }}</h3>
+              </div>
+              <div>
+                <h3>Your Referal Reward1: {{ frog.user.referalReward1 }}</h3>
               </div>
               <div>
                 <h3>Now In Lottery: {{ frog.nowIn }}</h3>
@@ -340,7 +343,8 @@ export default {
           withdraw: -1,
           rewardOfToken0: -1,
           rewardOfToken1: -1,
-          referalReward: -1
+          referalReward0: -1,
+          referalReward1: -1
         },
         referalInfo:
         {
@@ -429,6 +433,9 @@ export default {
       const pool_token0_token1 = new web3.eth.Contract(PoolAbi.abi, this.addresses.pool_token0_token1)
       const manager = new web3.eth.Contract(PositionManager.abi, this.addresses.manager)
       const FrogContract = new web3.eth.Contract(FrogContractABI, this.addresses.frogLottery);
+
+      console.log('token0', await FrogContract.methods.token0().call())
+      console.log('token1', await FrogContract.methods.token1().call())
 
       this.pancake.tokenId = await FrogContract.methods.tokenId().call()
       const position = await manager.methods.positions(this.pancake.tokenId).call()
@@ -537,6 +544,7 @@ export default {
             console.log(BigInt(this.pancake.sqrtPriceX96_token0_token1), this.pancake.currentTick, this.pancake.tickLower, this.pancake.tickUpper, this.frog.user.deposit, false)
             const data = await this.calculateAmountsForLiquidity(BigInt(this.pancake.sqrtPriceX96_token0_token1), this.pancake.currentTick, this.pancake.tickLower, this.pancake.tickUpper, this.frog.user.deposit, false)
             console.log(data)
+
             this.pancake.table.deposit_token0 = web3.utils.fromWei(data.amount0)
             this.pancake.table.deposit_token1 = web3.utils.fromWei(data.amount1)
             this.pancake.table.deposit_token0_usd = parseFloat(BigNumber(data.amount0).div(BigInt(10 ** 18)).multipliedBy(firstPrice).toNumber()) // parseFloat(this.getPrice(BigNumber(data.amount0).div(BigInt(10 ** 18)).toNumber(), this.pancake.sqrtPriceX96_token0_stable, 18, 18))
@@ -586,9 +594,15 @@ export default {
           })
 
         const FrogReferal = new web3.eth.Contract(FrogReferalABI, this.addresses.frogReferal)
-        await FrogReferal.methods.balance(this.addresses.token0, this.$store.state.account).call()
+        await FrogReferal.methods.balance(await frog.methods.token0().call(), this.$store.state.account).call()
           .then(balance => {
-            this.frog.user.referalReward = parseFloat(web3.utils.fromWei(balance))
+            console.log("referal balance0", balance)
+            this.frog.user.referalReward0 = parseFloat(web3.utils.fromWei(balance))
+          })
+        await FrogReferal.methods.balance(await frog.methods.token1().call(), this.$store.state.account).call()
+          .then(balance => {
+            console.log("referal balance1", balance)
+            this.frog.user.referalReward1 = parseFloat(web3.utils.fromWei(balance))
           })
 
       }
@@ -778,13 +792,13 @@ export default {
       let sqrtPriceX96
       switch (this.tokenSelcted) {
         case 0: {
-          tokenForDepositAddress = await FrogContract.methods.token0().call()
+          tokenForDepositAddress = this.pancake.isReversed_pool_busd_usdt ? await FrogContract.methods.token1().call() : await FrogContract.methods.token0().call()
           tokenBalance = parseFloat(this.wallet.token0)
           sqrtPriceX96 = this.pancake.sqrtPriceX96_token0_token1
           break;
         }
         case 1: {
-          tokenForDepositAddress = await FrogContract.methods.token1().call()
+          tokenForDepositAddress = this.pancake.isReversed_pool_busd_usdt ? await FrogContract.methods.token0().call() : await FrogContract.methods.token1().call()
           tokenBalance = parseFloat(this.wallet.token1)
           sqrtPriceX96 = this.pancake.sqrtPriceX96_token0_token1
           break;
@@ -796,6 +810,7 @@ export default {
           break;
         }
       }
+      console.log('tokenForDepositAddress', tokenForDepositAddress)
       console.log(tokenBalance, this.form.deposit.token)
 
       if (tokenBalance < parseFloat(this.form.deposit.token)) {
@@ -1130,7 +1145,11 @@ export default {
       // console.log('request')
       const data = await FrogContract.methods.calculateAmountsForLiquidity(sqrtPriceX96, BigInt(currentTick), BigInt(tickLower), BigInt(tickUpper), liquidity, isMinus).call()
       // console.log('respond')
-      return { amount0: data.amount0, amount1: data.amount1 }
+      if (this.pancake.isReversed_pool_busd_usdt)
+        return { amount0: data.amount1, amount1: data.amount0 }
+      else
+        return { amount0: data.amount0, amount1: data.amount1 }
+
     }
 
   },
