@@ -85,15 +85,15 @@ export async function deployAll() {
     //     645593909830494435
     const rates = {
         busd_usdt: {
-            token0: 3,
-            token1: 2
+            token0: 1,
+            token1: 1
         },
         busd_usdc: {
-            token0: 3,
+            token0: 1,
             token1: 1
         },
         usdt_usdc: {
-            token0: 2,
+            token0: 1,
             token1: 1
         },
     }

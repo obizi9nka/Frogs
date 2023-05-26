@@ -7,8 +7,8 @@ const utils = require("./main");
 import { allContractsFromDeploy } from "../@types";
 import { NonfungiblePositionManager, SwapRouter, UniswapV3Factory, UniswapV3Pool } from "../v3/typechain-types";
 import { BigNumber } from "ethers";
-import bn from 'bignumber.js'
 import secret from "../secrets.json"
+import BN from 'bignumber.js'
 
 const prefix = 'sepolia_'
 
@@ -79,9 +79,39 @@ export async function main() {
   const pool_busd_usdc = new ethers.Contract(await pancakeFactory.getPool(busd.address, usdc.address, fee), jsonPool.abi, acct1) as UniswapV3Pool
   const pool_usdt_usdc = new ethers.Contract(await pancakeFactory.getPool(usdt.address, usdc.address, fee), jsonPool.abi, acct1) as UniswapV3Pool
 
-  const price = BigInt(79228162514264337593543950336) // encodePriceSqrt(1, 1)
+  function encodePriceSqrt(reserve1: any, reserve0: any): BN {
+    const t = new BN(reserve1)
+      .div(reserve0)
+      .sqrt()
+      .multipliedBy(new BN(2).pow(96))
+      .integerValue(3)
+    return t
+  }
 
-  await executeFunc(pool_busd_usdt.initialize(price))
+  const rates = {
+    busd_usdt: {
+      token0: 1,
+      token1: 1
+    },
+    busd_usdc: {
+      token0: 1,
+      token1: 1
+    },
+    usdt_usdc: {
+      token0: 1,
+      token1: 1
+    },
+  }
+
+  const price_busd_usdt = await pool_busd_usdt.token0() == busd.address ? BigInt(encodePriceSqrt(rates.busd_usdt.token0, rates.busd_usdt.token1).toNumber()) : BigInt(encodePriceSqrt(rates.busd_usdt.token1, rates.busd_usdt.token0).toNumber()) // 2x1
+  const price_busd_stable = await pool_busd_usdc.token0() == busd.address ? BigInt(encodePriceSqrt(rates.busd_usdc.token0, rates.busd_usdc.token1).toNumber()) : BigInt(encodePriceSqrt(rates.busd_usdc.token1, rates.busd_usdc.token0).toNumber()) // 2x1
+  const price_usdt_stable = await pool_usdt_usdc.token0() == usdt.address ? BigInt(encodePriceSqrt(rates.usdt_usdc.token0, rates.usdt_usdc.token1).toNumber()) : BigInt(encodePriceSqrt(rates.usdt_usdc.token1, rates.usdt_usdc.token0).toNumber()) // 2x1
+
+
+  // await pool_busd_usdt.initialize(price))
+  await executeFunc(pool_busd_usdt.initialize(price_busd_usdt))
+  await executeFunc(pool_busd_usdc.initialize(price_busd_stable))
+  await executeFunc(pool_usdt_usdc.initialize(price_usdt_stable))
   // ==================
   //  NonfungiblePositionManager
   // ==================
@@ -122,33 +152,88 @@ export async function main() {
   await executeFunc(usdc.approve(nonfungiblePositionManager.address, TOKENS_VALUE_20))
   await executeFunc(usdt.approve(nonfungiblePositionManager.address, TOKENS_VALUE_20))
 
+  const positionData = await pool_busd_usdt.slot0()
+  const tickSpacing = await pool_busd_usdt.tickSpacing()
 
+  const tickLower = positionData.tick - positionData.tick % tickSpacing - tickSpacing * 100
+  const tickUpper = positionData.tick - positionData.tick % tickSpacing + tickSpacing * 100
 
+  const _positionData = await pool_busd_usdc.slot0()
+  const _tickSpacing = await pool_busd_usdc.tickSpacing()
 
+  const _tickLower = _positionData.tick - _positionData.tick % _tickSpacing - _tickSpacing * 100
+  const _tickUpper = _positionData.tick - _positionData.tick % _tickSpacing + _tickSpacing * 100
 
-  await executeFunc(nonfungiblePositionManager.mint({
+  const __positionData = await pool_usdt_usdc.slot0()
+  const __tickSpacing = await pool_usdt_usdc.tickSpacing()
+
+  const __tickLower = __positionData.tick - __positionData.tick % __tickSpacing - __tickSpacing * 100
+  const __tickUpper = __positionData.tick - __positionData.tick % __tickSpacing + __tickSpacing * 100
+
+  let params = {
     token0: busd.address,
     token1: usdt.address,
     fee,
-    tickLower: -100,
-    tickUpper: 100,
-    amount0Desired: BigInt(10 ** 30),
-    amount1Desired: BigInt(10 ** 30),
-    amount0Min: 0,
-    amount1Min: 0,
+    tickLower,
+    tickUpper,
+    amount0Desired: BigInt(10 ** 31),
+    amount1Desired: BigInt(10 ** 31),
+    amount0Min: 1,
+    amount1Min: 1,
     recipient: acct1.address,
     deadline: 10000000000000
-  }))
+  }
+
+
+  let _params = {
+    token0: busd.address,
+    token1: usdc.address,
+    fee,
+    tickLower: _tickLower,
+    tickUpper: _tickUpper,
+    amount0Desired: BigInt(10 ** 31),
+    amount1Desired: BigInt(10 ** 31),
+    amount0Min: 1,
+    amount1Min: 1,
+    recipient: acct1.address,
+    deadline: 10000000000000
+  }
+
+  let paramsStable = {
+    token0: usdt.address,
+    token1: usdc.address,
+    fee,
+    tickLower: __tickLower,
+    tickUpper: __tickUpper,
+    amount0Desired: BigInt(10 ** 31),
+    amount1Desired: BigInt(10 ** 31),
+    amount0Min: 1,
+    amount1Min: 1,
+    recipient: acct1.address,
+    deadline: 10000000000000
+  }
+
+  await executeFunc(nonfungiblePositionManager.mint(params))
+
+  // params.token0 = usdt.address
+  // params.token1 = usdc.address
+  await executeFunc(nonfungiblePositionManager.mint(paramsStable))
+
+  params.token0 = busd.address
+  params.token1 = usdc.address
+  await executeFunc(nonfungiblePositionManager.mint(_params))
+
+
 
   await executeFunc(factory.createNewLottery(busd.address, usdt.address, fee, pool_busd_usdt.address, nonfungiblePositionManager.address, usdc.address))
   const lottery_busd_usdt = new ethers.Contract(await factory.lotteries(busd.address, usdt.address, fee), json.abi, acct1) as FrogLottery
   await executeFunc(busd.approve(lottery_busd_usdt.address, 1))
   await executeFunc(usdt.approve(lottery_busd_usdt.address, 1))
-  await executeFunc(lottery_busd_usdt.createPosition(-1000, 1000))
+  await executeFunc(lottery_busd_usdt.createPosition(tickLower, tickUpper))
 
 
-  await executeFunc(busd.approve(lottery_busd_usdt.address, BigInt(10 ** 35)))
-  await executeFunc(usdt.approve(lottery_busd_usdt.address, BigInt(10 ** 35)))
+  // await executeFunc(busd.approve(lottery_busd_usdt.address, BigInt(10 ** 35)))
+  // await executeFunc(usdt.approve(lottery_busd_usdt.address, BigInt(10 ** 35)))
 
 
   await utils.saveAddress(prefix + "Pool_busd_usdt_fee", fee)
@@ -169,6 +254,7 @@ export async function main() {
 }
 
 const executeFunc = async (func: any) => {
+  console.log(func.toString())
   const tx = await func
   await tx.wait()
   return tx

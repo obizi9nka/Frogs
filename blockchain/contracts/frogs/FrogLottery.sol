@@ -2,11 +2,11 @@
 
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
+// import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./IFrogReferal.sol";
 import "./Random.sol";
-import 'hardhat/console.sol';
+// import 'hardhat/console.sol';
 
 import "../v3-interfaces/IUniswapV3Pool.sol";
 import "../v3-interfaces/INonfungiblePositionManager.sol";
@@ -34,19 +34,19 @@ library UnsafeMath {
     }
 }
 
-library LiquidityMath {
-    /// @notice Add a signed liquidity delta to liquidity and revert if it overflows or underflows
-    /// @param x The liquidity before change
-    /// @param y The delta by which liquidity should be changed
-    /// @return z The liquidity delta
-    function addDelta(uint128 x, int128 y) internal pure returns (uint128 z) {
-        if (y < 0) {
-            require((z = x - uint128(-y)) < x, 'LS');
-        } else {
-            require((z = x + uint128(y)) >= x, 'LA');
-        }
-    }
-}
+// library LiquidityMath {
+//     /// @notice Add a signed liquidity delta to liquidity and revert if it overflows or underflows
+//     /// @param x The liquidity before change
+//     /// @param y The delta by which liquidity should be changed
+//     /// @return z The liquidity delta
+//     function addDelta(uint128 x, int128 y) internal pure returns (uint128 z) {
+//         if (y < 0) {
+//             require((z = x - uint128(-y)) < x, 'LS');
+//         } else {
+//             require((z = x + uint128(y)) >= x, 'LA');
+//         }
+//     }
+// }
 
 /**
   * @title FrogLottery
@@ -58,7 +58,7 @@ interface Deimals {
 }
 
 
-contract FrogLottery is Random, Ownable{
+contract FrogLottery is Random{
 
     using SafeCast for uint256;
     using SafeCast for int256;
@@ -96,7 +96,7 @@ contract FrogLottery is Random, Ownable{
     event NewParticipant(address indexed _newParticipant);
 
     modifier isBeneficiaryOrOwner() {
-        require(msg.sender == owner() || msg.sender == beneficiary, "Caller is not beneficiary or owner");
+        // require(msg.sender == owner() || msg.sender == beneficiary, "Caller is not beneficiary or owner");
         _;
     }
 
@@ -116,7 +116,7 @@ contract FrogLottery is Random, Ownable{
         maxFeePercent   = 3000; // 30%
         feePercent      = maxFeePercent;
         minUsd         = 5 * decimalsContoller - 10**16; // @TODO change to 50-500
-        maxUsd         = 50 * decimalsContoller - 10**16; // @TODO change to 50-500
+        maxUsd         = 50 * decimalsContoller; // @TODO change to 50-500
         isEthLottery    = params.isEthLottery;
         setToken0ContractAddress(params.token0); 
         setToken1ContractAddress(params.token1);       
@@ -264,24 +264,24 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
         uint amountTokenB;
         {
         if(token == token0){
-            console.log(1);
+            // console.log(1);
             amountTokenA = amount / 2;
             amountTokenB = swapExactInputSingle(token0, token1, amountTokenA);
         }
         else if(token == token1){
-            console.log(2);
+            // console.log(2);
             amountTokenB = amount / 2;
             amountTokenA = swapExactInputSingle(token1, token0, amountTokenB);
         }
         else {
-            console.log(3);
+            // console.log(3);
             amountTokenA = swapExactInputSingle(token, token0, amount / 2);
             amountTokenB = swapExactInputSingle(token, token1, amount / 2);
         }
         }
         (uint amountToken0, uint amountToken1) = isReversed ? (amountTokenB, amountTokenA) : (amountTokenA, amountTokenB);
         // (uint amountToken0, uint amountToken1) = (amountTokenB, amountTokenA);
-        console.log("rrrrrr", amountToken0, amountToken1);
+        // console.log("rrrrrr", amountToken0, amountToken1);
         // console.log('one');
         // console.log(getPriceWithDecimalsContoller(token0, 10**18));
         // console.log(getPriceWithDecimalsContoller(token1, 10**18));
@@ -334,18 +334,18 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
         uint futureBalanceUsd = getPriceWithDecimalsContoller(_token0, uint128(amount0_active)) + getPriceWithDecimalsContoller(_token1, uint128(amount1_active));
         uint depositUsd = getPriceWithDecimalsContoller(_token0, uint128(amount0)) + getPriceWithDecimalsContoller(_token1, uint128(amount1));
 
-        console.log("rrrrrr", amountToken0, amountToken1);
-        console.log('liquidity deposited:', liquidity, amount0, amount1);
-        console.log(futureBalanceUsd, depositUsd);
-        // 4688032186634739176
+        // console.log("rrrrrr", amountToken0, amountToken1);
+        // console.log('liquidity deposited:', liquidity, amount0, amount1);
+        // console.log(futureBalanceUsd, depositUsd);
+        // // 4688032186634739176
 
-        console.log('active');
-        console.log(getPriceWithDecimalsContoller(_token0, uint128(amount0_active)));
-        console.log(getPriceWithDecimalsContoller(_token1, uint128(amount1_active)));
-        console.log('new');
-        console.log(getPriceWithDecimalsContoller(_token0, uint128(amount0)));
-        console.log(getPriceWithDecimalsContoller(_token1, uint128(amount1)));
-        console.log('req');
+        // console.log('active');
+        // console.log(getPriceWithDecimalsContoller(_token0, uint128(amount0_active)));
+        // console.log(getPriceWithDecimalsContoller(_token1, uint128(amount1_active)));
+        // console.log('new');
+        // console.log(getPriceWithDecimalsContoller(_token0, uint128(amount0)));
+        // console.log(getPriceWithDecimalsContoller(_token1, uint128(amount1)));
+        // console.log('req');
 
         require(futureBalanceUsd + depositUsd >= minUsd, 'Total balance less than minUSD');
         require(futureBalanceUsd + depositUsd <= maxUsd, 'Total balance great than maxUSD');
@@ -417,7 +417,7 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
         }
     }
 
-    function getQuoteAtTick(int24 tick, uint128 baseAmount, address baseToken, address quoteToken) internal view returns (uint256 quoteAmount) {
+    function getQuoteAtTick(int24 tick, uint128 baseAmount, address baseToken, address quoteToken) internal pure returns (uint256 quoteAmount) {
         uint160 sqrtRatioX96 = TickMath.getSqrtRatioAtTick(tick);
         // console.log();
 
@@ -439,7 +439,7 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
 
     function getPriceWithDecimalsContoller(address tokenIn, uint128 amount) public view returns (uint amountOut) {
         address _pool = IUniswapV3Factory(pancakeFactory).getPool(tokenIn,stableCoinAddress,poolFee);
-        (uint160 sqrt, int24 tick,,,,,) = IUniswapV3Pool(_pool).slot0();
+        (, int24 tick,,,,,) = IUniswapV3Pool(_pool).slot0();
         uint8 decimals = Deimals(stableCoinAddress).decimals();
 
         uint quote = getQuoteAtTick(tick, uint128(amount* decimalsContoller), tokenIn, stableCoinAddress);
@@ -491,8 +491,8 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
                         });
 
                         (uint amount0Collect, uint amount1Collect) = INonfungiblePositionManager(nonfungiblePositionManager).collect(paramsCollect);
-                        console.log('wihdraw busd', amount0Collect);
-                        console.log('wihdraw usdt', amount1Collect);
+                        // console.log('wihdraw busd', amount0Collect);
+                        // console.log('wihdraw usdt', amount1Collect);
                         IERC20(token0).transfer(user,amount0Collect);
                         IERC20(token1).transfer(user,amount1Collect);
                     }
@@ -503,7 +503,7 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
         }
     }
 
-    function draw() virtual public isBeneficiaryOrOwner{
+    function draw() virtual public{
         INonfungiblePositionManager.CollectParams memory params =
         INonfungiblePositionManager.CollectParams({
             tokenId: tokenId,
@@ -646,7 +646,7 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
         // (amount0, amount1) = LiquidityAmounts.getAmountsForLiquidity(sqrtPriceX96, sqrtRatioAX96, sqrtRatioBX96, liquidity);
     }
 
-    function afterDraw(IFrogReferal.ReferersRewardInfo[] memory data, uint referersReward0, uint referersReward1) public isBeneficiaryOrOwner{
+    function afterDraw(IFrogReferal.ReferersRewardInfo[] memory data, uint referersReward0, uint referersReward1) public {
         uint balance0 = IERC20(token0).balanceOf(address(this)) - rewardFromPrevDrawToken0;
         uint balance1 = IERC20(token1).balanceOf(address(this)) - rewardFromPrevDrawToken1;
         IFrogReferal(frogReferalAddress).accrueRewardFromWinningReferral(data, token0, token1);

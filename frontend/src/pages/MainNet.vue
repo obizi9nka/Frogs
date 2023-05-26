@@ -5,7 +5,7 @@
       <div class="pools">
         <div class="pool">
           <div class="pool__header">
-            <div class="pool__title">CAKE-BNB</div>
+            <div class="pool__title">BUSD-USDT</div>
           </div>
 
           <template v-if="$store.state.account">
@@ -85,11 +85,11 @@
               <div class="pool__rates">
                 <div class="pool__rate">
                   <div class="pool-rate__value">{{ pancake.rates.t0_stbl }}</div>
-                  <div class="pool-rate__label">stable per BUSD</div>
+                  <div class="pool-rate__label">USDC per BUSD</div>
                 </div>
                 <div class="pool__rate">
                   <div class="pool-rate__value">{{ pancake.rates.t1_stbl }}</div>
-                  <div class="pool-rate__label">stable per USDT</div>
+                  <div class="pool-rate__label">USDC per USDT</div>
                 </div>
               </div>
               <div>
@@ -164,9 +164,11 @@
               <div>
                 <h3>Beneficiary : {{ frog.beneficiaryAmount }}</h3>
               </div>
-              <btn-primary @click="claimReward" v-if="frog.user.rewardOfToken0 || frog.user.rewardOfToken1">Claim
+              <btn-primary @click="claimReward" v-if="frog.user.rewardOfToken0 > 0 || frog.user.rewardOfToken1 > 0">Claim
                 Reward</btn-primary>
-              <btn-primary @click="claimReferalReward" v-if="frog.user.referalReward">Claim Referal Reward</btn-primary>
+              <btn-primary @click="claimReferalReward"
+                v-if="frog.user.referalReward0 > 0 || frog.user.referalReward1 > 0">Claim
+                Referal Reward</btn-primary>
             </div>
           </template>
           <template v-else>
@@ -179,8 +181,10 @@
           </template>
         </div>
       </div> <!-- .pools -->
-      <btn-primary @click="getCake">getCake</btn-primary>
-      <btn-primary @click="swap">swap</btn-primary>
+      <btn-primary @click="getTokens">getTokens</btn-primary>
+      <btn-primary style="margin: 0px 20px;" @click="swap(addresses.token0, addresses.token1)">swap
+        busd->usdt</btn-primary>
+      <btn-primary @click="swap(addresses.token1, addresses.token0)">swap usdt->busd</btn-primary>
       <h2>Set referer</h2>
       <form @submit.prevent class="admin-form">
         <input-text v-model="this.frog.referalInfo.inputReferer" placeholder="Address" class="input" />
@@ -453,6 +457,12 @@ export default {
       const pool_token1_stable = new web3.eth.Contract(PoolAbi.abi, this.addresses.pool_token1_stable)
 
       const data = await pool_token0_token1.methods.slot0().call()
+      const data1 = await pool_token0_stable.methods.slot0().call()
+      const data2 = await pool_token1_stable.methods.slot0().call()
+
+      console.log('pool_token0_token1 tick', data.tick)
+      console.log('pool_token0_stable tick', data1.tick)
+      console.log('pool_token1_stable tick', data2.tick)
 
       this.pancake.isReversed_pool_busd_usdt = await pool_token0_token1.methods.token0().call() != this.addresses.token0
       this.pancake.isReversed_pool_busd_usdc = await pool_token0_stable.methods.token0().call() != this.addresses.token0
@@ -619,10 +629,10 @@ export default {
       FrogContract.methods.drawNumber().call().then(drawNumber => {
         this.frog.drawNumber = drawNumber
       })
-      FrogContract.methods.owner().call().then(owner => {
-        this.frog.owner = owner
-        this.isOwner = owner.toLowerCase() === this.$store.state.account.toLowerCase()
-      })
+      // FrogContract.methods.owner().call().then(owner => {
+      //   this.frog.owner = owner
+      //   this.isOwner = owner.toLowerCase() === this.$store.state.account.toLowerCase()
+      // })
       FrogContract.methods.beneficiary().call().then(beneficiary => {
         this.frog.beneficiary = beneficiary
         this.isBeneficiary = beneficiary.toLowerCase() === this.$store.state.account.toLowerCase()
@@ -757,16 +767,70 @@ export default {
       this.form.deposit.bnb = this.wallet.bnb
       this.formDepositCakeSync()
     },
-    async swap() {
+    async swap(token0, token1) {
       const web3 = new Web3(window.ethereum)
       const router = new web3.eth.Contract(Router.abi, this.addresses.router)
+
+      let tokenBalance
+      switch (this.tokenSelcted) {
+        case 0: {
+          tokenBalance = parseFloat(this.wallet.token0)
+          break;
+        }
+        case 1: {
+          tokenBalance = parseFloat(this.wallet.token1)
+          break;
+        }
+        case 2: {
+          tokenBalance = parseFloat(this.wallet.stable)
+          break;
+        }
+      }
+      const amountIn = BigInt(100000 * 10 ** 18)
+      console.log(amountIn, token0) // 99999.999999999991611392
+      const allowance0 = web3.utils.fromWei(await new web3.eth.Contract(ERC20TokenABI, token0)
+        .methods.allowance(this.$store.state.account, router.options.address).call());
+      if (allowance0 < amountIn) {
+        const approveCake = await new web3.eth.Contract(ERC20TokenABI, token0)
+          .methods.approve(router.options.address, amountIn)
+          .send({
+            from: this.$store.state.account
+          })
+          .on('sending', () => {
+            this.showModal('Waiting for confirmation')
+          })
+        if (approveCake.status != true) {
+          this.showModal('Something went wrong with tCake approve!')
+          return
+        }
+      }
+
+      // const allowance1 = web3.utils.fromWei(await new web3.eth.Contract(ERC20TokenABI, token1)
+      //   .methods.allowance(this.$store.state.account, router.options.address).call());
+      // if (allowance1 < amountIn) {
+      //   const approveCake = await new web3.eth.Contract(ERC20TokenABI, token1)
+      //     .methods.approve(router.options.address, amountIn)
+      //     .send({
+      //       from: this.$store.state.account
+      //     })
+      //     .on('sending', () => {
+      //       this.showModal('Waiting for confirmation')
+      //     })
+      //   if (approveCake.status != true) {
+      //     this.showModal('Something went wrong with tCake approve!')
+      //     return
+      //   }
+      // }
+
+      console.log(allowance0)
+
       await router.methods.exactInputSingle({
-        tokenIn: this.addresses.token1,
-        tokenOut: this.addresses.token0,
+        tokenIn: token0,
+        tokenOut: token1,
         fee: this.addresses.fee,
         recipient: this.$store.state.account,
         deadline: 100000000000,
-        amountIn: BigInt(100000 * 10 ** 18),
+        amountIn,
         amountOutMinimum: 0,
         sqrtPriceLimitX96: 0
       })
@@ -840,16 +904,51 @@ export default {
         const FrogReferal = new web3.eth.Contract(FrogReferalABI, this.addresses.frogReferal)
         const isPartisipant = await FrogReferal.methods.alreadyParticipant(this.$store.state.account).call()
         console.log(isPartisipant, "isPartisipant")
-        const condition = '-111'
+        const condition = '-11'
         if (this.frog.referalInfo.referer == condition) {
           this.showModal('Not a referal')
-        } else if (confirm("You want to send: \n" + this.form.deposit.cake + " CAKE\n" + this.form.deposit.bnb + " BNB")) {
+        } else if (confirm("You want to send: \n" + this.form.deposit.token)) {
+          const amount = web3.utils.toWei(this.form.deposit.token);
 
-          const allowance0 = web3.utils.fromWei(await new web3.eth.Contract(ERC20TokenABI, tokenForDepositAddress)
+          const allowance = web3.utils.fromWei(await new web3.eth.Contract(ERC20TokenABI, tokenForDepositAddress)
             .methods.allowance(this.$store.state.account, this.addresses.frogLottery).call());
-          if (allowance0 < tokenBalance) {
+          if (allowance < amount) {
             const approveCake = await new web3.eth.Contract(ERC20TokenABI, tokenForDepositAddress)
-              .methods.approve(this.addresses.frogLottery, web3.utils.toWei(this.form.deposit.cake.toString()))
+              .methods.approve(this.addresses.frogLottery, amount)
+              .send({
+                from: this.$store.state.account
+              })
+              .on('sending', () => {
+                this.showModal('Waiting for confirmation')
+              })
+            if (approveCake.status != true) {
+              this.showModal('Something went wrong with tCake approve!')
+              return
+            }
+          }
+
+          const allowance0 = web3.utils.fromWei(await new web3.eth.Contract(ERC20TokenABI, this.addresses.token0)
+            .methods.allowance(this.$store.state.account, this.addresses.frogLottery).call());
+          if (allowance0 < amount) {
+            const approveCake = await new web3.eth.Contract(ERC20TokenABI, this.addresses.token0)
+              .methods.approve(this.addresses.frogLottery, amount)
+              .send({
+                from: this.$store.state.account
+              })
+              .on('sending', () => {
+                this.showModal('Waiting for confirmation')
+              })
+            if (approveCake.status != true) {
+              this.showModal('Something went wrong with tCake approve!')
+              return
+            }
+          }
+
+          const allowance1 = web3.utils.fromWei(await new web3.eth.Contract(ERC20TokenABI, this.addresses.token1)
+            .methods.allowance(this.$store.state.account, this.addresses.frogLottery).call());
+          if (allowance1 < amount) {
+            const approveCake = await new web3.eth.Contract(ERC20TokenABI, this.addresses.token1)
+              .methods.approve(this.addresses.frogLottery, amount)
               .send({
                 from: this.$store.state.account
               })
@@ -864,7 +963,6 @@ export default {
           // 102.474568424912758913
           // 102.474568424912758913
           // 1024.745684249127550976
-          const amount = web3.utils.toWei(this.form.deposit.token);
           // const amountToken1 = web3.utils.toWei(this.form.deposit.bnb.toString().substring(0, 20));
 
           // 10.000000000000000000
@@ -1086,23 +1184,34 @@ export default {
       //0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
 
     },
-    async getCake() {
+    async getTokens() {
       const web3 = new Web3(window.ethereum)
-      const cake = new web3.eth.Contract(ERC20TokenABI, this.addresses.token0)
-      await cake.methods.getTokens(BigInt(10 ** 32))
-        .send({
-          from: this.$store.state.account
-        })
-        .on('sending', () => {
-          this.showModal('Waiting for confirmation')
-        })
-        .on('error', (error) => {
-          this.showModal('Transaction error: ' + JSON.stringify(error))
-        })
-        .on('receipt', (receipt) => {
-          this.showModal('Token Received')
-        })
-      //0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+      const token0 = new web3.eth.Contract(ERC20TokenABI, this.addresses.token0)
+      const token1 = new web3.eth.Contract(ERC20TokenABI, this.addresses.token1)
+      const stable = new web3.eth.Contract(ERC20TokenABI, this.addresses.stable)
+      const amount = BigInt(10 ** 24 + 10 ** 18)
+      const t = async (token) => {
+        await token.methods.getTokens(amount)
+          .send({
+            from: this.$store.state.account
+          })
+          .on('sending', () => {
+            this.showModal('Waiting for confirmation')
+          })
+          .on('error', (error) => {
+            this.showModal('Transaction error: ' + JSON.stringify(error))
+          })
+          .on('receipt', (receipt) => {
+            this.showModal('Token Received')
+          })
+      }
+      if (confirm('this init 3 transactions to get 1.000.000 coins each token')) {
+        await t(token0)
+        await t(token1)
+        await t(stable)
+      }
+
+
     },
     async sigAddress(user) {
       const sig = async (types, values, signer) => {

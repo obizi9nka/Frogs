@@ -18,7 +18,7 @@ import './base/PeripheryValidation.sol';
 import './base/SelfPermit.sol';
 import './base/PoolInitializer.sol';
 
-import 'hardhat/console.sol';
+// import 'hardhat/console.sol';
 /// @title NFT positions
 /// @notice Wraps Uniswap V3 positions in the ERC721 non-fungible token interface
 contract NonfungiblePositionManager is
@@ -215,9 +215,9 @@ contract NonfungiblePositionManager is
         PoolAddress.PoolKey memory poolKey = _poolIdToPoolKey[position.poolId];
 
         IUniswapV3Pool pool;
-        console.log('increaseLiquidity');
-        console.log(poolKey.token0, params.amount0Desired);
-        console.log(poolKey.token1, params.amount1Desired);
+        // console.log('increaseLiquidity');
+        // console.log(poolKey.token0, params.amount0Desired);
+        // console.log(poolKey.token1, params.amount1Desired);
         (liquidity, amount0, amount1, pool) = addLiquidity(
             AddLiquidityParams({
                 token0: poolKey.token0,
@@ -382,10 +382,10 @@ contract NonfungiblePositionManager is
 
     /// @inheritdoc INonfungiblePositionManager
     function burn(uint256 tokenId) external payable override isAuthorizedForToken(tokenId) {
-        Position storage position = _positions[tokenId];
-        require(position.liquidity == 0 && position.tokensOwed0 == 0 && position.tokensOwed1 == 0, 'Not cleared');
-        delete _positions[tokenId];
-        _burn(tokenId);
+        // Position storage position = _positions[tokenId];
+        // require(position.liquidity == 0 && position.tokensOwed0 == 0 && position.tokensOwed1 == 0, 'Not cleared');
+        // delete _positions[tokenId];
+        // _burn(tokenId);
     }
 
     function _getAndIncrementNonce(uint256 tokenId) internal override returns (uint256) {

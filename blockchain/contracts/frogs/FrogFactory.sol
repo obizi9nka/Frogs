@@ -6,15 +6,15 @@ import "./FrogLottery.sol";
 import "./IFrogReferal.sol";
 // import "./FrogSponsor.sol";
 import "../v3-interfaces/IUniswapV3Factory.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import 'hardhat/console.sol';
+// import "@openzeppelin/contracts/access/Ownable.sol";
+// import 'hardhat/console.sol';
 import "./IFrogs.sol";
 
 interface IFrogSponsorFactoryCut {
     function createNewSponsor(IFrog.DeployLotteryParams memory params, address lottery) external;
 }
 
-contract FrogFactory is Ownable{
+contract FrogFactory {
     mapping(address => mapping(address => mapping(uint24 => address))) public lotteries;
     mapping(address => address) public sponsorContracts;
 
@@ -33,11 +33,11 @@ contract FrogFactory is Ownable{
         swapRouter = _swapRouter;
     }
 
-    function setSponsorFactoryAddress(address _frogSponsorFactory) public onlyOwner{
+    function setSponsorFactoryAddress(address _frogSponsorFactory) public{
         frogSponsorFactory = _frogSponsorFactory;
     }
 
-    function createNewLottery(address tokenA, address tokenB, uint24 fee, address _pool, address nonfungiblePositionManager, address stable) public onlyOwner{
+    function createNewLottery(address tokenA, address tokenB, uint24 fee, address _pool, address nonfungiblePositionManager, address stable) public{
         // console.log('before', tokenA, tokenB);
         (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
         // (address token0, address token1) = (tokenA, tokenB);
@@ -58,7 +58,7 @@ contract FrogFactory is Ownable{
 
     function deploy(IFrog.DeployLotteryParams memory params) internal returns (address newLottery) {
         newLottery = address(new FrogLottery(params));
-        IFrogSponsorFactoryCut(frogSponsorFactory).createNewSponsor(params, newLottery);        
+        // IFrogSponsorFactoryCut(frogSponsorFactory).createNewSponsor(params, newLottery);        
     }
 
 }
