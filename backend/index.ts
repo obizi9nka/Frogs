@@ -1,7 +1,7 @@
 
 const express = require('express')
 const app = express()
-const port = 3001
+const port = 3011
 const { PrismaClient, User } = require('@prisma/client')
 var cors = require('cors')
 var bodyParser = require('body-parser')

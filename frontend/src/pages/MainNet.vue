@@ -286,13 +286,23 @@ import config from "../../config.json"
 import JSBI from "jsbi"
 // import { TickMath, FullMath} from "@uniswap/v3-sdk"
 
-import bnbAbi from '../../../blockchain/artifacts/contracts/frogs/ERC20.sol/ERC20Token.json'
-import lotteryAbi from '../../../blockchain/artifacts/contracts/frogs/FrogLottery.sol/FrogLottery.json'
-import factoryAbi from '../../../blockchain/artifacts/contracts/frogs/FrogFactory.sol/FrogFactory.json'
-import referalAbi from "../../../blockchain/artifacts/contracts/frogs/FrogReferal.sol/FrogReferal.json"
-import PoolAbi from "../../../blockchain/artifacts/contracts/core/UniswapV3Pool.sol/UniswapV3Pool.json"
-import PositionManager from "../../../blockchain/artifacts/contracts/periphery/NonfungiblePositionManager.sol/NonfungiblePositionManager.json"
-import Router from "../../../blockchain/artifacts/contracts/periphery/SwapRouter.sol/SwapRouter.json"
+
+
+// import bnbAbi from '../../../blockchain/artifacts/contracts/frogs/ERC20.sol/ERC20Token.json'
+// import lotteryAbi from '../../../blockchain/artifacts/contracts/frogs/FrogLottery.sol/FrogLottery.json'
+// import factoryAbi from '../../../blockchain/artifacts/contracts/frogs/FrogFactory.sol/FrogFactory.json'
+// import referalAbi from "../../../blockchain/artifacts/contracts/frogs/FrogReferal.sol/FrogReferal.json"
+// import PoolAbi from "../../../blockchain/artifacts/contracts/core/UniswapV3Pool.sol/UniswapV3Pool.json"
+// import PositionManager from "../../../blockchain/artifacts/contracts/periphery/NonfungiblePositionManager.sol/NonfungiblePositionManager.json"
+// import Router from "../../../blockchain/artifacts/contracts/periphery/SwapRouter.sol/SwapRouter.json"
+
+import bnbAbi from '../../contracts/frogs/ERC20.sol/ERC20Token.json'
+import lotteryAbi from '../../contracts/frogs/FrogLottery.sol/FrogLottery.json'
+import factoryAbi from '../../contracts/frogs/FrogFactory.sol/FrogFactory.json'
+import referalAbi from "../../contracts/frogs/FrogReferal.sol/FrogReferal.json"
+import PoolAbi from "../../contracts/core/UniswapV3Pool.sol/UniswapV3Pool.json"
+import PositionManager from "../../contracts/periphery/NonfungiblePositionManager.sol/NonfungiblePositionManager.json"
+import Router from "../../contracts/periphery/SwapRouter.sol/SwapRouter.json"
 import BigNumber from 'bignumber.js';
 
 
@@ -339,33 +349,33 @@ export default {
         drawNumber: 0,
         minUsd: 0,
         maxUsd: 0,
-        nowIn: -1,
-        beneficiaryAmount: -1,
+        nowIn: 0,
+        beneficiaryAmount: 0,
         user: {
-          deposit: -1,
-          balance: -1,
-          withdraw: -1,
-          rewardOfToken0: -1,
-          rewardOfToken1: -1,
-          referalReward0: -1,
-          referalReward1: -1
+          deposit: 0,
+          balance: 0,
+          withdraw: 0,
+          rewardOfToken0: 0,
+          rewardOfToken1: 0,
+          referalReward0: 0,
+          referalReward1: 0
         },
         referalInfo:
         {
           inputReferer: '',
-          referer: "-1",
-          percent: -1
+          referer: "0",
+          percent: 0
         },
         participants: [],
         draws: [],
         victories: [],
       },
       wallet: {
-        cake: -1,
-        bnb: -1,
-        token1: -1,
-        stable: -1,
-        token0: -1
+        cake: 0,
+        bnb: 0,
+        token1: 0,
+        stable: 0,
+        token0: 0
       },
       addresses: {
         token0: constants.addresses[prefix + 'BUSD'],
@@ -394,18 +404,18 @@ export default {
         tickUpper: 0,
         tokenId: 0,
         table: {
-          deposit_token0_usd: -1,
-          deposit_token1_usd: -1,
-          balance_token0_usd: -1,
-          balance_token1_usd: -1,
-          withdraw_token0_usd: -1,
-          withdraw_token1_usd: -1,
-          deposit_token0: -1,
-          deposit_token1: -1,
-          balance_token0: -1,
-          balance_token1: -1,
-          withdraw_token0: -1,
-          withdraw_token1: -1,
+          deposit_token0_usd: 0,
+          deposit_token1_usd: 0,
+          balance_token0_usd: 0,
+          balance_token1_usd: 0,
+          withdraw_token0_usd: 0,
+          withdraw_token1_usd: 0,
+          deposit_token0: 0,
+          deposit_token1: 0,
+          balance_token0: 0,
+          balance_token1: 0,
+          withdraw_token0: 0,
+          withdraw_token1: 0,
         },
         rates: {
           bnbusdt: 0,
@@ -880,7 +890,7 @@ export default {
       if (tokenBalance < parseFloat(this.form.deposit.token)) {
         errors.push("Not enough tokens")
       }
-      console.log(BigInt(this.pancake.sqrtPriceX96_token0_token1), this.pancake.tickLower, this.pancake.tickUpper, BigNumber(this.frog.user.deposit).plus(this.frog.user.balance).plus(this.frog.user.withdraw).toString())
+      // console.log(BigInt(this.pancake.sqrtPriceX96_token0_token1), this.pancake.tickLower, this.pancake.tickUpper, BigNumber(this.frog.user.deposit).plus(this.frog.user.balance).plus(this.frog.user.withdraw).toString())
       const data = await this.calculateAmountsForLiquidity(BigInt(this.pancake.sqrtPriceX96_token0_token1), this.pancake.currentTick, this.pancake.tickLower, this.pancake.tickUpper, BigNumber(this.frog.user.deposit).plus(this.frog.user.balance).plus(this.frog.user.withdraw), true)
       const price = this.pancake.isReversed_pool_busd_usdt ? 1 / this.getPrice(1, this.pancake.sqrtPriceX96_token0_token1, 18, 18) : this.getPrice(1, this.pancake.sqrtPriceX96_token0_token1, 18, 18)
 
