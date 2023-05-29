@@ -13,6 +13,9 @@ import '../libraries/LiquidityAmounts.sol';
 import './PeripheryPayments.sol';
 import './PeripheryImmutableState.sol';
 
+import 'hardhat/console.sol';
+
+
 /// @title Liquidity management functions
 /// @notice Internal functions for safely managing liquidity in PancakeSwap V3
 abstract contract LiquidityManagement is IPancakeV3MintCallback, PeripheryImmutableState, PeripheryPayments {
@@ -28,7 +31,7 @@ abstract contract LiquidityManagement is IPancakeV3MintCallback, PeripheryImmuta
         bytes calldata data
     ) external override {
         MintCallbackData memory decoded = abi.decode(data, (MintCallbackData));
-        CallbackValidation.verifyCallback(deployer, decoded.poolKey);
+        CallbackValidation.verifyCallback(factory, decoded.poolKey); //deployer
 
         if (amount0Owed > 0) pay(decoded.poolKey.token0, decoded.payer, msg.sender, amount0Owed);
         if (amount1Owed > 0) pay(decoded.poolKey.token1, decoded.payer, msg.sender, amount1Owed);
@@ -60,8 +63,8 @@ abstract contract LiquidityManagement is IPancakeV3MintCallback, PeripheryImmuta
         PoolAddress.PoolKey memory poolKey =
             PoolAddress.PoolKey({token0: params.token0, token1: params.token1, fee: params.fee});
 
-        pool = IPancakeV3Pool(PoolAddress.computeAddress(deployer, poolKey));
-
+        pool = IPancakeV3Pool(PoolAddress.computeAddress(factory, poolKey)); //deployer
+        console.log('block',address(pool));
         // compute the liquidity amount
         {
             (uint160 sqrtPriceX96, , , , , , ) = pool.slot0();
@@ -77,6 +80,7 @@ abstract contract LiquidityManagement is IPancakeV3MintCallback, PeripheryImmuta
             );
         }
 
+        console.log('liq', liquidity);
         (amount0, amount1) = pool.mint(
             params.recipient,
             params.tickLower,
@@ -84,6 +88,7 @@ abstract contract LiquidityManagement is IPancakeV3MintCallback, PeripheryImmuta
             liquidity,
             abi.encode(MintCallbackData({poolKey: poolKey, payer: msg.sender}))
         );
+        console.log('amounts', amount0, amount1);
 
         require(amount0 >= params.amount0Min && amount1 >= params.amount1Min, 'Price slippage check');
     }

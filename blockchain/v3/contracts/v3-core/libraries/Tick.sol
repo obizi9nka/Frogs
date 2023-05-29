@@ -7,6 +7,8 @@ import './SafeCast.sol';
 import './TickMath.sol';
 import './LiquidityMath.sol';
 
+import "hardhat/console.sol";
+
 /// @title Tick
 /// @notice Contains functions for managing tick processes and relevant calculations
 library Tick {
@@ -124,6 +126,8 @@ library Tick {
 
         uint128 liquidityGrossBefore = info.liquidityGross;
         uint128 liquidityGrossAfter = LiquidityMath.addDelta(liquidityGrossBefore, liquidityDelta);
+
+        console.log(liquidityGrossAfter, maxLiquidity);
 
         require(liquidityGrossAfter <= maxLiquidity, 'LO');
 

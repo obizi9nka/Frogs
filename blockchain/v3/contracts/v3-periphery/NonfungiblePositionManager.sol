@@ -18,6 +18,8 @@ import './base/PeripheryValidation.sol';
 import './base/SelfPermit.sol';
 import './base/PoolInitializer.sol';
 
+import 'hardhat/console.sol';
+
 /// @title NFT positions
 /// @notice Wraps Pancake V3 positions in the ERC721 non-fungible token interface
 contract NonfungiblePositionManager is
@@ -139,6 +141,7 @@ contract NonfungiblePositionManager is
         )
     {
         IPancakeV3Pool pool;
+        console.log(params.token0, params.token1, params.fee);
         (liquidity, amount0, amount1, pool) = addLiquidity(
             AddLiquidityParams({
                 token0: params.token0,
@@ -270,7 +273,7 @@ contract NonfungiblePositionManager is
         require(positionLiquidity >= params.liquidity);
 
         PoolAddress.PoolKey memory poolKey = _poolIdToPoolKey[position.poolId];
-        IPancakeV3Pool pool = IPancakeV3Pool(PoolAddress.computeAddress(deployer, poolKey));
+        IPancakeV3Pool pool = IPancakeV3Pool(PoolAddress.computeAddress(factory, poolKey)); //deployer
         (amount0, amount1) = pool.burn(position.tickLower, position.tickUpper, params.liquidity);
 
         require(amount0 >= params.amount0Min && amount1 >= params.amount1Min, 'Price slippage check');
@@ -322,7 +325,7 @@ contract NonfungiblePositionManager is
 
         PoolAddress.PoolKey memory poolKey = _poolIdToPoolKey[position.poolId];
 
-        IPancakeV3Pool pool = IPancakeV3Pool(PoolAddress.computeAddress(deployer, poolKey));
+        IPancakeV3Pool pool = IPancakeV3Pool(PoolAddress.computeAddress(factory, poolKey)); //deployer
 
         (uint128 tokensOwed0, uint128 tokensOwed1) = (position.tokensOwed0, position.tokensOwed1);
 

@@ -1,14 +1,14 @@
 import hre from "hardhat";
 import { ethers } from 'hardhat';
 import json from "../../artifacts/contracts/frogs/FrogLottery.sol/FrogLottery.json";
-import jsonPool from "../../artifacts/contracts/core/UniswapV3Pool.sol/UniswapV3Pool.json"
-import { ERC20Token, FrogFactory, FrogLottery, FrogReferal, MasterChefV3, TBnb, TCake, UniswapV3PoolDeployer } from "../../typechain-types";
-import { NonfungiblePositionManager, SwapRouter, UniswapV3Factory, UniswapV3Pool, FrogSponsorFactory } from "../../v3/typechain-types";
+import jsonPool from "../../artifacts/contracts/v3-core/PancakeV3Pool.sol/PancakeV3Pool.json"
+import { ERC20Token, FrogFactory, FrogLottery, FrogReferal, MasterChefV3, TBnb, TCake, PancakeV3PoolDeployer } from "../../typechain-types";
+import { NonfungiblePositionManager, SwapRouter, PancakeV3Factory, PancakeV3Pool, FrogSponsorFactory } from "../../v3/typechain-types";
 import { BigNumber } from "ethers";
 import BN from 'bignumber.js'
 import { TickMath } from "@uniswap/v3-sdk"
 
-// after initialize funcs will change on values you can find in UniswapV3Pool.sol
+// after initialize funcs will change on values you can find in PancakeV3Pool.sol
 let fee = 100;
 
 export async function deployAll() {
@@ -62,26 +62,33 @@ export async function deployAll() {
     // ==================
     //   UniswapV3PoolDeployer
     // ==================
-    const UniswapV3PoolDeployerr = await hre.ethers.getContractFactory('UniswapV3PoolDeployer');
-    const uniswapV3PoolDeployer = await UniswapV3PoolDeployerr.deploy() as UniswapV3PoolDeployer;
-    await uniswapV3PoolDeployer.deployed();
+    const PancakeV3PoolDeployerr = await hre.ethers.getContractFactory('PancakeV3PoolDeployer');
+    const pancakeV3PoolDeployer = await PancakeV3PoolDeployerr.deploy() as PancakeV3PoolDeployer;
+    await pancakeV3PoolDeployer.deployed();
 
     // ==================
     //   PancakeFactory
     // ==================
-    const PancakeFactory = await hre.ethers.getContractFactory('UniswapV3Factory');
-    const pancakeFactory = await PancakeFactory.deploy(uniswapV3PoolDeployer.address) as UniswapV3Factory;
-
+    const PancakeFactory = await hre.ethers.getContractFactory('PancakeV3Factory');
+    const pancakeFactory = await PancakeFactory.deploy(pancakeV3PoolDeployer.address) as PancakeV3Factory;
     await pancakeFactory.deployed();
+
+    await pancakeV3PoolDeployer.setFactoryAddress(pancakeFactory.address)
 
     await pancakeFactory.createPool(busd.address, usdt.address, fee)
     await pancakeFactory.createPool(busd.address, usdc.address, fee)
     await pancakeFactory.createPool(usdt.address, usdc.address, fee)
 
 
-    const pool_busd_usdt = new ethers.Contract(await pancakeFactory.getPool(busd.address, usdt.address, fee), jsonPool.abi, acct1) as UniswapV3Pool
-    const pool_busd_usdc = new ethers.Contract(await pancakeFactory.getPool(busd.address, usdc.address, fee), jsonPool.abi, acct1) as UniswapV3Pool
-    const pool_usdt_usdc = new ethers.Contract(await pancakeFactory.getPool(usdt.address, usdc.address, fee), jsonPool.abi, acct1) as UniswapV3Pool
+    const pool_busd_usdt = new ethers.Contract(await pancakeFactory.getPool(busd.address, usdt.address, fee), jsonPool.abi, acct1) as PancakeV3Pool
+    const pool_busd_usdc = new ethers.Contract(await pancakeFactory.getPool(busd.address, usdc.address, fee), jsonPool.abi, acct1) as PancakeV3Pool
+    const pool_usdt_usdc = new ethers.Contract(await pancakeFactory.getPool(usdt.address, usdc.address, fee), jsonPool.abi, acct1) as PancakeV3Pool
+
+
+    console.log(pool_busd_usdt.address);
+    console.log(pool_busd_usdc.address);
+    console.log(pool_usdt_usdc.address);
+
 
     // отдаешь х - получаешь y
     function encodePriceSqrt(reserve1: any, reserve0: any): BN {
@@ -147,7 +154,7 @@ export async function deployAll() {
     //  NonfungiblePositionManager
     // ==================
     const NonfungiblePositionManager = await hre.ethers.getContractFactory('NonfungiblePositionManager');
-    const nonfungiblePositionManager = await NonfungiblePositionManager.deploy(pancakeFactory.address, ethers.constants.AddressZero, ethers.constants.AddressZero) as NonfungiblePositionManager;
+    const nonfungiblePositionManager = await NonfungiblePositionManager.deploy(pancakeV3PoolDeployer.address, pancakeFactory.address, wbnb.address, ethers.constants.AddressZero) as NonfungiblePositionManager;
 
     await nonfungiblePositionManager.deployed();
 
@@ -155,7 +162,7 @@ export async function deployAll() {
     //       Router
     // ==================
     const SwapRouter = await hre.ethers.getContractFactory('SwapRouter');
-    const router = await SwapRouter.deploy(pancakeFactory.address, wbnb.address) as SwapRouter
+    const router = await SwapRouter.deploy(pancakeV3PoolDeployer.address, pancakeFactory.address, wbnb.address) as SwapRouter
     await router.deployed();
 
     // ==================
@@ -227,14 +234,13 @@ export async function deployAll() {
         fee,
         tickLower,
         tickUpper,
-        amount0Desired: BigInt(10 ** 31),
-        amount1Desired: BigInt(10 ** 31),
+        amount0Desired: BigInt(1e30 - 1e29),
+        amount1Desired: BigInt(1e30 - 1e29),
         amount0Min: 1,
         amount1Min: 1,
         recipient: acct1.address,
         deadline: 10000000000000
     }
-
 
     let _params = {
         token0: busd.address,
@@ -242,8 +248,8 @@ export async function deployAll() {
         fee,
         tickLower: _tickLower,
         tickUpper: _tickUpper,
-        amount0Desired: BigInt(10 ** 31),
-        amount1Desired: BigInt(10 ** 31),
+        amount0Desired: BigInt(1e30 - 1e29),
+        amount1Desired: BigInt(1e30 - 1e29),
         amount0Min: 1,
         amount1Min: 1,
         recipient: acct1.address,
@@ -256,14 +262,18 @@ export async function deployAll() {
         fee,
         tickLower: __tickLower,
         tickUpper: __tickUpper,
-        amount0Desired: BigInt(10 ** 31),
-        amount1Desired: BigInt(10 ** 31),
+        amount0Desired: BigInt(1e30 - 1e29),
+        amount1Desired: BigInt(1e30 - 1e29),
         amount0Min: 1,
         amount1Min: 1,
         recipient: acct1.address,
         deadline: 10000000000000
     }
+
+    // 2005104164790027959871634583966404
+    // 191757530477355301479181766273477
     console.log(1)
+
     await nonfungiblePositionManager.mint(params)
     console.log(1)
 

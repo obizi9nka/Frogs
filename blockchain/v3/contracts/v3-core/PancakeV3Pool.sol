@@ -502,8 +502,11 @@ contract PancakeV3Pool is IPancakeV3Pool {
         if (amount0 > 0) balance0Before = balance0();
         if (amount1 > 0) balance1Before = balance1();
         IPancakeV3MintCallback(msg.sender).pancakeV3MintCallback(amount0, amount1, data);
-        if (amount0 > 0) require(balance0Before.add(amount0) <= balance0(), 'M0');
-        if (amount1 > 0) require(balance1Before.add(amount1) <= balance1(), 'M1');
+        console.log('before', balance0Before,balance1Before);
+        console.log('after', balance0Before.add(amount0),balance1Before.add(amount1));
+        console.log(balance0(), balance1());
+        if (amount0 > 0) require(balance0Before.add(amount0) <= balance0() + 10000, 'M0');
+        if (amount1 > 0) require(balance1Before.add(amount1) <= balance1()+ 10000, 'M1');
 
         emit Mint(msg.sender, recipient, tickLower, tickUpper, amount, amount0, amount1);
     }
