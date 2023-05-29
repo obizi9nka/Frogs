@@ -24,13 +24,15 @@ contract FrogFactory {
     address swapRouter;
     address WETH;
     address frogSponsorFactory;
+    address masterChef;
 
-    constructor(address _FrogReferalAddress, address _WETH, address _pancakeFactory, address _beneficiary, address _swapRouter) {
+    constructor(address _FrogReferalAddress, address _WETH, address _pancakeFactory, address _beneficiary, address _swapRouter, address _masterChef) {
         WETH = _WETH;
         pancakeFactory = _pancakeFactory;
         frogReferalAddress = _FrogReferalAddress;
         beneficiary = _beneficiary;
         swapRouter = _swapRouter;
+        masterChef = _masterChef;
     }
 
     function setSponsorFactoryAddress(address _frogSponsorFactory) public{
@@ -47,7 +49,7 @@ contract FrogFactory {
         bool isEthLottery = token0 == WETH || token1 == WETH;
         address newLottery;
         {
-            newLottery = deploy(IFrog.DeployLotteryParams(token0,token1,fee,frogReferalAddress,isEthLottery,beneficiary, _pool, nonfungiblePositionManager,swapRouter,pancakeFactory,stable, !(tokenA < tokenB)));
+            newLottery = deploy(IFrog.DeployLotteryParams(token0,token1,fee,frogReferalAddress,isEthLottery,beneficiary, _pool, nonfungiblePositionManager,swapRouter,pancakeFactory,stable, !(tokenA < tokenB), masterChef));
         }
 
         lotteries[token0][token1][fee] = newLottery;

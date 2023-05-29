@@ -478,6 +478,7 @@ export default {
       this.pancake.isReversed_pool_busd_usdc = await pool_token0_stable.methods.token0().call() != this.addresses.token0
       this.pancake.isReversed_pool_usdt_usdc = await pool_token1_stable.methods.token0().call() != this.addresses.token1
 
+      console.log(this.pancake.isReversed_pool_busd_usdt, "this.pancake.isReversed_pool_busd_usdt");
       this.pancake.currentTick = data.tick
 
       this.pancake.sqrtPriceX96_token0_token1 = data.sqrtPriceX96
@@ -891,7 +892,7 @@ export default {
         errors.push("Not enough tokens")
       }
       // console.log(BigInt(this.pancake.sqrtPriceX96_token0_token1), this.pancake.tickLower, this.pancake.tickUpper, BigNumber(this.frog.user.deposit).plus(this.frog.user.balance).plus(this.frog.user.withdraw).toString())
-      const data = await this.calculateAmountsForLiquidity(BigInt(this.pancake.sqrtPriceX96_token0_token1), this.pancake.currentTick, this.pancake.tickLower, this.pancake.tickUpper, BigNumber(this.frog.user.deposit).plus(this.frog.user.balance).plus(this.frog.user.withdraw), true)
+      const data = await this.calculateAmountsForLiquidity(BigInt(this.pancake.sqrtPriceX96_token0_token1), this.pancake.currentTick, this.pancake.tickLower, this.pancake.tickUpper, BigInt(this.frog.user.deposit) + BigInt(this.frog.user.balance) + BigInt(this.frog.user.withdraw), true)
       const price = this.pancake.isReversed_pool_busd_usdt ? 1 / this.getPrice(1, this.pancake.sqrtPriceX96_token0_token1, 18, 18) : this.getPrice(1, this.pancake.sqrtPriceX96_token0_token1, 18, 18)
 
       console.log(price, data)
@@ -1262,7 +1263,7 @@ export default {
       const FrogContract = new web3.eth.Contract(FrogContractABI, this.addresses.frogLottery);
 
       // console.log('request')
-      const data = await FrogContract.methods.calculateAmountsForLiquidity(sqrtPriceX96, BigInt(currentTick), BigInt(tickLower), BigInt(tickUpper), liquidity, isMinus).call()
+      const data = await FrogContract.methods.calculateAmountsForLiquidity(sqrtPriceX96, BigInt(currentTick), BigInt(tickLower), BigInt(tickUpper), BigInt(liquidity), isMinus).call()
       // console.log('respond')
       if (this.pancake.isReversed_pool_busd_usdt)
         return { amount0: data.amount1, amount1: data.amount0 }

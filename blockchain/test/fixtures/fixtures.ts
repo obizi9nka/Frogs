@@ -2,13 +2,14 @@ import hre from "hardhat";
 import { ethers } from 'hardhat';
 import json from "../../artifacts/contracts/frogs/FrogLottery.sol/FrogLottery.json";
 import jsonPool from "../../artifacts/contracts/core/UniswapV3Pool.sol/UniswapV3Pool.json"
-import { ERC20Token, FrogFactory, FrogLottery, FrogReferal, TBnb } from "../../typechain-types";
+import { ERC20Token, FrogFactory, FrogLottery, FrogReferal, MasterChefV3, TBnb, TCake, UniswapV3PoolDeployer } from "../../typechain-types";
 import { NonfungiblePositionManager, SwapRouter, UniswapV3Factory, UniswapV3Pool, FrogSponsorFactory } from "../../v3/typechain-types";
 import { BigNumber } from "ethers";
 import BN from 'bignumber.js'
 import { TickMath } from "@uniswap/v3-sdk"
 
-const fee = 500;
+// after initialize funcs will change on values you can find in UniswapV3Pool.sol
+let fee = 100;
 
 export async function deployAll() {
     const [acct1, acct2, acct3, acct4] = await ethers.getSigners();
@@ -43,6 +44,14 @@ export async function deployAll() {
     await wbnb.deployed();
 
     // ==================
+    //        BNB
+    // ==================
+    const CAKE = await hre.ethers.getContractFactory('TCake');
+    const cake = await CAKE.deploy() as TCake;
+
+    await cake.deployed();
+
+    // ==================
     //     FrogReferal
     // ==================
     const Referal = await hre.ethers.getContractFactory('FrogReferal');
@@ -50,12 +59,18 @@ export async function deployAll() {
 
     await referal.deployed();
 
+    // ==================
+    //   UniswapV3PoolDeployer
+    // ==================
+    const UniswapV3PoolDeployerr = await hre.ethers.getContractFactory('UniswapV3PoolDeployer');
+    const uniswapV3PoolDeployer = await UniswapV3PoolDeployerr.deploy() as UniswapV3PoolDeployer;
+    await uniswapV3PoolDeployer.deployed();
 
     // ==================
     //   PancakeFactory
     // ==================
     const PancakeFactory = await hre.ethers.getContractFactory('UniswapV3Factory');
-    const pancakeFactory = await PancakeFactory.deploy() as UniswapV3Factory;
+    const pancakeFactory = await PancakeFactory.deploy(uniswapV3PoolDeployer.address) as UniswapV3Factory;
 
     await pancakeFactory.deployed();
 
@@ -144,10 +159,17 @@ export async function deployAll() {
     await router.deployed();
 
     // ==================
+    //       Router
+    // ==================
+    const MasterChef = await hre.ethers.getContractFactory('MasterChefV3')
+    const mc = await MasterChef.deploy(cake.address, nonfungiblePositionManager.address, wbnb.address) as MasterChefV3
+    await mc.deployed();
+
+    // ==================
     //    FrogFactory
     // ==================
     const FrogFactory = await hre.ethers.getContractFactory('FrogFactory');
-    const factory = await FrogFactory.deploy(referal.address, ethers.constants.AddressZero, pancakeFactory.address, acct1.address, router.address) as FrogFactory;
+    const factory = await FrogFactory.deploy(referal.address, ethers.constants.AddressZero, pancakeFactory.address, acct1.address, router.address, mc.address) as FrogFactory;
 
     await factory.deployed();
 
@@ -157,9 +179,9 @@ export async function deployAll() {
     const _FrogSponsorFactory = await hre.ethers.getContractFactory('FrogSponsorFactory');
     const frogSponsorfactory = await _FrogSponsorFactory.deploy(factory.address) as FrogSponsorFactory;
 
-    await frogSponsorfactory.deployed();
+    // await frogSponsorfactory.deployed();
 
-    await factory.setSponsorFactoryAddress(frogSponsorfactory.address)
+    // await factory.setSponsorFactoryAddress(frogSponsorfactory.address)
 
     await referal.setFactoryAddress(factory.address)
 
@@ -241,16 +263,19 @@ export async function deployAll() {
         recipient: acct1.address,
         deadline: 10000000000000
     }
-
+    console.log(1)
     await nonfungiblePositionManager.mint(params)
+    console.log(1)
 
     // params.token0 = usdt.address
     // params.token1 = usdc.address
     await nonfungiblePositionManager.mint(paramsStable)
+    console.log(1)
 
     params.token0 = busd.address
     params.token1 = usdc.address
     await nonfungiblePositionManager.mint(_params)
+    console.log(1)
 
     // console.log(await nonfungiblePositionManager.positions(1))
     // console.log(await pool_busd_usdt.liquidity())

@@ -6,16 +6,31 @@ import "@nomicfoundation/hardhat-toolbox";
 // import 'solidity-coverage';
 import { PRIVATE_KEY_1, bscscanApiKey, ethscanApiKey } from './secrets.json';
 
+
+
 const config: HardhatUserConfig = {
     defaultNetwork: "hardhat",
     solidity: {
-        version: "0.8.1",
-        settings: {
-            optimizer: {
-                enabled: true,
-                runs: 2000,
+        compilers: [
+            {
+                version: "0.8.10",
+                settings: {
+                    optimizer: {
+                        enabled: true,
+                        runs: 999,
+                    },
+                },
             },
-        },
+            {
+                version: "0.7.6",
+                settings: {
+                    optimizer: {
+                        enabled: true,
+                        runs: 999,
+                    },
+                },
+            },
+        ],
     },
     networks: {
         localhost: {

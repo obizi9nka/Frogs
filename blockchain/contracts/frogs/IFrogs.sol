@@ -15,6 +15,7 @@ interface IFrog {
         address pancakeFactory; 
         address stable;
         bool isReversed;
+        address masterChef;
     }
 
 }
