@@ -5,6 +5,8 @@ interface gp {
     function getPool(address,address,uint24) external view returns(address);
 }
 
+import 'hardhat/console.sol';
+
 /// @title Provides functions for deriving a pool address from the factory, tokens, and the fee
 library PoolAddress {
     bytes32 internal constant POOL_INIT_CODE_HASH = 0x6ce8eb472fa82df5469c6ab6d485f17c3ad13c8cd7af59b3d4a8026c5ce0f7e2;
@@ -35,7 +37,10 @@ library PoolAddress {
     /// @param key The PoolKey
     /// @return pool The contract address of the V3 pool
     function computeAddress(address deployer, PoolKey memory key) internal view returns (address pool) {
+        // console.log("poolAddress: pool keys",key.token0,key.token1,key.fee);
+        // console.log('poolAddress: deployer', deployer);
         pool = gp(deployer).getPool(key.token0,key.token1,key.fee);
+        // console.log('poolAddress: pool',pool);
         // require(key.token0 < key.token1);
         // pool = address(
         //     uint256(

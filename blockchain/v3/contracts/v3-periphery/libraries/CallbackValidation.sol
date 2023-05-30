@@ -21,16 +21,16 @@ library CallbackValidation {
         return verifyCallback(deployer, PoolAddress.getPoolKey(tokenA, tokenB, fee));
     }
 
-    /// @notice Returns the address of a valid PancakeSwap V3 Pool
-    /// @param deployer The contract address of the PancakeSwap V3 deployer
-    /// @param poolKey The identifying key of the V3 pool
-    /// @return pool The V3 pool contract address
-    function verifyCallback(address deployer, PoolAddress.PoolKey memory poolKey)
+    // / @notice Returns the address of a valid PancakeSwap V3 Pool
+    // / @param deployer The contract address of the PancakeSwap V3 deployer
+    // / @param poolKey The identifying key of the V3 pool
+    // / @return pool The V3 pool contract address
+    function verifyCallback(address factory, PoolAddress.PoolKey memory poolKey)
         internal
         view
         returns (IPancakeV3Pool pool)
     {
-        pool = IPancakeV3Pool(PoolAddress.computeAddress(deployer, poolKey));
+        pool = IPancakeV3Pool(PoolAddress.computeAddress(factory, poolKey));
         require(msg.sender == address(pool));
     }
 }

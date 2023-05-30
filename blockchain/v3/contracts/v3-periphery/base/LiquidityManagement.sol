@@ -64,7 +64,7 @@ abstract contract LiquidityManagement is IPancakeV3MintCallback, PeripheryImmuta
             PoolAddress.PoolKey({token0: params.token0, token1: params.token1, fee: params.fee});
 
         pool = IPancakeV3Pool(PoolAddress.computeAddress(factory, poolKey)); //deployer
-        console.log('block',address(pool));
+        // console.log('block',address(pool));
         // compute the liquidity amount
         {
             (uint160 sqrtPriceX96, , , , , , ) = pool.slot0();

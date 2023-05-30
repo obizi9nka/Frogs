@@ -6,13 +6,13 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./IFrogReferal.sol";
 import "./Random.sol";
-// import 'hardhat/console.sol';
+import 'hardhat/console.sol';
 
-import "../v3-interfaces/IUniswapV3Pool.sol";
+import "../v3-interfaces/IPancakeV3Pool.sol";
 import "../v3-interfaces/INonfungiblePositionManager.sol";
 import "../v3-interfaces/LiquidityAmounts.sol";
 import "../v3-interfaces/TickMath.sol";
-import "../v3-interfaces/IUniswapV3Factory.sol";
+import "../v3-interfaces/IPancakeV3Factory.sol";
 import "../v3-interfaces/SafeCast.sol";
 
 import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
@@ -269,7 +269,7 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
         }
         (uint amountToken0, uint amountToken1) = isReversed ? (amountTokenB, amountTokenA) : (amountTokenA, amountTokenB);
         // (uint amountToken0, uint amountToken1) = (amountTokenB, amountTokenA);
-        // console.log("rrrrrr", amountToken0, amountToken1);
+        console.log("rrrrrr", amountToken0, amountToken1);
         // console.log('one');
         // console.log(getPriceWithDecimalsContoller(token0, 10**18));
         // console.log(getPriceWithDecimalsContoller(token1, 10**18));
@@ -301,7 +301,9 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
                 amount1Min: (isReversed ? amountToken0 : amountToken1) / 10000 * 8500,
                 deadline: block.timestamp
             });
+            console.log('mc call');
             (liquidity, amountA, amountB) = INonfungiblePositionManager(nonfungiblePositionManager).increaseLiquidity(params);
+            console.log('mc respond',liquidity, amountA, amountB );
 
         }
         (uint amount0, uint amount1) = isReversed ? (amountB, amountA) : (amountA, amountB);
@@ -312,18 +314,25 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
         // int24 tickLower;
         // int24 tickUpper;
         {
+            // console.log(1);
             (,,,,, int24 tickLower, int24 tickUpper,,,,,) = INonfungiblePositionManager(nonfungiblePositionManager).positions(tokenId);
-            (uint160 sqrtPriceX96, int24 currentTick,,,,,) = IUniswapV3Pool(pool).slot0();
+            // console.log(pool);
+            (uint160 sqrtPriceX96, int24 currentTick,,,,,) = IPancakeV3Pool(pool).slot0();
 
+            // console.log(sqrtPriceX96, uint(int256(currentTick)));
+            // console.log(uint(int256(tickLower)), uint(int256(tickUpper)));
+            // console.log("balanceOf[msg.sender] + depositOf[msg.sender] - withdrawOf[msg.sender]", balanceOf[msg.sender] + depositOf[msg.sender] - withdrawOf[msg.sender]);
+            
             (amount0_active, amount1_active) = calculateAmountsForLiquidity(sqrtPriceX96,currentTick,tickLower,tickUpper,int(balanceOf[msg.sender] + depositOf[msg.sender] - withdrawOf[msg.sender]),false);
+            // console.log(1);
         }
         {
         (address _token0, address _token1) = isReversed ? (token1,token0) : (token0,token1);
         uint futureBalanceUsd = getPriceWithDecimalsContoller(_token0, uint128(amount0_active)) + getPriceWithDecimalsContoller(_token1, uint128(amount1_active));
         uint depositUsd = getPriceWithDecimalsContoller(_token0, uint128(amount0)) + getPriceWithDecimalsContoller(_token1, uint128(amount1));
 
-        // console.log("rrrrrr", amountToken0, amountToken1);
-        // console.log('liquidity deposited:', liquidity, amount0, amount1);
+        console.log("futureBalanceUsd && depositUsd", futureBalanceUsd, depositUsd);
+        console.log('liquidity deposited:', liquidity, amount0, amount1);
         // console.log(futureBalanceUsd, depositUsd);
         // // 4688032186634739176
 
@@ -374,7 +383,7 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
                 (,,,,,tickLower, tickUpper,,,,,) = INonfungiblePositionManager(nonfungiblePositionManager).positions(tokenId);
             }
             {
-                (sqrtPriceX96,currentTick,,,,,) = IUniswapV3Pool(pool).slot0();
+                (sqrtPriceX96,currentTick,,,,,) = IPancakeV3Pool(pool).slot0();
             }
             (amount0_active, amount1_active) = calculateAmountsForLiquidity(sqrtPriceX96,currentTick,tickLower,tickUpper, int256(liquidity),true);
             (amount0_in, amount1_in) = calculateAmountsForLiquidity(sqrtPriceX96,currentTick,tickLower,tickUpper, int256(_amount),true);
@@ -426,8 +435,8 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
     }
 
     function getPriceWithDecimalsContoller(address tokenIn, uint128 amount) public view returns (uint amountOut) {
-        address _pool = IUniswapV3Factory(pancakeFactory).getPool(tokenIn,stableCoinAddress,poolFee);
-        (, int24 tick,,,,,) = IUniswapV3Pool(_pool).slot0();
+        address _pool = IPancakeV3Factory(pancakeFactory).getPool(tokenIn,stableCoinAddress,poolFee);
+        (, int24 tick,,,,,) = IPancakeV3Pool(_pool).slot0();
         uint8 decimals = Deimals(stableCoinAddress).decimals();
 
         uint quote = getQuoteAtTick(tick, uint128(amount* decimalsContoller), tokenIn, stableCoinAddress);
@@ -556,7 +565,7 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
     }
 
     // function calculateLiquidityForAmounts(uint amount0, uint amount1, int24 tickLower, int24 tickUpper) public view returns(uint liquidity) {
-    //     (uint160 sqrtPriceX96, , , , , , ) = IUniswapV3Pool(pool).slot0();
+    //     (uint160 sqrtPriceX96, , , , , , ) = IPancakeV3Pool(pool).slot0();
     //     uint160 sqrtRatioAX96 = TickMath.getSqrtRatioAtTick(tickLower);
     //     uint160 sqrtRatioBX96 = TickMath.getSqrtRatioAtTick(tickUpper);
 
@@ -569,13 +578,14 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
     //     );
     // }
 
-    function calculateAmountsForLiquidity(uint160 sqrtPriceX96, int24 currentTick, int24 tickLower, int24 tickUpper, int256 liquidity, bool isMinus) public pure returns(uint amount0, uint amount1){
+    function calculateAmountsForLiquidity(uint160 sqrtPriceX96, int24 currentTick, int24 tickLower, int24 tickUpper, int256 liquidity, bool isMinus) public view returns(uint amount0, uint amount1){
         int128 liquidityDelta;
         if(isMinus){
             liquidityDelta = -liquidity.toInt128();
         } else {
             liquidityDelta = liquidity.toInt128();
         }
+        console.log(uint(int256(liquidityDelta)));
 
         int256 _amount0;
         int256 _amount1;
@@ -592,17 +602,19 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
 
             } else if (currentTick < tickUpper) {
                 // current tick is inside the passed range
-
+                console.log("amounts");
                 _amount0 = getAmount0Delta(
                     sqrtPriceX96,
                     TickMath.getSqrtRatioAtTick(tickUpper),
                     liquidityDelta
                 );
+                console.log("_amount0", uint(_amount0));
                 _amount1 = getAmount1Delta(
                     TickMath.getSqrtRatioAtTick(tickLower),
                     sqrtPriceX96,
                     liquidityDelta
                 );
+                console.log("_amount1", uint(_amount1));
 
             } else {
                 // current tick is above the passed range; liquidity can only become in range by crossing from right to

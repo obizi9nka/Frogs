@@ -1,16 +1,20 @@
+// Sources flattened with hardhat v2.14.0 https://hardhat.org
+
+// File contracts/v3-core/interfaces/pool/IPancakeV3PoolActions.sol
+
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity ^0.8.0;
 
 /// @title Permissionless pool actions
 /// @notice Contains pool methods that can be called by anyone
-interface IUniswapV3PoolActions {
+interface IPancakeV3PoolActions {
     /// @notice Sets the initial price for the pool
     /// @dev Price is represented as a sqrt(amountToken1/amountToken0) Q64.96 value
     /// @param sqrtPriceX96 the initial sqrt price of the pool as a Q64.96
     function initialize(uint160 sqrtPriceX96) external;
 
     /// @notice Adds liquidity for the given recipient/tickLower/tickUpper position
-    /// @dev The caller of this method receives a callback in the form of IUniswapV3MintCallback#uniswapV3MintCallback
+    /// @dev The caller of this method receives a callback in the form of IPancakeV3MintCallback#pancakeV3MintCallback
     /// in which they must pay any token0 or token1 owed for the liquidity. The amount of token0/token1 due depends
     /// on tickLower, tickUpper, the amount of liquidity, and the current price.
     /// @param recipient The address for which the liquidity will be created
@@ -63,7 +67,7 @@ interface IUniswapV3PoolActions {
     ) external returns (uint256 amount0, uint256 amount1);
 
     /// @notice Swap token0 for token1, or token1 for token0
-    /// @dev The caller of this method receives a callback in the form of IUniswapV3SwapCallback#uniswapV3SwapCallback
+    /// @dev The caller of this method receives a callback in the form of IPancakeV3SwapCallback#pancakeV3SwapCallback
     /// @param recipient The address to receive the output of the swap
     /// @param zeroForOne The direction of the swap, true for token0 to token1, false for token1 to token0
     /// @param amountSpecified The amount of the swap, which implicitly configures the swap as exact input (positive), or exact output (negative)
@@ -81,7 +85,7 @@ interface IUniswapV3PoolActions {
     ) external returns (int256 amount0, int256 amount1);
 
     /// @notice Receive token0 and/or token1 and pay it back, plus a fee, in the callback
-    /// @dev The caller of this method receives a callback in the form of IUniswapV3FlashCallback#uniswapV3FlashCallback
+    /// @dev The caller of this method receives a callback in the form of IPancakeV3FlashCallback#pancakeV3FlashCallback
     /// @dev Can be used to donate underlying tokens pro-rata to currently in-range liquidity providers by calling
     /// with 0 amount{0,1} and sending the donation amount(s) from the callback
     /// @param recipient The address which will receive the token0 and token1 amounts
@@ -103,15 +107,11 @@ interface IUniswapV3PoolActions {
 }
 
 
-// File contracts/core/interfaces/pool/IUniswapV3PoolDerivedState.sol
-
-
-
 
 /// @title Pool state that is not stored
 /// @notice Contains view functions to provide information about the pool that is computed rather than stored on the
 /// blockchain. The functions here may have variable gas costs.
-interface IUniswapV3PoolDerivedState {
+interface IPancakeV3PoolDerivedState {
     /// @notice Returns the cumulative tick and liquidity as of each timestamp `secondsAgo` from the current block timestamp
     /// @dev To get a time weighted average tick or liquidity-in-range, you must call this with two values, one representing
     /// the beginning of the period and another for the end of the period. E.g., to get the last hour time-weighted average tick,
@@ -147,14 +147,9 @@ interface IUniswapV3PoolDerivedState {
 }
 
 
-// File contracts/core/interfaces/pool/IUniswapV3PoolEvents.sol
-
-
-
-
 /// @title Events emitted by a pool
 /// @notice Contains all events emitted by the pool
-interface IUniswapV3PoolEvents {
+interface IPancakeV3PoolEvents {
     /// @notice Emitted exactly once by a pool when #initialize is first called on the pool
     /// @dev Mint/Burn/Swap cannot be emitted by the pool before Initialize
     /// @param sqrtPriceX96 The initial sqrt price of the pool, as a Q64.96
@@ -220,6 +215,8 @@ interface IUniswapV3PoolEvents {
     /// @param sqrtPriceX96 The sqrt(price) of the pool after the swap, as a Q64.96
     /// @param liquidity The liquidity of the pool after the swap
     /// @param tick The log base 1.0001 of price of the pool after the swap
+    /// @param protocolFeesToken0 The protocol fee of token0 in the swap
+    /// @param protocolFeesToken1 The protocol fee of token1 in the swap
     event Swap(
         address indexed sender,
         address indexed recipient,
@@ -227,7 +224,9 @@ interface IUniswapV3PoolEvents {
         int256 amount1,
         uint160 sqrtPriceX96,
         uint128 liquidity,
-        int24 tick
+        int24 tick,
+        uint128 protocolFeesToken0,
+        uint128 protocolFeesToken1
     );
 
     /// @notice Emitted by the pool for any flashes of token0/token1
@@ -261,7 +260,12 @@ interface IUniswapV3PoolEvents {
     /// @param feeProtocol1Old The previous value of the token1 protocol fee
     /// @param feeProtocol0New The updated value of the token0 protocol fee
     /// @param feeProtocol1New The updated value of the token1 protocol fee
-    event SetFeeProtocol(uint8 feeProtocol0Old, uint8 feeProtocol1Old, uint8 feeProtocol0New, uint8 feeProtocol1New);
+    event SetFeeProtocol(
+        uint32 feeProtocol0Old,
+        uint32 feeProtocol1Old,
+        uint32 feeProtocol0New,
+        uint32 feeProtocol1New
+    );
 
     /// @notice Emitted when the collected protocol fees are withdrawn by the factory owner
     /// @param sender The address that collects the protocol fees
@@ -272,15 +276,10 @@ interface IUniswapV3PoolEvents {
 }
 
 
-// File contracts/core/interfaces/pool/IUniswapV3PoolImmutables.sol
-
-
-
-
 /// @title Pool state that never changes
 /// @notice These parameters are fixed for a pool forever, i.e., the methods will always return the same values
-interface IUniswapV3PoolImmutables {
-    /// @notice The contract that deployed the pool, which must adhere to the IUniswapV3Factory interface
+interface IPancakeV3PoolImmutables {
+    /// @notice The contract that deployed the pool, which must adhere to the IPancakeV3Factory interface
     /// @return The contract address
     function factory() external view returns (address);
 
@@ -311,18 +310,13 @@ interface IUniswapV3PoolImmutables {
 }
 
 
-// File contracts/core/interfaces/pool/IUniswapV3PoolOwnerActions.sol
-
-
-
-
 /// @title Permissioned pool actions
 /// @notice Contains pool methods that may only be called by the factory owner
-interface IUniswapV3PoolOwnerActions {
+interface IPancakeV3PoolOwnerActions {
     /// @notice Set the denominator of the protocol's % share of the fees
     /// @param feeProtocol0 new protocol fee for token0 of the pool
     /// @param feeProtocol1 new protocol fee for token1 of the pool
-    function setFeeProtocol(uint8 feeProtocol0, uint8 feeProtocol1) external;
+    function setFeeProtocol(uint32 feeProtocol0, uint32 feeProtocol1) external;
 
     /// @notice Collect the protocol fee accrued to the pool
     /// @param recipient The address to which collected protocol fees should be sent
@@ -335,18 +329,16 @@ interface IUniswapV3PoolOwnerActions {
         uint128 amount0Requested,
         uint128 amount1Requested
     ) external returns (uint128 amount0, uint128 amount1);
+
+    /// @notice Set the LM pool to enable liquidity mining
+    function setLmPool(address lmPool) external;
 }
-
-
-// File contracts/core/interfaces/pool/IUniswapV3PoolState.sol
-
-
 
 
 /// @title Pool state that can change
 /// @notice These methods compose the pool's state, and can change with any frequency including multiple times
 /// per transaction
-interface IUniswapV3PoolState {
+interface IPancakeV3PoolState {
     /// @notice The 0th storage slot in the pool stores many values, and is exposed as a single method to save gas
     /// when accessed externally.
     /// @return sqrtPriceX96 The current price of the pool as a sqrt(token1/token0) Q64.96 value
@@ -369,7 +361,7 @@ interface IUniswapV3PoolState {
             uint16 observationIndex,
             uint16 observationCardinality,
             uint16 observationCardinalityNext,
-            uint8 feeProtocol,
+            uint32 feeProtocol,
             bool unlocked
         );
 
@@ -458,21 +450,18 @@ interface IUniswapV3PoolState {
 }
 
 
-// File contracts/core/interfaces/IUniswapV3Pool.sol
 
-
-
-/// @title The interface for a Uniswap V3 Pool
-/// @notice A Uniswap pool facilitates swapping and automated market making between any two assets that strictly conform
+/// @title The interface for a PancakeSwap V3 Pool
+/// @notice A PancakeSwap pool facilitates swapping and automated market making between any two assets that strictly conform
 /// to the ERC20 specification
 /// @dev The pool interface is broken up into many smaller pieces
-interface IUniswapV3Pool is
-    IUniswapV3PoolImmutables,
-    IUniswapV3PoolState,
-    IUniswapV3PoolDerivedState,
-    IUniswapV3PoolActions,
-    IUniswapV3PoolOwnerActions,
-    IUniswapV3PoolEvents
+interface IPancakeV3Pool is
+    IPancakeV3PoolImmutables,
+    IPancakeV3PoolState,
+    IPancakeV3PoolDerivedState,
+    IPancakeV3PoolActions,
+    IPancakeV3PoolOwnerActions,
+    IPancakeV3PoolEvents
 {
 
 }

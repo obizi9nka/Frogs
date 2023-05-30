@@ -1,9 +1,14 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity >=0.5.0;
+pragma solidity ^0.8.0;
 
-/// @title The interface for the Uniswap V3 Factory
-/// @notice The Uniswap V3 Factory facilitates creation of Uniswap V3 pools and control over the protocol fees
-interface IUniswapV3Factory {
+/// @title The interface for the PancakeSwap V3 Factory
+/// @notice The PancakeSwap V3 Factory facilitates creation of PancakeSwap V3 pools and control over the protocol fees
+interface IPancakeV3Factory {
+    struct TickSpacingExtraInfo {
+        bool whitelistRequested;
+        bool enabled;
+    }
+
     /// @notice Emitted when the owner of the factory is changed
     /// @param oldOwner The owner before the owner was changed
     /// @param newOwner The owner after the owner was changed
@@ -28,6 +33,13 @@ interface IUniswapV3Factory {
     /// @param tickSpacing The minimum number of ticks between initialized ticks for pools created with the given fee
     event FeeAmountEnabled(uint24 indexed fee, int24 indexed tickSpacing);
 
+    event FeeAmountExtraInfoUpdated(uint24 indexed fee, bool whitelistRequested, bool enabled);
+
+    event WhiteListAdded(address indexed user, bool verified);
+
+    /// @notice Emitted when LM pool deployer is set
+    event SetLmPoolDeployer(address indexed lmPoolDeployer);
+
     /// @notice Returns the current owner of the factory
     /// @dev Can be changed by the current owner via setOwner
     /// @return The address of the factory owner
@@ -38,6 +50,12 @@ interface IUniswapV3Factory {
     /// @param fee The enabled fee, denominated in hundredths of a bip. Returns 0 in case of unenabled fee
     /// @return The tick spacing
     function feeAmountTickSpacing(uint24 fee) external view returns (int24);
+
+    /// @notice Returns the tick spacing extra info
+    /// @dev A fee amount can never be removed, so this value should be hard coded or cached in the calling context
+    /// @param fee The enabled fee, denominated in hundredths of a bip. Returns 0 in case of unenabled fee
+    /// @return whitelistRequested The flag whether should be created by white list users only
+    function feeAmountTickSpacingExtraInfo(uint24 fee) external view returns (bool whitelistRequested, bool enabled);
 
     /// @notice Returns the pool address for a given pair of tokens and a fee, or address 0 if it does not exist
     /// @dev tokenA and tokenB may be passed in either token0/token1 or token1/token0 order
@@ -75,4 +93,32 @@ interface IUniswapV3Factory {
     /// @param fee The fee amount to enable, denominated in hundredths of a bip (i.e. 1e-6)
     /// @param tickSpacing The spacing between ticks to be enforced for all pools created with the given fee amount
     function enableFeeAmount(uint24 fee, int24 tickSpacing) external;
+
+    /// @notice Set an address into white list
+    /// @dev Address can be updated by owner with boolean value false
+    /// @param user The user address that add into white list
+    function setWhiteListAddress(address user, bool verified) external;
+
+    /// @notice Set a fee amount extra info
+    /// @dev Fee amounts can be updated by owner with extra info
+    /// @param whitelistRequested The flag whether should be created by owner only
+    /// @param enabled The flag is the fee is enabled or not
+    function setFeeAmountExtraInfo(
+        uint24 fee,
+        bool whitelistRequested,
+        bool enabled
+    ) external;
+
+    function setLmPoolDeployer(address _lmPoolDeployer) external;
+
+    function setFeeProtocol(address pool, uint32 feeProtocol0, uint32 feeProtocol1) external;
+
+    function collectProtocol(
+        address pool,
+        address recipient,
+        uint128 amount0Requested,
+        uint128 amount1Requested
+    ) external returns (uint128 amount0, uint128 amount1);
+
+    function setLmPool(address pool, address lmPool) external;
 }

@@ -5,9 +5,9 @@ pragma solidity ^0.8.0;
 import "./FrogLottery.sol";
 import "./IFrogReferal.sol";
 // import "./FrogSponsor.sol";
-import "../v3-interfaces/IUniswapV3Factory.sol";
+import "../v3-interfaces/IPancakeV3Factory.sol";
 // import "@openzeppelin/contracts/access/Ownable.sol";
-// import 'hardhat/console.sol';
+import 'hardhat/console.sol';
 import "./IFrogs.sol";
 
 interface IFrogSponsorFactoryCut {
@@ -39,21 +39,36 @@ contract FrogFactory {
         frogSponsorFactory = _frogSponsorFactory;
     }
 
-    function createNewLottery(address tokenA, address tokenB, uint24 fee, address _pool, address nonfungiblePositionManager, address stable) public{
+    function createNewLottery(address tokenA, address tokenB, uint24 poolFee, address pool, address nonfungiblePositionManager, address stable) public{
         // console.log('before', tokenA, tokenB);
         (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
         // (address token0, address token1) = (tokenA, tokenB);
         // console.log('after', token0, token1, tokenA == token0);
-        require(IUniswapV3Factory(pancakeFactory).getPool(token0,token1, fee) != address(0), "pool dont exist");
-        require(lotteries[token0][token1][fee] == address(0), "lottery exist");
+        require(IPancakeV3Factory(pancakeFactory).getPool(token0,token1, poolFee) != address(0), "pool dont exist");
+        require(lotteries[token0][token1][poolFee] == address(0), "lottery exist");
         bool isEthLottery = token0 == WETH || token1 == WETH;
-        address newLottery;
-        {
-            newLottery = deploy(IFrog.DeployLotteryParams(token0,token1,fee,frogReferalAddress,isEthLottery,beneficiary, _pool, nonfungiblePositionManager,swapRouter,pancakeFactory,stable, !(tokenA < tokenB), masterChef));
-        }
 
-        lotteries[token0][token1][fee] = newLottery;
-        lotteries[token1][token0][fee] = newLottery;
+        IFrog.DeployLotteryParams memory params = IFrog.DeployLotteryParams({
+            token0: token0, 
+            token1: token1, 
+            poolFee: poolFee,
+            frogReferalAddress: frogReferalAddress, 
+            isEthLottery: isEthLottery, 
+            beneficiary: beneficiary, 
+            pool: pool, 
+            nonfungiblePositionManager: nonfungiblePositionManager, 
+            swapRouter: swapRouter, 
+            pancakeFactory: pancakeFactory, 
+            stable: stable,
+            isReversed: !(tokenA < tokenB),
+            masterChef: masterChef
+        });
+
+        address newLottery = deploy(params);
+        
+        console.log('frog factory: newLottery', newLottery);
+        lotteries[token0][token1][poolFee] = newLottery;
+        lotteries[token1][token0][poolFee] = newLottery;
 
         IFrogReferal(frogReferalAddress).registerNewLottery(newLottery);
     }

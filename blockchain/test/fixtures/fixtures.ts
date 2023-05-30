@@ -3,7 +3,7 @@ import { ethers } from 'hardhat';
 import json from "../../artifacts/contracts/frogs/FrogLottery.sol/FrogLottery.json";
 import jsonPool from "../../artifacts/contracts/v3-core/PancakeV3Pool.sol/PancakeV3Pool.json"
 import { ERC20Token, FrogFactory, FrogLottery, FrogReferal, MasterChefV3, TBnb, TCake, PancakeV3PoolDeployer } from "../../typechain-types";
-import { NonfungiblePositionManager, SwapRouter, PancakeV3Factory, PancakeV3Pool, FrogSponsorFactory } from "../../v3/typechain-types";
+import { NonfungiblePositionManager, SwapRouter, PancakeV3Factory, PancakeV3Pool, FrogSponsorFactory, PancakeV3LmPoolDeployer } from "../../v3/typechain-types";
 import { BigNumber } from "ethers";
 import BN from 'bignumber.js'
 import { TickMath } from "@uniswap/v3-sdk"
@@ -84,12 +84,6 @@ export async function deployAll() {
     const pool_busd_usdc = new ethers.Contract(await pancakeFactory.getPool(busd.address, usdc.address, fee), jsonPool.abi, acct1) as PancakeV3Pool
     const pool_usdt_usdc = new ethers.Contract(await pancakeFactory.getPool(usdt.address, usdc.address, fee), jsonPool.abi, acct1) as PancakeV3Pool
 
-
-    console.log(pool_busd_usdt.address);
-    console.log(pool_busd_usdc.address);
-    console.log(pool_usdt_usdc.address);
-
-
     // отдаешь х - получаешь y
     function encodePriceSqrt(reserve1: any, reserve0: any): BN {
         const t = new BN(reserve1)
@@ -144,12 +138,12 @@ export async function deployAll() {
         return first.multipliedBy(secnd).div(third)
     }
 
-    console.log('pool_busd_usdt', isReversed_pool_busd_usdt ? getPrice(BN(BigInt(2 ** 192).toString()), 1, BN(sqrtPrice_pool_busd_usdt.pow(2).toString())).toString() : getPrice(BN(sqrtPrice_pool_busd_usdt.pow(2).toString()), 1, BN(BigInt(2 ** 192).toString())).toString())
-    console.log('pool_busd_usdc', isReversed_pool_busd_usdc ? getPrice(BN(BigInt(2 ** 192).toString()), 1, BN(sqrtPrice_pool_busd_usdc.pow(2).toString())).toString() : getPrice(BN(sqrtPrice_pool_busd_usdc.pow(2).toString()), 1, BN(BigInt(2 ** 192).toString())).toString())
-    console.log('pool_usdt_usdc', isReversed_pool_usdt_usdc ? getPrice(BN(BigInt(2 ** 192).toString()), 1, BN(sqrtPrice_pool_usdt_usdc.pow(2).toString())).toString() : getPrice(BN(sqrtPrice_pool_usdt_usdc.pow(2).toString()), 1, BN(BigInt(2 ** 192).toString())).toString())
-    console.log('pool_busd_usdt-tick', (await pool_busd_usdt.slot0()).tick)
-    console.log('pool_busd_usdc-tick', (await pool_busd_usdc.slot0()).tick)
-    console.log('pool_usdt_usdc-tick', (await pool_usdt_usdc.slot0()).tick)
+    // console.log('pool_busd_usdt', isReversed_pool_busd_usdt ? getPrice(BN(BigInt(2 ** 192).toString()), 1, BN(sqrtPrice_pool_busd_usdt.pow(2).toString())).toString() : getPrice(BN(sqrtPrice_pool_busd_usdt.pow(2).toString()), 1, BN(BigInt(2 ** 192).toString())).toString())
+    // console.log('pool_busd_usdc', isReversed_pool_busd_usdc ? getPrice(BN(BigInt(2 ** 192).toString()), 1, BN(sqrtPrice_pool_busd_usdc.pow(2).toString())).toString() : getPrice(BN(sqrtPrice_pool_busd_usdc.pow(2).toString()), 1, BN(BigInt(2 ** 192).toString())).toString())
+    // console.log('pool_usdt_usdc', isReversed_pool_usdt_usdc ? getPrice(BN(BigInt(2 ** 192).toString()), 1, BN(sqrtPrice_pool_usdt_usdc.pow(2).toString())).toString() : getPrice(BN(sqrtPrice_pool_usdt_usdc.pow(2).toString()), 1, BN(BigInt(2 ** 192).toString())).toString())
+    // console.log('pool_busd_usdt-tick', (await pool_busd_usdt.slot0()).tick)
+    // console.log('pool_busd_usdc-tick', (await pool_busd_usdc.slot0()).tick)
+    // console.log('pool_usdt_usdc-tick', (await pool_usdt_usdc.slot0()).tick)
     // ==================
     //  NonfungiblePositionManager
     // ==================
@@ -166,11 +160,22 @@ export async function deployAll() {
     await router.deployed();
 
     // ==================
-    //       Router
+    //     MasterChef
     // ==================
     const MasterChef = await hre.ethers.getContractFactory('MasterChefV3')
     const mc = await MasterChef.deploy(cake.address, nonfungiblePositionManager.address, wbnb.address) as MasterChefV3
     await mc.deployed();
+
+    // ==================
+    //   LMPoolDeployer
+    // ==================
+    const PancakeV3LmPoolDeployerr = await hre.ethers.getContractFactory('PancakeV3LmPoolDeployer')
+    const LMPoolDeployer = await PancakeV3LmPoolDeployerr.deploy(mc.address) as PancakeV3LmPoolDeployer
+    await LMPoolDeployer.deployed();
+
+    await pancakeFactory.setLmPoolDeployer(LMPoolDeployer.address)
+    await mc.setLMPoolDeployer(LMPoolDeployer.address);
+    await mc.add(0, pool_busd_usdt.address, false);
 
     // ==================
     //    FrogFactory
@@ -319,5 +324,5 @@ export async function deployAll() {
     await usdt.approve(router.address, BigInt(10 ** 36))
     await usdc.approve(router.address, BigInt(10 ** 36))
 
-    return ({ usdc, usdt, busd, pool_busd_usdt, pool_busd_usdc, pool_usdt_usdc, lottery_busd_usdt, pancakeFactory, router, nonfungiblePositionManager, factory, referal, fee, frogSponsorfactory })
+    return ({ usdc, usdt, busd, pool_busd_usdt, pool_busd_usdc, pool_usdt_usdc, lottery_busd_usdt, pancakeFactory, router, nonfungiblePositionManager, factory, pancakeV3PoolDeployer, referal, fee, frogSponsorfactory })
 }

@@ -215,6 +215,8 @@ contract NonfungiblePositionManager is
         PoolAddress.PoolKey memory poolKey = _poolIdToPoolKey[position.poolId];
 
         IPancakeV3Pool pool;
+        console.log('manager factory', factory);
+        console.log('manager deployer', deployer);
         (liquidity, amount0, amount1, pool) = addLiquidity(
             AddLiquidityParams({
                 token0: poolKey.token0,
@@ -229,11 +231,13 @@ contract NonfungiblePositionManager is
                 recipient: address(this)
             })
         );
+        console.log('manager liquidity', liquidity);
 
         bytes32 positionKey = PositionKey.compute(address(this), position.tickLower, position.tickUpper);
 
         // this is now updated to the current transaction
         (, uint256 feeGrowthInside0LastX128, uint256 feeGrowthInside1LastX128, , ) = pool.positions(positionKey);
+        console.log('manager feeGrowthInside0LastX128', feeGrowthInside0LastX128);
 
         position.tokensOwed0 += uint128(
             FullMath.mulDiv(
@@ -249,6 +253,9 @@ contract NonfungiblePositionManager is
                 FixedPoint128.Q128
             )
         );
+
+        console.log('manager position.tokensOwed0', position.tokensOwed0);
+
 
         position.feeGrowthInside0LastX128 = feeGrowthInside0LastX128;
         position.feeGrowthInside1LastX128 = feeGrowthInside1LastX128;

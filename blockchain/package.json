@@ -6,7 +6,8 @@
     "deploy": "npx hardhat run scripts/deployLocalhost.ts --network localhost",
     "compile-all": "npx hardhat compile && cd v3 && npx hardhat compile",
     "main-logic": "npx hardhat test --grep MainLogic",
-    "test-mn": "npx hardhat run scripts/testDeployBeforeMainnet.ts --network sepolia"
+    "test-mn": "npx hardhat run scripts/testDeployBeforeMainnet.ts --network sepolia",
+    "compile-test-mn": "cd v3 && npx hardhat compile --no-typechain && cd .. && cls && npm run main-logic"
   },
   "keywords": [],
   "author": "",
