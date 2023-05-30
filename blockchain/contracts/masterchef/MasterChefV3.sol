@@ -17,6 +17,8 @@ import "./interfaces/IWETH.sol";
 import "./utils/Multicall.sol";
 import "./Enumerable.sol";
 
+import 'hardhat/console.sol';
+
 contract MasterChefV3 is INonfungiblePositionManagerStruct, Multicall, Ownable, ReentrancyGuard, Enumerable {
     using SafeERC20 for IERC20;
     using SafeCast for uint256;
@@ -333,7 +335,11 @@ contract MasterChefV3 is INonfungiblePositionManagerStruct, Multicall, Ownable, 
         uint256 _tokenId,
         bytes calldata
     ) external nonReentrant returns (bytes4) {
+        console.log("onERC721Received", _from, _tokenId);
+        console.log(msg.sender != address(nonfungiblePositionManager));
+        console.log(msg.sender, address(nonfungiblePositionManager));
         if (msg.sender != address(nonfungiblePositionManager)) revert NotPancakeNFT();
+
         DepositCache memory cache;
         (
             ,
@@ -351,6 +357,7 @@ contract MasterChefV3 is INonfungiblePositionManagerStruct, Multicall, Ownable, 
         ) = nonfungiblePositionManager.positions(_tokenId);
         if (cache.liquidity == 0) revert NoLiquidity();
         uint256 pid = v3PoolPid[cache.token0][cache.token1][cache.fee];
+        console.log('onERC721Received pid',pid);
         if (pid == 0) revert InvalidNFT();
         PoolInfo memory pool = poolInfo[pid];
         ILMPool LMPool = ILMPool(pool.v3Pool.lmPool());
@@ -367,7 +374,6 @@ contract MasterChefV3 is INonfungiblePositionManagerStruct, Multicall, Ownable, 
         updateLiquidityOperation(positionInfo, _tokenId, 0);
 
         positionInfo.rewardGrowthInside = LMPool.getRewardGrowthInside(cache.tickLower, cache.tickUpper);
-
         // Update Enumerable
         addToken(_from, _tokenId);
         emit Deposit(_from, pid, _tokenId, cache.liquidity, cache.tickLower, cache.tickUpper);
@@ -528,6 +534,7 @@ contract MasterChefV3 is INonfungiblePositionManagerStruct, Multicall, Ownable, 
         IncreaseLiquidityParams memory params
     ) external payable nonReentrant returns (uint128 liquidity, uint256 amount0, uint256 amount1) {
         UserPositionInfo storage positionInfo = userPositionInfos[params.tokenId];
+        console.log('mc pid:',positionInfo.pid);
         if (positionInfo.pid == 0) revert InvalidNFT();
         PoolInfo memory pool = poolInfo[positionInfo.pid];
         pay(pool.token0, params.amount0Desired);

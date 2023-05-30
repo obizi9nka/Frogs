@@ -921,10 +921,10 @@ export default {
         } else if (confirm("You want to send: \n" + this.form.deposit.token)) {
           const amount = web3.utils.toWei(this.form.deposit.token);
 
-          const allowance = web3.utils.fromWei(await new web3.eth.Contract(ERC20TokenABI, tokenForDepositAddress)
+          const allowance = web3.utils.fromWei(await new web3.eth.Contract(ERC20TokenABI, this.addresses.stable)
             .methods.allowance(this.$store.state.account, this.addresses.frogLottery).call());
           if (allowance < amount) {
-            const approveCake = await new web3.eth.Contract(ERC20TokenABI, tokenForDepositAddress)
+            const approveCake = await new web3.eth.Contract(ERC20TokenABI, this.addresses.stable)
               .methods.approve(this.addresses.frogLottery, amount)
               .send({
                 from: this.$store.state.account

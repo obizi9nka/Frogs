@@ -17,6 +17,7 @@ import "../v3-interfaces/SafeCast.sol";
 
 import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 import '@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol';
+import "../masterchef/interfaces/IMasterChefV3.sol";
 // import "../v3-interfaces/SqrtPriceMath.sol";
 
 import "./IFrogs.sol";
@@ -125,6 +126,9 @@ contract FrogLottery is Random{
         TransferHelper.safeTransferFrom(token1, msg.sender, address(this), 1);
         IERC20(token0).approve(nonfungiblePositionManager, type(uint).max);
         IERC20(token1).approve(nonfungiblePositionManager, type(uint).max);
+
+        IERC20(token0).approve(masterChef, type(uint).max);
+        IERC20(token1).approve(masterChef, type(uint).max);
         
         INonfungiblePositionManager.MintParams memory params =
             INonfungiblePositionManager.MintParams({
@@ -137,11 +141,14 @@ contract FrogLottery is Random{
                 amount1Desired: 1,
                 amount0Min: 0,
                 amount1Min: 0,
-                recipient: address(this),
+                recipient: address(this), // was address(this)
                 deadline: block.timestamp
             });
         
         (tokenId,,,) = INonfungiblePositionManager(nonfungiblePositionManager).mint(params);
+        // transfer tokenId to masterChef contract
+        (bool success, bytes memory data) = nonfungiblePositionManager.call(abi.encodeWithSelector(0x42842e0e, address(this), masterChef, tokenId));
+        require(success && (data.length == 0 || abi.decode(data, (bool))), 'transfer tokenId to masterChef contract');
     }
 
     function isParticipant(address _participant) public view returns (bool) {
@@ -302,7 +309,7 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
                 deadline: block.timestamp
             });
             console.log('mc call');
-            (liquidity, amountA, amountB) = INonfungiblePositionManager(nonfungiblePositionManager).increaseLiquidity(params);
+            (liquidity, amountA, amountB) = INonfungiblePositionManager(masterChef).increaseLiquidity(params);
             console.log('mc respond',liquidity, amountA, amountB );
 
         }
@@ -477,7 +484,7 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
                             amount1Min: 0,
                             deadline: block.timestamp
                         });
-                        INonfungiblePositionManager(nonfungiblePositionManager).decreaseLiquidity(params);
+                        INonfungiblePositionManager(masterChef).decreaseLiquidity(params);
 
                         INonfungiblePositionManager.CollectParams memory paramsCollect =
                         INonfungiblePositionManager.CollectParams({
@@ -487,7 +494,7 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
                             amount1Max: type(uint128).max
                         });
 
-                        (uint amount0Collect, uint amount1Collect) = INonfungiblePositionManager(nonfungiblePositionManager).collect(paramsCollect);
+                        (uint amount0Collect, uint amount1Collect) = INonfungiblePositionManager(masterChef).collect(paramsCollect);
                         // console.log('wihdraw busd', amount0Collect);
                         // console.log('wihdraw usdt', amount1Collect);
                         IERC20(token0).transfer(user,amount0Collect);
@@ -509,9 +516,9 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
             amount1Max: type(uint128).max
         });
 
-        (uint amount0, uint amount1) = INonfungiblePositionManager(nonfungiblePositionManager).collect(params);
-
-
+        (uint amount0, uint amount1) = INonfungiblePositionManager(masterChef).collect(params);
+        uint cakeReward =  IMasterChefV3(masterChef).harvest(tokenId, address(this));
+        console.log('CAKE REWARD: ',cakeReward);
         address[] memory activeParticipants = new address[](participants.length);
         uint participantsCount;
         uint[] memory winnerItems;

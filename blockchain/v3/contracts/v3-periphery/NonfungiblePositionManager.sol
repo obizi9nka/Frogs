@@ -53,6 +53,8 @@ contract NonfungiblePositionManager is
         uint128 tokensOwed1;
     }
 
+
+
     /// @dev IDs of pools assigned by this contract
     mapping(address => uint80) private _poolIds;
 
@@ -77,6 +79,7 @@ contract NonfungiblePositionManager is
         address _tokenDescriptor_
     ) ERC721Permit('Pancake V3 Positions NFT-V1', 'PCS-V3-POS', '1') PeripheryImmutableState(_deployer, _factory, _WETH9) {
         _tokenDescriptor = _tokenDescriptor_;
+
     }
 
     /// @inheritdoc INonfungiblePositionManager
@@ -156,8 +159,7 @@ contract NonfungiblePositionManager is
                 amount1Min: params.amount1Min
             })
         );
-
-        _mint(params.recipient, (tokenId = _nextId++));
+        tokenId = _nextId++;
 
         bytes32 positionKey = PositionKey.compute(address(this), params.tickLower, params.tickUpper);
         (, uint256 feeGrowthInside0LastX128, uint256 feeGrowthInside1LastX128, , ) = pool.positions(positionKey);
@@ -181,6 +183,8 @@ contract NonfungiblePositionManager is
             tokensOwed0: 0,
             tokensOwed1: 0
         });
+        _mint(params.recipient, tokenId);
+        // _safeMint(params.recipient, tokenId);
 
         emit IncreaseLiquidity(tokenId, liquidity, amount0, amount1);
     }
@@ -215,8 +219,6 @@ contract NonfungiblePositionManager is
         PoolAddress.PoolKey memory poolKey = _poolIdToPoolKey[position.poolId];
 
         IPancakeV3Pool pool;
-        console.log('manager factory', factory);
-        console.log('manager deployer', deployer);
         (liquidity, amount0, amount1, pool) = addLiquidity(
             AddLiquidityParams({
                 token0: poolKey.token0,
@@ -237,7 +239,6 @@ contract NonfungiblePositionManager is
 
         // this is now updated to the current transaction
         (, uint256 feeGrowthInside0LastX128, uint256 feeGrowthInside1LastX128, , ) = pool.positions(positionKey);
-        console.log('manager feeGrowthInside0LastX128', feeGrowthInside0LastX128);
 
         position.tokensOwed0 += uint128(
             FullMath.mulDiv(
@@ -254,7 +255,6 @@ contract NonfungiblePositionManager is
             )
         );
 
-        console.log('manager position.tokensOwed0', position.tokensOwed0);
 
 
         position.feeGrowthInside0LastX128 = feeGrowthInside0LastX128;

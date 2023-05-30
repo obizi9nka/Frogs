@@ -319,6 +319,12 @@ export async function deployAll() {
     await usdt.connect(acct2).approve(lottery_busd_usdt.address, BigInt(10 ** 35))
     await usdc.connect(acct2).approve(lottery_busd_usdt.address, BigInt(10 ** 35))
 
+    await busd.approve(mc.address, BigInt(10 ** 35))
+    await usdt.approve(mc.address, BigInt(10 ** 35))
+    await usdc.approve(mc.address, BigInt(10 ** 35))
+    await busd.connect(acct2).approve(mc.address, BigInt(10 ** 35))
+    await usdt.connect(acct2).approve(mc.address, BigInt(10 ** 35))
+    await usdc.connect(acct2).approve(mc.address, BigInt(10 ** 35))
 
     await busd.approve(router.address, BigInt(10 ** 36))
     await usdt.approve(router.address, BigInt(10 ** 36))
