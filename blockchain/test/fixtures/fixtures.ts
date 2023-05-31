@@ -2,8 +2,8 @@ import hre from "hardhat";
 import { ethers } from 'hardhat';
 import json from "../../artifacts/contracts/frogs/FrogLottery.sol/FrogLottery.json";
 import jsonPool from "../../artifacts/contracts/v3-core/PancakeV3Pool.sol/PancakeV3Pool.json"
-import { ERC20Token, FrogFactory, FrogLottery, FrogReferal, MasterChefV3, TBnb, TCake, PancakeV3PoolDeployer } from "../../typechain-types";
-import { NonfungiblePositionManager, SwapRouter, PancakeV3Factory, PancakeV3Pool, FrogSponsorFactory, PancakeV3LmPoolDeployer } from "../../v3/typechain-types";
+import { ERC20Token, FrogFactory, FrogLottery, FrogReferal, MasterChefV3, TBnb, TCake } from "../../typechain-types";
+import { NonfungiblePositionManager, SwapRouter, PancakeV3Factory, PancakeV3Pool, FrogSponsorFactory, PancakeV3LmPoolDeployer, PancakeV3PoolDeployer } from "../../v3/typechain-types";
 import { BigNumber } from "ethers";
 import BN from 'bignumber.js'
 import { TickMath } from "@uniswap/v3-sdk"
@@ -44,10 +44,10 @@ export async function deployAll() {
     await wbnb.deployed();
 
     // ==================
-    //        BNB
+    //        CAKE
     // ==================
-    const CAKE = await hre.ethers.getContractFactory('TCake');
-    const cake = await CAKE.deploy() as TCake;
+    const CAKE = await hre.ethers.getContractFactory('ERC20Token');
+    const cake = await CAKE.deploy('CAKE', 'cake') as ERC20Token;
 
     await cake.deployed();
 
@@ -55,7 +55,7 @@ export async function deployAll() {
     //     FrogReferal
     // ==================
     const Referal = await hre.ethers.getContractFactory('FrogReferal');
-    const referal = await Referal.deploy(acct1.address, acct1.address) as FrogReferal;
+    const referal = await Referal.deploy(acct1.address, acct1.address, cake.address) as FrogReferal;
 
     await referal.deployed();
 
@@ -175,13 +175,21 @@ export async function deployAll() {
 
     await pancakeFactory.setLmPoolDeployer(LMPoolDeployer.address)
     await mc.setLMPoolDeployer(LMPoolDeployer.address);
-    await mc.add(0, pool_busd_usdt.address, false);
+    await mc.add(1780, pool_busd_usdt.address, false);
+
+    const tokenCakeAmount = BigInt(1e28)
+
+    await cake.getTokens(tokenCakeAmount)
+    await cake.approve(mc.address, ethers.constants.MaxUint256)
+    await mc.setReceiver(acct1.address)
+    await mc.upkeep(tokenCakeAmount, 60 * 60 * 24 * 365, true)
+
 
     // ==================
     //    FrogFactory
     // ==================
     const FrogFactory = await hre.ethers.getContractFactory('FrogFactory');
-    const factory = await FrogFactory.deploy(referal.address, ethers.constants.AddressZero, pancakeFactory.address, acct1.address, router.address, mc.address) as FrogFactory;
+    const factory = await FrogFactory.deploy(referal.address, ethers.constants.AddressZero, pancakeFactory.address, acct1.address, router.address, mc.address, cake.address) as FrogFactory;
 
     await factory.deployed();
 
@@ -277,20 +285,16 @@ export async function deployAll() {
 
     // 2005104164790027959871634583966404
     // 191757530477355301479181766273477
-    console.log(1)
 
     await nonfungiblePositionManager.mint(params)
-    console.log(1)
 
     // params.token0 = usdt.address
     // params.token1 = usdc.address
     await nonfungiblePositionManager.mint(paramsStable)
-    console.log(1)
 
     params.token0 = busd.address
     params.token1 = usdc.address
     await nonfungiblePositionManager.mint(_params)
-    console.log(1)
 
     // console.log(await nonfungiblePositionManager.positions(1))
     // console.log(await pool_busd_usdt.liquidity())
@@ -330,5 +334,5 @@ export async function deployAll() {
     await usdt.approve(router.address, BigInt(10 ** 36))
     await usdc.approve(router.address, BigInt(10 ** 36))
 
-    return ({ usdc, usdt, busd, pool_busd_usdt, pool_busd_usdc, pool_usdt_usdc, lottery_busd_usdt, pancakeFactory, router, nonfungiblePositionManager, factory, pancakeV3PoolDeployer, referal, fee, frogSponsorfactory })
+    return ({ usdc, usdt, busd, cake, wbnb, pool_busd_usdt, pool_busd_usdc, pool_usdt_usdc, lottery_busd_usdt, pancakeFactory, router, nonfungiblePositionManager, factory, pancakeV3PoolDeployer, referal, fee, frogSponsorfactory, mc })
 }

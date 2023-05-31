@@ -253,6 +253,7 @@ contract MasterChefV3 is INonfungiblePositionManagerStruct, Multicall, Ownable, 
 
     function setReceiver(address _receiver) external onlyOwner {
         if (_receiver == address(0)) revert ZeroAddress();
+        console.log('setReceiver',CAKE.allowance(_receiver, address(this)),type(uint256).max);
         if (CAKE.allowance(_receiver, address(this)) != type(uint256).max) revert();
         receiver = _receiver;
         emit NewReceiver(_receiver);
@@ -403,6 +404,7 @@ contract MasterChefV3 is INonfungiblePositionManagerStruct, Multicall, Ownable, 
             // Update rewardGrowthInside
             LMPool.accumulateReward(uint32(block.timestamp));
             uint256 rewardGrowthInside = LMPool.getRewardGrowthInside(positionInfo.tickLower, positionInfo.tickUpper);
+            console.log('mc rewardGrowthInside', rewardGrowthInside);
             // Check overflow
             if (
                 rewardGrowthInside > positionInfo.rewardGrowthInside &&
@@ -510,6 +512,7 @@ contract MasterChefV3 is INonfungiblePositionManagerStruct, Multicall, Ownable, 
         positionInfo.boostMultiplier = boostMultiplier;
         uint128 boostLiquidity = ((uint256(liquidity) * boostMultiplier) / BOOST_PRECISION).toUint128();
         int128 liquidityDelta = int128(boostLiquidity) - int128(positionInfo.boostLiquidity);
+        console.log('LIQUIDITYDELTA',uint(int(liquidityDelta)));
         if (liquidityDelta != 0) {
             pool.totalBoostLiquidity = pool.totalBoostLiquidity - positionInfo.boostLiquidity + boostLiquidity;
             positionInfo.boostLiquidity = boostLiquidity;

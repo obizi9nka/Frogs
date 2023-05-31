@@ -54,6 +54,7 @@ contract FrogLottery is Random{
 
     address public token0;
     address public token1;
+    address public CAKE;
     address stableCoinAddress;
     address frogReferalAddress;
 
@@ -64,6 +65,7 @@ contract FrogLottery is Random{
     mapping (address => uint) public withdrawOf;
     mapping (address => uint) public rewardOfToken0;
     mapping (address => uint) public rewardOfToken1;
+    mapping (address => uint) public rewardOfCake;
 
     address[] public participants;
     mapping (address => bool) public alreadyParticipant;
@@ -76,8 +78,8 @@ contract FrogLottery is Random{
 
     event BeneficiaryChanged(address indexed _oldBeneficiary, address indexed _newBeneficiary);
     event FeePercentChanged(uint indexed _oldFeePercent, uint indexed _newFeePercent);
-    event Draw(uint indexed _drawNumber, uint _rewardToken0, uint _rewardToken1, uint _prticipantsRewardToken0, uint _prticipantsRewardToken1);
-    event Victory(uint indexed _drawNumber, address indexed _winner, uint256 _amountToken0, uint256 _amountToken1);
+    event Draw(uint indexed _drawNumber, uint _rewardToken0, uint _rewardToken1, uint _rewardCake,uint _participantsRewardToken0, uint _participantsRewardToken1, uint _participantsRewardCake);
+    event Victory(uint indexed _drawNumber, address indexed _winner, uint256 _amountToken0, uint256 _amountToken1, uint _amountCake);
     event Deposit(address indexed _participant, uint _amount, uint _oldBalance);
     event Withdraw(address indexed _participant, uint _amount, uint _oldBalance);
     event NewParticipant(address indexed _newParticipant);
@@ -97,6 +99,7 @@ contract FrogLottery is Random{
     bool isReversed;
     uint rewardFromPrevDrawToken0;
     uint rewardFromPrevDrawToken1;
+    uint rewardFromPrevDrawCake;
     uint decimalsContoller = 10**18;
 
     constructor(IFrog.DeployLotteryParams memory params) {
@@ -117,6 +120,7 @@ contract FrogLottery is Random{
         masterChef = params.masterChef;
         setStableCoinAddress(params.stable);
         isReversed = params.isReversed;
+        CAKE = params.cake;
         // createPosition(_token0,_token1,tickLower,tickUpper);
     }
 
@@ -215,18 +219,6 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
         return deposit(token,amount);
     }
 
-    // function deposit(address token, uint amount) public payable returns (bool success){
-    //     // if(isEthLottery)
-    //     //     require(amountToken1 == msg.value, "msg.value and amount mismatch");
-    //     // else {
-    //     //     require(IERC20(token1).balanceOf(msg.sender) >= amountToken1, 'Not enought Token1');
-    //     //     require(IERC20(token1).allowance(msg.sender, address(this)) >= amountToken1,'Not enought allowance Token1');
-    //     // }
-    //     // require(IERC20(token0).balanceOf(msg.sender) >= amountToken0, 'Not enought Token0');
-    //     // require(IERC20(token0).allowance(msg.sender, address(this)) >= amountToken0,'Not enought allowance Token0');
-    //     return _deposit(token,amount);
-    // }
-
     function swapExactInputSingle(address tokenIn, address tokenOut, uint256 amountIn) internal returns (uint256 amountOut) {
         // msg.sender must approve this contract
 
@@ -285,16 +277,8 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
         uint liquidity;
         uint amountA;
         uint amountB;
-        // console.log('yyyyyyyyyyyyyyyyyyyyy');
-        // console.log(IERC20(token0).balanceOf(address(this)));
-        // console.log(IERC20(token1).balanceOf(address(this)));
-        // console.log(token0, msg.sender, address(this), amountToken0);
-        // console.log(token1, msg.sender, address(this), amountToken1);
         TransferHelper.safeTransferFrom(token0, msg.sender, address(this), amountToken0);
         TransferHelper.safeTransferFrom(token1, msg.sender, address(this), amountToken1);
-        // console.log(IERC20(token0).balanceOf(address(this)));
-        // console.log(IERC20(token1).balanceOf(address(this)));
-        // console.log('yyyyyyyyyyyyyyyyyyyyy');
 
         if(isEthLottery){
             
@@ -321,15 +305,9 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
         // int24 tickLower;
         // int24 tickUpper;
         {
-            // console.log(1);
             (,,,,, int24 tickLower, int24 tickUpper,,,,,) = INonfungiblePositionManager(nonfungiblePositionManager).positions(tokenId);
-            // console.log(pool);
             (uint160 sqrtPriceX96, int24 currentTick,,,,,) = IPancakeV3Pool(pool).slot0();
 
-            // console.log(sqrtPriceX96, uint(int256(currentTick)));
-            // console.log(uint(int256(tickLower)), uint(int256(tickUpper)));
-            // console.log("balanceOf[msg.sender] + depositOf[msg.sender] - withdrawOf[msg.sender]", balanceOf[msg.sender] + depositOf[msg.sender] - withdrawOf[msg.sender]);
-            
             (amount0_active, amount1_active) = calculateAmountsForLiquidity(sqrtPriceX96,currentTick,tickLower,tickUpper,int(balanceOf[msg.sender] + depositOf[msg.sender] - withdrawOf[msg.sender]),false);
             // console.log(1);
         }
@@ -340,16 +318,6 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
 
         console.log("futureBalanceUsd && depositUsd", futureBalanceUsd, depositUsd);
         console.log('liquidity deposited:', liquidity, amount0, amount1);
-        // console.log(futureBalanceUsd, depositUsd);
-        // // 4688032186634739176
-
-        // console.log('active');
-        // console.log(getPriceWithDecimalsContoller(_token0, uint128(amount0_active)));
-        // console.log(getPriceWithDecimalsContoller(_token1, uint128(amount1_active)));
-        // console.log('new');
-        // console.log(getPriceWithDecimalsContoller(_token0, uint128(amount0)));
-        // console.log(getPriceWithDecimalsContoller(_token1, uint128(amount1)));
-        // console.log('req');
 
         require(futureBalanceUsd + depositUsd >= minUsd, 'Total balance less than minUSD');
         require(futureBalanceUsd + depositUsd <= maxUsd, 'Total balance great than maxUSD');
@@ -406,7 +374,7 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
     }
 
     function claimReward() virtual public {
-        require(rewardOfToken0[msg.sender] > 0 || rewardOfToken1[msg.sender] > 0, 'Reward is empty');
+        require(rewardOfToken0[msg.sender] > 0 || rewardOfToken1[msg.sender] > 0 || rewardOfCake[msg.sender] > 0, 'Reward is empty');
 
         if(rewardOfToken0[msg.sender] > 0){
             require(IERC20(token0).transfer(msg.sender, rewardOfToken0[msg.sender]),"Transfer faild0");
@@ -418,6 +386,12 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
             require(IERC20(token1).transfer(msg.sender, rewardOfToken1[msg.sender]),"Transfer faild1");
             rewardFromPrevDrawToken1 -= rewardOfToken1[msg.sender];
             rewardOfToken1[msg.sender] = 0;
+        }
+
+        if(rewardOfCake[msg.sender] > 0){
+            require(IERC20(CAKE).transfer(msg.sender, rewardOfCake[msg.sender]),"Transfer faildCake");
+            rewardFromPrevDrawCake -= rewardOfCake[msg.sender];
+            rewardOfCake[msg.sender] = 0;
         }
     }
 
@@ -507,30 +481,49 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
         }
     }
 
-    function draw() virtual public{
-        INonfungiblePositionManager.CollectParams memory params =
-        INonfungiblePositionManager.CollectParams({
-            tokenId: tokenId,
-            recipient: address(this),
-            amount0Max: type(uint128).max,
-            amount1Max: type(uint128).max
-        });
+    function draw() virtual external{
+        uint amount0;
+        uint amount1;
+        uint rewardCake;
+        
+            INonfungiblePositionManager.CollectParams memory params =
+            INonfungiblePositionManager.CollectParams({
+                tokenId: tokenId,
+                recipient: address(this),
+                amount0Max: type(uint128).max,
+                amount1Max: type(uint128).max
+            });
 
-        (uint amount0, uint amount1) = INonfungiblePositionManager(masterChef).collect(params);
-        uint cakeReward =  IMasterChefV3(masterChef).harvest(tokenId, address(this));
-        console.log('CAKE REWARD: ',cakeReward);
+            (amount0, amount1) = INonfungiblePositionManager(masterChef).collect(params);
+            // IMasterChefV3(masterChef).updateLiquidity(tokenId);
+            console.log("draw cake before", IERC20(CAKE).balanceOf(address(this)));
+
+            rewardCake =  IMasterChefV3(masterChef).harvest(tokenId, address(this));
+
+            console.log("draw cake after", IERC20(CAKE).balanceOf(address(this)));
+        
+        _draw(amount0,amount1,rewardCake);
+    }
+
+    function _draw(uint amount0, uint amount1, uint rewardCake) virtual internal{
+        console.log('CAKE REWARD: ', rewardCake);
+        
         address[] memory activeParticipants = new address[](participants.length);
         uint participantsCount;
         uint[] memory winnerItems;
         uint winnersLiquidity;
         (activeParticipants, participantsCount) = getParticipants();
+
+        uint prticipantsRewardToken0;
+        uint prticipantsRewardToken1;
+        uint prticipantsRewardCake;
+
         if(participantsCount > 0){
-            
-
-            uint rewardWithFeeToken0 = amount0 == 0 ? 0 : amount0 * (10000 - feePercent) / 10000;
-            uint rewardWithFeeToken1 = amount1 == 0 ? 0 : amount1 * (10000 - feePercent) / 10000;
-            
-
+            uint rewardWithFeeToken0 = amount0 * (10000 - feePercent) / 10000;
+            uint rewardWithFeeToken1 = amount1 * (10000 - feePercent) / 10000;
+            uint rewardWithFeeCake = rewardCake * (10000 - feePercent) / 10000;
+            // uint rewardWithFeeToken0 = amount0 == 0 ? 0 : amount0 * (10000 - feePercent) / 10000;
+            // uint rewardWithFeeToken1 = amount1 == 0 ? 0 : amount1 * (10000 - feePercent) / 10000;
             uint winnersCount = participantsCount / 150 + 1;
             winnerItems = new uint[](winnersCount);
             winnerItems = getRandomsWithRepeat(participantsCount, winnersCount);
@@ -542,33 +535,43 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
 
             drawNumber++;
             {
-            uint prticipantsRewardToken0;
-            uint prticipantsRewardToken1;
+
+
+            uint participantRewardToken0;
+            uint participantRewardToken1;
+            uint participantRewardCake;
             for(uint i = 0; i < winnersCount; i++){
+                // uint _rewardCake = rewardWithFeeCake;
                 address winner = activeParticipants[winnerItems[i]];
                 uint participantRewardPart = balanceOf[winner] * 100 / winnersLiquidity;
 
-                uint participantRewardToken0 = rewardWithFeeToken0 == 0 ? 0 : rewardWithFeeToken0 * participantRewardPart / 100;
-                uint participantRewardToken1 = rewardWithFeeToken1 == 0 ? 0 : rewardWithFeeToken1 * participantRewardPart / 100;
-            
-                rewardFromPrevDrawToken0 += participantRewardToken0;
+                participantRewardToken0 = rewardWithFeeToken0 * participantRewardPart / 100;
+                participantRewardToken1 = rewardWithFeeToken1 * participantRewardPart / 100;
+                participantRewardCake = rewardWithFeeCake * participantRewardPart / 100;
+                
+                {rewardFromPrevDrawToken0 += participantRewardToken0;
                 rewardFromPrevDrawToken1 += participantRewardToken1;
+                rewardFromPrevDrawCake += participantRewardCake;}
 
-                rewardOfToken0[winner] += participantRewardToken0;
+                {rewardOfToken0[winner] += participantRewardToken0;
                 rewardOfToken1[winner] += participantRewardToken1;
+                rewardOfCake[winner] += participantRewardCake;}
 
-                prticipantsRewardToken0 += participantRewardToken0;
+                {prticipantsRewardToken0 += participantRewardToken0;
                 prticipantsRewardToken1 += participantRewardToken1;
+                prticipantsRewardCake += participantRewardCake;}
 
-                emit Victory(drawNumber, winner, participantRewardToken0, participantRewardToken1);
+                emit Victory(drawNumber, winner, participantRewardToken0, participantRewardToken1, participantRewardCake);
             }
-            emit Draw(drawNumber, amount0, amount1, prticipantsRewardToken0, prticipantsRewardToken1);
             }
-
-            accounting();
-        } else {
-            accounting();
         }
+
+        if(participantsCount > 0) {
+            emit Draw(drawNumber, amount0, amount1, rewardCake, prticipantsRewardToken0, prticipantsRewardToken1, prticipantsRewardCake);
+
+        }
+        accounting();
+        
     }
 
     // function calculateLiquidityForAmounts(uint amount0, uint amount1, int24 tickLower, int24 tickUpper) public view returns(uint liquidity) {
@@ -653,14 +656,35 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
         // (amount0, amount1) = LiquidityAmounts.getAmountsForLiquidity(sqrtPriceX96, sqrtRatioAX96, sqrtRatioBX96, liquidity);
     }
 
-    function afterDraw(IFrogReferal.ReferersRewardInfo[] memory data, uint referersReward0, uint referersReward1) public {
+    function afterDraw(IFrogReferal.ReferersRewardInfo[] memory data, uint referersReward0, uint referersReward1, uint referersRewardCake) public {
         uint balance0 = IERC20(token0).balanceOf(address(this)) - rewardFromPrevDrawToken0;
         uint balance1 = IERC20(token1).balanceOf(address(this)) - rewardFromPrevDrawToken1;
+        console.log("afterDraw cake prev", IERC20(CAKE).balanceOf(address(this)), rewardFromPrevDrawCake);
+        uint balanceCake = IERC20(CAKE).balanceOf(address(this)) - rewardFromPrevDrawCake;
+
         IFrogReferal(frogReferalAddress).accrueRewardFromWinningReferral(data, token0, token1);
+
+
         IERC20(token0).transfer(frogReferalAddress, referersReward0);
         IERC20(token1).transfer(frogReferalAddress, referersReward1);
+        IERC20(CAKE).transfer(frogReferalAddress, referersRewardCake);
+        console.log(balance0);
+        console.log(balance1);
+        console.log(balanceCake);
+
+        console.log(referersReward0);
+        console.log(referersReward1);
+        console.log(referersRewardCake);
+        
+
+
+        console.log(1);
         IERC20(token0).transfer(beneficiary, balance0 - referersReward0);
+        console.log(1);
         IERC20(token1).transfer(beneficiary, balance1 - referersReward1);
+        console.log(1);
+        IERC20(CAKE).transfer(beneficiary, balanceCake - referersRewardCake);
+        console.log(1);
     }
 
     function getRandomParticipantForSponsor() public view returns(address[] memory, uint[] memory) {

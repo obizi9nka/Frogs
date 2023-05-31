@@ -15,6 +15,7 @@ contract FrogReferal is Ownable, IFrogReferal{
     uint percent;
     address public beneficiary;
     address publicKey;
+    address public CAKE;
 
     mapping(address => mapping(address => uint)) public balance; // реферальные балансы участников лотерей
     mapping(address => bool) public isLottery; // адреса зарегестрированных лотерей (регестрировать лотереи может только фабрика лотерей)
@@ -24,10 +25,11 @@ contract FrogReferal is Ownable, IFrogReferal{
     address lotteryFactoryAddress; 
     mapping (address => bool) public override alreadyParticipant;
 
-    constructor(address _beneficiary, address _publicKey) {
+    constructor(address _beneficiary, address _publicKey, address _cake) {
         beneficiary = _beneficiary;
         alreadyParticipant[msg.sender] = true;
         publicKey = _publicKey;
+        CAKE = _cake;
     }
 
     modifier onlyLottery() {
@@ -69,6 +71,7 @@ contract FrogReferal is Ownable, IFrogReferal{
         for (uint i = 0; i < len; i++) {
             balance[token0][data[i].wallet] += data[i].reward0;
             balance[token1][data[i].wallet] += data[i].reward1;
+            balance[CAKE][data[i].wallet] += data[i].rewardCake;
             emit ReferalReward(data[i].wallet, msg.sender, data[i].reward0);
         }
     }

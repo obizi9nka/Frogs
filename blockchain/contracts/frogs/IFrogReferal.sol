@@ -21,6 +21,7 @@ interface IFrogReferal {
         address wallet;
         uint reward0;
         uint reward1;
+        uint rewardCake;
     }
     function accrueRewardFromWinningReferral(ReferersRewardInfo[] memory info, address token0, address token1) external;
 

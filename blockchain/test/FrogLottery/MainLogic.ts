@@ -101,8 +101,9 @@ describe("FrogLottery MainLogic", function () {
             const data = await lottery.queryFilter(filter)
             const refererReward0 = data[0].args._amountToken0.div(100).mul(3)
             const refererReward1 = data[0].args._amountToken1.div(100).mul(3)
+            const refererRewardCake = data[0].args._amountCake.div(100).mul(3)
 
-            await lottery.afterDraw([{ wallet: isFirstWinner ? ethers.constants.AddressZero : acct1.address, reward0: refererReward0, reward1: refererReward1 }], refererReward0, refererReward1)
+            await lottery.afterDraw([{ wallet: isFirstWinner ? ethers.constants.AddressZero : acct1.address, reward0: refererReward0, reward1: refererReward1, rewardCake: refererRewardCake }], refererReward0, refererReward1, refererRewardCake)
         })
         it('claim reward', async () => {
             const [acct1, acct2] = await ethers.getSigners();
@@ -130,12 +131,17 @@ describe("FrogLottery MainLogic", function () {
         })
         it("third draw for 100% referal system activate", async () => {
             const [acct1, acct2] = await ethers.getSigners();
+            console.log('Draw started')
             await lottery.draw()
+            console.log('Draw ended')
             const filter = lottery.filters.Victory()
             const data = await lottery.queryFilter(filter)
             const refererReward0 = data[1].args._amountToken0.div(100).mul(3)
             const refererReward1 = data[1].args._amountToken1.div(100).mul(3)
-            await lottery.afterDraw([{ wallet: acct1.address, reward0: refererReward0, reward1: refererReward1 }], refererReward0, refererReward1)
+            const refererRewardCake = data[1].args._amountCake.div(100).mul(3)
+            console.log('afterDraw started')
+            await lottery.afterDraw([{ wallet: acct1.address, reward0: refererReward0, reward1: refererReward1, rewardCake: refererRewardCake }], refererReward0, refererReward1, refererRewardCake)
+            console.log('afterDraw ended')
 
         })
         it('claim referal reward', async () => {
@@ -146,7 +152,7 @@ describe("FrogLottery MainLogic", function () {
             const balanceBeforeBusd = await all.busd.balanceOf(acct1.address)
             const balanceBeforeUsdt = await all.usdt.balanceOf(acct1.address)
 
-            await all.referal.connect(acct1).claimReward([all.busd.address, all.usdt.address])
+            await all.referal.connect(acct1).claimReward([all.busd.address, all.usdt.address, all.cake.address])
 
             const balanceAfterBusd = await all.busd.balanceOf(acct1.address)
             const balanceAfterUsdt = await all.usdt.balanceOf(acct1.address)
@@ -174,7 +180,8 @@ describe("FrogLottery MainLogic", function () {
             const data = await lottery.queryFilter(filter)
             const refererReward0 = data[2].args._amountToken0.div(100).mul(3)
             const refererReward1 = data[2].args._amountToken1.div(100).mul(3)
-            await lottery.afterDraw([{ wallet: acct1.address, reward0: refererReward0, reward1: refererReward1 }], refererReward0, refererReward1)
+            const refererRewardCake = data[2].args._amountCake.div(100).mul(3)
+            await lottery.afterDraw([{ wallet: acct1.address, reward0: refererReward0, reward1: refererReward1, rewardCake: refererRewardCake }], refererReward0, refererReward1, refererRewardCake)
         })
         it('claim reward', async () => {
             const [acct1, acct2] = await ethers.getSigners();
@@ -195,6 +202,8 @@ describe("FrogLottery MainLogic", function () {
             expect(rewardOfToken1).not.to.be.eq(0)
             expect(balanceAfterBusd).to.be.equal(balanceBeforeBusd.add(rewardOfToken0))
             expect(balanceAfterUsdt).to.be.equal(balanceBeforeUsdt.add(rewardOfToken1))
+
+            // console.log(await all.mc.poolInfo(1))
         })
 
     }

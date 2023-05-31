@@ -6,7 +6,9 @@
   "scripts": {
     "first": "npx ts-node scripts/createFirstUser.ts",
     "listener": "npx ts-node scripts/createUsersForListenerTest.ts",
-    "ref": "npx ts-node scripts/createUsersForReferalSystemTest.ts"
+    "ref": "npx ts-node scripts/createUsersForReferalSystemTest.ts",
+    "start": "npx ts-node index.ts",
+    "dev": "npx nodemon index.ts"
   },
   "author": "",
   "license": "ISC",

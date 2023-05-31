@@ -7,7 +7,7 @@ interface IFrog {
         address token1; 
         uint24 poolFee;
         address frogReferalAddress; 
-        bool isEthLottery; 
+        bool isEthLottery;
         address beneficiary; 
         address pool; 
         address nonfungiblePositionManager; 
@@ -16,6 +16,7 @@ interface IFrog {
         address stable;
         bool isReversed;
         address masterChef;
+        address cake;
     }
 
 }

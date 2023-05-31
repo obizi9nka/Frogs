@@ -141,10 +141,13 @@
                 <h3>Total Farm: {{ frog.farmTotal }}</h3>
               </div>
               <div>
-                <h3>Your Reward: {{ frog.user.rewardOfToken0 }}</h3>
+                <h3>Your Reward0: {{ frog.user.rewardOfToken0 }}</h3>
               </div>
               <div>
-                <h3>Your Reward: {{ frog.user.rewardOfToken1 }}</h3>
+                <h3>Your Reward1: {{ frog.user.rewardOfToken1 }}</h3>
+              </div>
+              <div>
+                <h3>Your RewardCake: {{ frog.user.rewardOfCake }}</h3>
               </div>
               <div>
                 <h3>Your Referer: {{ frog.referalInfo.referer }}</h3>
@@ -157,6 +160,9 @@
               </div>
               <div>
                 <h3>Your Referal Reward1: {{ frog.user.referalReward1 }}</h3>
+              </div>
+              <div>
+                <h3>Your Referal RewardCake: {{ frog.user.referalRewardCake }}</h3>
               </div>
               <div>
                 <h3>Now In Lottery: {{ frog.nowIn }}</h3>
@@ -217,6 +223,7 @@
               <th>LP</th>
               <th>rewardOfToken0</th>
               <th>rewardOfToken1</th>
+              <th>rewardOfCake</th>
             </thead>
             <tbody>
               <tr v-for="participant in frog.participants">
@@ -224,6 +231,7 @@
                 <td>{{ participant.balance }}</td>
                 <td>{{ participant.rewardOfToken0 }}</td>
                 <td>{{ participant.rewardOfToken1 }}</td>
+                <td>{{ participant.rewardOfCake }}</td>
               </tr>
             </tbody>
           </table>
@@ -236,6 +244,7 @@
               <th>Winner</th>
               <th>Amount0</th>
               <th>Amount1</th>
+              <th>AmountCake</th>
             </thead>
             <tbody>
               <tr v-for="victory in frog.victories">
@@ -243,6 +252,7 @@
                 <td>{{ victory.winner }}</td>
                 <td>{{ victory.amount0 }}</td>
                 <td>{{ victory.amount1 }}</td>
+                <td>{{ victory.amountCake }}</td>
               </tr>
             </tbody>
           </table>
@@ -254,16 +264,20 @@
               <th>#</th>
               <th>RewardToken0</th>
               <th>RewardToken1</th>
+              <th>RewardCake</th>
               <th>Prticipants0</th>
               <th>Prticipants1</th>
+              <th>PrticipantsCake</th>
             </thead>
             <tbody>
               <tr v-for="draw in frog.draws">
                 <td>{{ draw.number }}</td>
                 <td>{{ draw.rewardToken0 }}</td>
                 <td>{{ draw.rewardToken1 }}</td>
+                <td>{{ draw.rewardTokenCake }}</td>
                 <td>{{ draw.prticipantsRewardToken0 }}</td>
                 <td>{{ draw.prticipantsRewardToken1 }}</td>
+                <td>{{ draw.prticipantsRewardCake }}</td>
               </tr>
             </tbody>
           </table>
@@ -288,21 +302,21 @@ import JSBI from "jsbi"
 
 
 
-// import bnbAbi from '../../../blockchain/artifacts/contracts/frogs/ERC20.sol/ERC20Token.json'
-// import lotteryAbi from '../../../blockchain/artifacts/contracts/frogs/FrogLottery.sol/FrogLottery.json'
-// import factoryAbi from '../../../blockchain/artifacts/contracts/frogs/FrogFactory.sol/FrogFactory.json'
-// import referalAbi from "../../../blockchain/artifacts/contracts/frogs/FrogReferal.sol/FrogReferal.json"
-// import PoolAbi from "../../../blockchain/artifacts/contracts/core/UniswapV3Pool.sol/UniswapV3Pool.json"
-// import PositionManager from "../../../blockchain/artifacts/contracts/periphery/NonfungiblePositionManager.sol/NonfungiblePositionManager.json"
-// import Router from "../../../blockchain/artifacts/contracts/periphery/SwapRouter.sol/SwapRouter.json"
+import bnbAbi from '../../../blockchain/artifacts/contracts/frogs/ERC20.sol/ERC20Token.json'
+import lotteryAbi from '../../../blockchain/artifacts/contracts/frogs/FrogLottery.sol/FrogLottery.json'
+import factoryAbi from '../../../blockchain/artifacts/contracts/frogs/FrogFactory.sol/FrogFactory.json'
+import referalAbi from "../../../blockchain/artifacts/contracts/frogs/FrogReferal.sol/FrogReferal.json"
+import PoolAbi from "../../../blockchain/artifacts/contracts/v3-core/PancakeV3Pool.sol/PancakeV3Pool.json"
+import PositionManager from "../../../blockchain/artifacts/contracts/v3-periphery/NonfungiblePositionManager.sol/NonfungiblePositionManager.json"
+import Router from "../../../blockchain/artifacts/contracts/v3-periphery/SwapRouter.sol/SwapRouter.json"
 
-import bnbAbi from '../../contracts/frogs/ERC20.sol/ERC20Token.json'
-import lotteryAbi from '../../contracts/frogs/FrogLottery.sol/FrogLottery.json'
-import factoryAbi from '../../contracts/frogs/FrogFactory.sol/FrogFactory.json'
-import referalAbi from "../../contracts/frogs/FrogReferal.sol/FrogReferal.json"
-import PoolAbi from "../../contracts/core/UniswapV3Pool.sol/UniswapV3Pool.json"
-import PositionManager from "../../contracts/periphery/NonfungiblePositionManager.sol/NonfungiblePositionManager.json"
-import Router from "../../contracts/periphery/SwapRouter.sol/SwapRouter.json"
+// import bnbAbi from '../../contracts/frogs/ERC20.sol/ERC20Token.json'
+// import lotteryAbi from '../../contracts/frogs/FrogLottery.sol/FrogLottery.json'
+// import factoryAbi from '../../contracts/frogs/FrogFactory.sol/FrogFactory.json'
+// import referalAbi from "../../contracts/frogs/FrogReferal.sol/FrogReferal.json"
+// import PoolAbi from "../../contracts/core/UniswapV3Pool.sol/UniswapV3Pool.json"
+// import PositionManager from "../../contracts/periphery/NonfungiblePositionManager.sol/NonfungiblePositionManager.json"
+// import Router from "../../contracts/periphery/SwapRouter.sol/SwapRouter.json"
 import BigNumber from 'bignumber.js';
 
 
@@ -357,8 +371,10 @@ export default {
           withdraw: 0,
           rewardOfToken0: 0,
           rewardOfToken1: 0,
+          rewardOfCake: 0,
           referalReward0: 0,
-          referalReward1: 0
+          referalReward1: 0,
+          referalRewardCake: 0
         },
         referalInfo:
         {
@@ -381,6 +397,8 @@ export default {
         token0: constants.addresses[prefix + 'BUSD'],
         token1: constants.addresses[prefix + 'USDT'],
         stable: constants.addresses[prefix + 'USDC'],
+        cake: constants.addresses[prefix + 'CAKE'],
+        wbnb: constants.addresses[prefix + 'CAKE'],
         pool_token0_stable: constants.addresses[prefix + 'Pool_busd_usdc'],
         pool_token1_stable: constants.addresses[prefix + 'Pool_usdt_usdc'],
         pool_token0_token1: constants.addresses[prefix + 'Pool_busd_usdt'],
@@ -602,6 +620,11 @@ export default {
             this.frog.user.rewardOfToken1 = parseFloat(web3.utils.fromWei(balance))
           })
 
+        frog.methods.rewardOfCake(this.$store.state.account).call()
+          .then(balance => {
+            this.frog.user.rewardOfCake = parseFloat(web3.utils.fromWei(balance))
+          })
+
         const BUSD = new web3.eth.Contract(ERC20TokenABI, this.addresses.token0)
 
         await BUSD.methods.balanceOf(this.addresses.frogLottery).call()
@@ -617,13 +640,15 @@ export default {
         const FrogReferal = new web3.eth.Contract(FrogReferalABI, this.addresses.frogReferal)
         await FrogReferal.methods.balance(await frog.methods.token0().call(), this.$store.state.account).call()
           .then(balance => {
-            console.log("referal balance0", balance)
             this.frog.user.referalReward0 = parseFloat(web3.utils.fromWei(balance))
           })
         await FrogReferal.methods.balance(await frog.methods.token1().call(), this.$store.state.account).call()
           .then(balance => {
-            console.log("referal balance1", balance)
             this.frog.user.referalReward1 = parseFloat(web3.utils.fromWei(balance))
+          })
+        await FrogReferal.methods.balance(this.addresses.cake, this.$store.state.account).call()
+          .then(balance => {
+            this.frog.user.referalRewardCake = parseFloat(web3.utils.fromWei(balance))
           })
 
       }
@@ -658,6 +683,7 @@ export default {
           balance: web3.utils.fromWei(await FrogContract.methods.balanceOf(_participant).call()),
           rewardOfToken0: web3.utils.fromWei(await FrogContract.methods.rewardOfToken0(_participant).call()),
           rewardOfToken1: web3.utils.fromWei(await FrogContract.methods.rewardOfToken1(_participant).call()),
+          rewardOfCake: web3.utils.fromWei(await FrogContract.methods.rewardOfCake(_participant).call()),
         }
         _participants.push(participant)
       }
@@ -674,12 +700,14 @@ export default {
 
         const amount0 = web3.utils.fromWei(data._amountToken0.toString())
         const amount1 = web3.utils.fromWei(data._amountToken1.toString())
+        const amountCake = web3.utils.fromWei(data._amountCake.toString())
 
         const victory = {
           drawNumber: data._drawNumber.toString(),
           winner: data._winner.toString(),
           amount0,
-          amount1
+          amount1,
+          amountCake
         }
         _victories.push(victory)
       }
@@ -696,15 +724,19 @@ export default {
 
         const rewardToken0 = web3.utils.fromWei(data._rewardToken0.toString())
         const rewardToken1 = web3.utils.fromWei(data._rewardToken1.toString())
-        const prticipantsRewardToken0 = web3.utils.fromWei(data._prticipantsRewardToken0.toString())
-        const prticipantsRewardToken1 = web3.utils.fromWei(data._prticipantsRewardToken1.toString())
+        const rewardTokenCake = web3.utils.fromWei(data._rewardCake.toString())
+        const prticipantsRewardToken0 = web3.utils.fromWei(data._participantsRewardToken0.toString())
+        const prticipantsRewardToken1 = web3.utils.fromWei(data._participantsRewardToken1.toString())
+        const prticipantsRewardCake = web3.utils.fromWei(data._participantsRewardCake.toString())
 
         const draw = {
           number: data._drawNumber.toString(),
           rewardToken0,
           rewardToken1,
+          rewardTokenCake,
           prticipantsRewardToken0,
-          prticipantsRewardToken1
+          prticipantsRewardToken1,
+          prticipantsRewardCake
         }
         _draws.push(draw)
       }
@@ -1179,7 +1211,7 @@ export default {
     async claimReferalReward() {
       const web3 = new Web3(window.ethereum)
       const FrogReferal = new web3.eth.Contract(FrogReferalABI, this.addresses.frogReferal)
-      await FrogReferal.methods.claimReward([this.addresses.token0, this.addresses.token1])
+      await FrogReferal.methods.claimReward([this.addresses.token0, this.addresses.token1, this.addresses.cake])
         .send({
           from: this.$store.state.account
         })

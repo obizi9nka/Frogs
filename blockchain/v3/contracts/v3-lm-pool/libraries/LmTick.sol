@@ -7,6 +7,8 @@ import '@pancakeswap/v3-core/contracts/libraries/SafeCast.sol';
 import '@pancakeswap/v3-core/contracts/libraries/TickMath.sol';
 import '@pancakeswap/v3-core/contracts/libraries/LiquidityMath.sol';
 
+import 'hardhat/console.sol';
+
 /// @title LmTick
 /// @notice Contains functions for managing tick processes and relevant calculations
 library LmTick {
@@ -45,19 +47,28 @@ library LmTick {
         uint256 rewardGrowthBelowX128;
         if (tickCurrent >= tickLower) {
             rewardGrowthBelowX128 = lower.rewardGrowthOutsideX128;
+            console.log('lmtick lower.rewardGrowthOutsideX128', lower.rewardGrowthOutsideX128);
         } else {
             rewardGrowthBelowX128 = rewardGrowthGlobalX128 - lower.rewardGrowthOutsideX128;
+            console.log('lmtick rewardGrowthGlobalX128 - lower.rewardGrowthOutsideX128', rewardGrowthGlobalX128, lower.rewardGrowthOutsideX128);
         }
+
+        console.log('lmtick rewardGrowthBelowX128', rewardGrowthBelowX128);
 
         // calculate reward growth above
         uint256 rewardGrowthAboveX128;
         if (tickCurrent < tickUpper) {
             rewardGrowthAboveX128 = upper.rewardGrowthOutsideX128;
+            console.log('lmtick upper.rewardGrowthOutsideX128', upper.rewardGrowthOutsideX128);
         } else {
             rewardGrowthAboveX128 = rewardGrowthGlobalX128 - upper.rewardGrowthOutsideX128;
+            console.log('lmtick rewardGrowthGlobalX128 - upper.rewardGrowthOutsideX128', rewardGrowthGlobalX128, upper.rewardGrowthOutsideX128);
         }
+        console.log('lmtick rewardGrowthAboveX128', rewardGrowthAboveX128);
 
         rewardGrowthInsideX128 = rewardGrowthGlobalX128 - rewardGrowthBelowX128 - rewardGrowthAboveX128;
+        console.log('lmtick rewardGrowthInsideX128', rewardGrowthInsideX128);
+
     }
 
     /// @notice Updates a tick and returns true if the tick was flipped from initialized to uninitialized, or vice versa

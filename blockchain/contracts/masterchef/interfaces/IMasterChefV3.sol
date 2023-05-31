@@ -14,6 +14,9 @@ interface IMasterChefV3{
 
     function withdraw(uint256 _tokenId, address _to) external returns (uint256 reward);
 
+    function updateLiquidity(uint256 _tokenId) external;
+
+
     // function increaseLiquidity(INonfungiblePositionManager.IncreaseLiquidityParams memory params) external payable returns (uint128 liquidity, uint256 amount0, uint256 amount1);
 
     // function decreaseLiquidity(INonfungiblePositionManager.DecreaseLiquidityParams memory params) external returns (uint256 amount0, uint256 amount1);

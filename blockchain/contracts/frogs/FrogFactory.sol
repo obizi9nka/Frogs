@@ -23,16 +23,18 @@ contract FrogFactory {
     address pancakeFactory;
     address swapRouter;
     address WETH;
+    address CAKE;
     address frogSponsorFactory;
     address masterChef;
 
-    constructor(address _FrogReferalAddress, address _WETH, address _pancakeFactory, address _beneficiary, address _swapRouter, address _masterChef) {
+    constructor(address _FrogReferalAddress, address _WETH, address _pancakeFactory, address _beneficiary, address _swapRouter, address _masterChef, address _cake) {
         WETH = _WETH;
         pancakeFactory = _pancakeFactory;
         frogReferalAddress = _FrogReferalAddress;
         beneficiary = _beneficiary;
         swapRouter = _swapRouter;
         masterChef = _masterChef;
+        CAKE = _cake;
     }
 
     function setSponsorFactoryAddress(address _frogSponsorFactory) public{
@@ -61,7 +63,8 @@ contract FrogFactory {
             pancakeFactory: pancakeFactory, 
             stable: stable,
             isReversed: !(tokenA < tokenB),
-            masterChef: masterChef
+            masterChef: masterChef,
+            cake: CAKE
         });
 
         address newLottery = deploy(params);

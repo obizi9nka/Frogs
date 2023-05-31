@@ -12,6 +12,8 @@ import './libraries/LmTick.sol';
 import './interfaces/IPancakeV3LmPool.sol';
 import './interfaces/IMasterChefV3.sol';
 
+import 'hardhat/console.sol';
+
 contract PancakeV3LmPool is IPancakeV3LmPool {
   using LowGasSafeMath for uint256;
   using LowGasSafeMath for int256;
@@ -133,6 +135,7 @@ contract PancakeV3LmPool is IPancakeV3LmPool {
 
   function getRewardGrowthInside(int24 tickLower, int24 tickUpper) external view returns (uint256 rewardGrowthInsideX128) {
     (, int24 tick, , , , ,) = pool.slot0();
+    console.log("lmPool tick",uint(int(tick)));
     return lmTicks.getRewardGrowthInside(tickLower, tickUpper, tick, rewardGrowthGlobalX128);
   }
 }

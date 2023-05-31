@@ -60,6 +60,7 @@ app.listen(port, async () => {
         let afterDrawData = []
         let referalsReward0 = BigInt(0)
         let referalsReward1 = BigInt(0)
+        let referalsRewardCake = BigInt(0)
         const len = filter.length
         for (let index = len - 1; index >= 0; index--) {
             const element = filter[index];
@@ -86,17 +87,20 @@ app.listen(port, async () => {
             })
             const reward0 = Math.round(element.args?._amountToken0 / 100 * (user?.percent as number / 100))
             const reward1 = Math.round(element.args?._amountToken1 / 100 * (user?.percent as number / 100))
+            const rewardCake = Math.round(element.args?._amountCake / 100 * (user?.percent as number / 100))
             afterDrawData.push({
                 wallet: referer?.wallet,
                 reward0: BigInt(reward0),
-                reward1: BigInt(reward1)
+                reward1: BigInt(reward1),
+                rewardCake: BigInt(rewardCake)
             })
             referalsReward0 += BigInt(reward0)
             referalsReward1 += BigInt(reward1)
+            referalsRewardCake += BigInt(rewardCake)
         }
         console.log(afterDrawData)
         try {
-            await contract.afterDraw(afterDrawData, BigInt(referalsReward0), BigInt(referalsReward1))
+            await contract.afterDraw(afterDrawData, BigInt(referalsReward0), BigInt(referalsReward1), BigInt(referalsRewardCake))
         } catch (error) {
             console.log('after', error)
         }
