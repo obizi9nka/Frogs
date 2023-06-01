@@ -1,15 +1,16 @@
+const utils = require("./main");
+import secret from "../secrets.json"
+
 import hre from "hardhat";
 import { ethers } from 'hardhat';
 import json from "../artifacts/contracts/frogs/FrogLottery.sol/FrogLottery.json";
-import jsonPool from "../artifacts/contracts/core/UniswapV3Pool.sol/UniswapV3Pool.json"
-import { ERC20Token, FrogFactory, FrogLottery, FrogReferal, TBnb } from "../typechain-types";
-const utils = require("./main");
-import { allContractsFromDeploy } from "../@types";
-import { NonfungiblePositionManager, SwapRouter, UniswapV3Factory, UniswapV3Pool } from "../v3/typechain-types";
-import { BigNumber } from "ethers";
-import secret from "../secrets.json"
+import jsonPool from "../artifacts/contracts/v3-core/PancakeV3Pool.sol/PancakeV3Pool.json"
+import { ERC20Token, FrogFactory, FrogLottery, FrogReferal, MasterChefV3, TBnb, TCake } from "../typechain-types";
+import { NonfungiblePositionManager, SwapRouter, PancakeV3Factory, PancakeV3Pool, FrogSponsorFactory, PancakeV3LmPoolDeployer, PancakeV3PoolDeployer } from "../v3/typechain-types";
 import BN from 'bignumber.js'
 
+import _config from "../scripts/json/constants.json"
+const config = _config as any
 const prefix = 'sepolia_'
 
 const fee = 500;
@@ -46,28 +47,45 @@ export async function main() {
   //        BNB
   // ==================
   const BNB = await hre.ethers.getContractFactory('TBnb');
-  const bnb = await BNB.deploy() as TBnb;
+  const wbnb = await BNB.deploy() as TBnb;
 
-  await bnb.deployed();
+  await wbnb.deployed();
   console.log(1)
+
+  // ==================
+  //        CAKE
+  // ==================
+  const CAKE = await hre.ethers.getContractFactory('ERC20Token');
+  const cake = await CAKE.deploy('CAKE', 'cake') as ERC20Token;
+
+  await cake.deployed();
 
   // ==================
   //     FrogReferal
   // ==================
   const Referal = await hre.ethers.getContractFactory('FrogReferal');
-  const referal = await Referal.deploy(acct1.address, acct1.address) as FrogReferal;
+  const referal = await Referal.deploy(acct1.address, config[prefix + 'addressOfPrivateKey'], cake.address) as FrogReferal;
 
   await referal.deployed();
   console.log(1)
 
   // ==================
+  //   UniswapV3PoolDeployer
+  // ==================
+  const PancakeV3PoolDeployerr = await hre.ethers.getContractFactory('PancakeV3PoolDeployer');
+  const pancakeV3PoolDeployer = await PancakeV3PoolDeployerr.deploy() as PancakeV3PoolDeployer;
+  await pancakeV3PoolDeployer.deployed();
+
+
+  // ==================
   //   PancakeFactory
   // ==================
-  const PancakeFactory = await hre.ethers.getContractFactory('UniswapV3Factory');
-  const pancakeFactory = await PancakeFactory.deploy() as UniswapV3Factory;
+  const PancakeFactory = await hre.ethers.getContractFactory('PancakeV3Factory');
+  const pancakeFactory = await PancakeFactory.deploy(pancakeV3PoolDeployer.address) as PancakeV3Factory;
 
   await pancakeFactory.deployed();
   console.log(1)
+  await pancakeV3PoolDeployer.setFactoryAddress(pancakeFactory.address)
 
   // const tx = 
   // await tx.wait()
@@ -75,9 +93,9 @@ export async function main() {
   await executeFunc(pancakeFactory.createPool(busd.address, usdc.address, fee))
   await executeFunc(pancakeFactory.createPool(usdt.address, usdc.address, fee))
 
-  const pool_busd_usdt = new ethers.Contract(await pancakeFactory.getPool(busd.address, usdt.address, fee), jsonPool.abi, acct1) as UniswapV3Pool
-  const pool_busd_usdc = new ethers.Contract(await pancakeFactory.getPool(busd.address, usdc.address, fee), jsonPool.abi, acct1) as UniswapV3Pool
-  const pool_usdt_usdc = new ethers.Contract(await pancakeFactory.getPool(usdt.address, usdc.address, fee), jsonPool.abi, acct1) as UniswapV3Pool
+  const pool_busd_usdt = new ethers.Contract(await pancakeFactory.getPool(busd.address, usdt.address, fee), jsonPool.abi, acct1) as PancakeV3Pool
+  const pool_busd_usdc = new ethers.Contract(await pancakeFactory.getPool(busd.address, usdc.address, fee), jsonPool.abi, acct1) as PancakeV3Pool
+  const pool_usdt_usdc = new ethers.Contract(await pancakeFactory.getPool(usdt.address, usdc.address, fee), jsonPool.abi, acct1) as PancakeV3Pool
 
   function encodePriceSqrt(reserve1: any, reserve0: any): BN {
     const t = new BN(reserve1)
@@ -116,7 +134,7 @@ export async function main() {
   //  NonfungiblePositionManager
   // ==================
   const NonfungiblePositionManager = await hre.ethers.getContractFactory('NonfungiblePositionManager');
-  const nonfungiblePositionManager = await NonfungiblePositionManager.deploy(pancakeFactory.address, ethers.constants.AddressZero, ethers.constants.AddressZero) as NonfungiblePositionManager;
+  const nonfungiblePositionManager = await NonfungiblePositionManager.deploy(pancakeV3PoolDeployer.address, pancakeFactory.address, wbnb.address, ethers.constants.AddressZero) as NonfungiblePositionManager;
 
   await nonfungiblePositionManager.deployed();
   console.log(1)
@@ -125,19 +143,44 @@ export async function main() {
   //       Router
   // ==================
   const SwapRouter = await hre.ethers.getContractFactory('SwapRouter');
-  const router = await SwapRouter.deploy(pancakeFactory.address, bnb.address) as SwapRouter
+  const router = await SwapRouter.deploy(pancakeV3PoolDeployer.address, pancakeFactory.address, wbnb.address) as SwapRouter
   await router.deployed();
   console.log(1)
 
+
   // ==================
-  //       FrogFactory
+  //     MasterChef
+  // ==================
+  const MasterChef = await hre.ethers.getContractFactory('MasterChefV3')
+  const mc = await MasterChef.deploy(cake.address, nonfungiblePositionManager.address, wbnb.address) as MasterChefV3
+  await mc.deployed();
+
+
+  // ==================
+  //   LMPoolDeployer
+  // ==================
+  const PancakeV3LmPoolDeployerr = await hre.ethers.getContractFactory('PancakeV3LmPoolDeployer')
+  const LMPoolDeployer = await PancakeV3LmPoolDeployerr.deploy(mc.address) as PancakeV3LmPoolDeployer
+  await LMPoolDeployer.deployed();
+
+  await pancakeFactory.setLmPoolDeployer(LMPoolDeployer.address)
+  await mc.setLMPoolDeployer(LMPoolDeployer.address);
+  await mc.add(1780, pool_busd_usdt.address, false);
+
+  const tokenCakeAmount = BigInt(1e23)
+
+  await cake.getTokens(tokenCakeAmount)
+  await cake.approve(mc.address, ethers.constants.MaxUint256)
+  await mc.setReceiver(acct1.address)
+  await mc.upkeep(tokenCakeAmount, 60 * 60 * 24 * 365, true)
+
+  // ==================
+  //    FrogFactory
   // ==================
   const FrogFactory = await hre.ethers.getContractFactory('FrogFactory');
-  const factory = await FrogFactory.deploy(referal.address, ethers.constants.AddressZero, pancakeFactory.address, acct1.address, router.address) as FrogFactory;
+  const factory = await FrogFactory.deploy(referal.address, ethers.constants.AddressZero, pancakeFactory.address, acct1.address, router.address, mc.address, cake.address) as FrogFactory;
 
   await factory.deployed();
-  console.log(1)
-
 
   executeFunc(await referal.setFactoryAddress(factory.address))
   const TOKENS_VALUE_20 = BigInt(10 ** 35)
@@ -176,8 +219,8 @@ export async function main() {
     fee,
     tickLower,
     tickUpper,
-    amount0Desired: BigInt(10 ** 31),
-    amount1Desired: BigInt(10 ** 31),
+    amount0Desired: BigInt(1e30 - 1e29),
+    amount1Desired: BigInt(1e30 - 1e29),
     amount0Min: 1,
     amount1Min: 1,
     recipient: acct1.address,
@@ -191,8 +234,8 @@ export async function main() {
     fee,
     tickLower: _tickLower,
     tickUpper: _tickUpper,
-    amount0Desired: BigInt(10 ** 31),
-    amount1Desired: BigInt(10 ** 31),
+    amount0Desired: BigInt(1e30 - 1e29),
+    amount1Desired: BigInt(1e30 - 1e29),
     amount0Min: 1,
     amount1Min: 1,
     recipient: acct1.address,
@@ -205,8 +248,8 @@ export async function main() {
     fee,
     tickLower: __tickLower,
     tickUpper: __tickUpper,
-    amount0Desired: BigInt(10 ** 31),
-    amount1Desired: BigInt(10 ** 31),
+    amount0Desired: BigInt(1e30 - 1e29),
+    amount1Desired: BigInt(1e30 - 1e29),
     amount0Min: 1,
     amount1Min: 1,
     recipient: acct1.address,
@@ -250,7 +293,7 @@ export async function main() {
   await utils.saveAddress(prefix + "FrogFactory", factory.address)
   await utils.saveAddress(prefix + "Lottery_busd_usdt", lottery_busd_usdt.address)
 
-  return ({ usdc, usdt, busd, pool_busd_usdt, lottery_busd_usdt, SwapRouter, pancakeFactory, router, nonfungiblePositionManager, factory, referal, fee })
+  return ({ usdc, usdt, busd, cake, wbnb, pool_busd_usdt, pool_busd_usdc, pool_usdt_usdc, lottery_busd_usdt, pancakeFactory, router, nonfungiblePositionManager, factory, pancakeV3PoolDeployer, referal, fee, mc })
 }
 
 const executeFunc = async (func: any) => {
