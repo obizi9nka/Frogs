@@ -17,7 +17,7 @@ const fee = 500;
 
 export async function main() {
   console.log('deploy testnet')
-  const acct1 = new ethers.Wallet(secret.PRIVATE_KEY_1, new ethers.providers.InfuraProvider('sepolia', 'e896ad4f86a749038fe8e1de62a9b540'))
+  const acct1 = new ethers.Wallet(secret.PRIVATE_KEY_1, new ethers.providers.EtherscanProvider('sepolia', 'YQADQIC7H32XZ5KA99PDAJPXGBGAGCYWSQ'))
   // ==================
   //        USDC
   // ==================
@@ -163,16 +163,16 @@ export async function main() {
   const LMPoolDeployer = await PancakeV3LmPoolDeployerr.deploy(mc.address) as PancakeV3LmPoolDeployer
   await LMPoolDeployer.deployed();
 
-  await pancakeFactory.setLmPoolDeployer(LMPoolDeployer.address)
-  await mc.setLMPoolDeployer(LMPoolDeployer.address);
-  await mc.add(1780, pool_busd_usdt.address, false);
+  await executeFunc(pancakeFactory.setLmPoolDeployer(LMPoolDeployer.address))
+  await executeFunc(mc.setLMPoolDeployer(LMPoolDeployer.address))
+  await executeFunc(mc.add(1780, pool_busd_usdt.address, false))
 
   const tokenCakeAmount = BigInt(1e23)
 
-  await cake.getTokens(tokenCakeAmount)
-  await cake.approve(mc.address, ethers.constants.MaxUint256)
-  await mc.setReceiver(acct1.address)
-  await mc.upkeep(tokenCakeAmount, 60 * 60 * 24 * 365, true)
+  await executeFunc(cake.getTokens(tokenCakeAmount))
+  await executeFunc(cake.approve(mc.address, ethers.constants.MaxUint256))
+  await executeFunc(mc.setReceiver(acct1.address))
+  await executeFunc(mc.upkeep(tokenCakeAmount, 60 * 60 * 24 * 365, true))
 
   // ==================
   //    FrogFactory

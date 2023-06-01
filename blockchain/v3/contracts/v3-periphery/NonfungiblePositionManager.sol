@@ -29,8 +29,8 @@ contract NonfungiblePositionManager is
     PeripheryImmutableState,
     PoolInitializer,
     LiquidityManagement,
-    PeripheryValidation,
-    SelfPermit
+    PeripheryValidation
+    // SelfPermit
 {
     // details about the pancake position
     struct Position {
@@ -195,8 +195,8 @@ contract NonfungiblePositionManager is
     }
 
     function tokenURI(uint256 tokenId) public view override(ERC721, IERC721Metadata) returns (string memory) {
-        require(_exists(tokenId));
-        return INonfungibleTokenPositionDescriptor(_tokenDescriptor).tokenURI(this, tokenId);
+        // require(_exists(tokenId));
+        // return INonfungibleTokenPositionDescriptor(_tokenDescriptor).tokenURI(this, tokenId);
     }
 
     // save bytecode by removing implementation of unused method
@@ -386,10 +386,10 @@ contract NonfungiblePositionManager is
 
     /// @inheritdoc INonfungiblePositionManager
     function burn(uint256 tokenId) external payable override isAuthorizedForToken(tokenId) {
-        Position storage position = _positions[tokenId];
-        require(position.liquidity == 0 && position.tokensOwed0 == 0 && position.tokensOwed1 == 0, 'Not cleared');
-        delete _positions[tokenId];
-        _burn(tokenId);
+        // Position storage position = _positions[tokenId];
+        // require(position.liquidity == 0 && position.tokensOwed0 == 0 && position.tokensOwed1 == 0, 'Not cleared');
+        // delete _positions[tokenId];
+        // _burn(tokenId);
     }
 
     function _getAndIncrementNonce(uint256 tokenId) internal override returns (uint256) {

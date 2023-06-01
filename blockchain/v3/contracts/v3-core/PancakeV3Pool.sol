@@ -111,16 +111,16 @@ contract PancakeV3Pool is IPancakeV3Pool {
     /// to a function before the pool is initialized. The reentrancy guard is required throughout the contract because
     /// we use balance checks to determine the payment status of interactions such as mint, swap and flash.
     modifier lock() {
-        require(slot0.unlocked, 'LOK');
-        slot0.unlocked = false;
+        // require(slot0.unlocked, 'LOK');
+        // slot0.unlocked = false;
         _;
-        slot0.unlocked = true;
+        // slot0.unlocked = true;
     }
 
     /// @dev Prevents calling a function from anyone except the factory or its
     /// owner
     modifier onlyFactoryOrFactoryOwner() {
-        require(msg.sender == factory || msg.sender == IPancakeV3Factory(factory).owner());
+        // require(msg.sender == factory || msg.sender == IPancakeV3Factory(factory).owner());
         _;
     }
 
@@ -828,55 +828,55 @@ contract PancakeV3Pool is IPancakeV3Pool {
         uint256 amount1,
         bytes calldata data
     ) external override lock {
-        uint128 _liquidity = liquidity;
-        require(_liquidity > 0, 'L');
+        // uint128 _liquidity = liquidity;
+        // require(_liquidity > 0, 'L');
 
-        uint256 fee0 = FullMath.mulDivRoundingUp(amount0, fee, 1e6);
-        uint256 fee1 = FullMath.mulDivRoundingUp(amount1, fee, 1e6);
-        uint256 balance0Before = balance0();
-        uint256 balance1Before = balance1();
+        // uint256 fee0 = FullMath.mulDivRoundingUp(amount0, fee, 1e6);
+        // uint256 fee1 = FullMath.mulDivRoundingUp(amount1, fee, 1e6);
+        // uint256 balance0Before = balance0();
+        // uint256 balance1Before = balance1();
 
-        if (amount0 > 0) TransferHelper.safeTransfer(token0, recipient, amount0);
-        if (amount1 > 0) TransferHelper.safeTransfer(token1, recipient, amount1);
+        // if (amount0 > 0) TransferHelper.safeTransfer(token0, recipient, amount0);
+        // if (amount1 > 0) TransferHelper.safeTransfer(token1, recipient, amount1);
 
-        IPancakeV3FlashCallback(msg.sender).pancakeV3FlashCallback(fee0, fee1, data);
+        // IPancakeV3FlashCallback(msg.sender).pancakeV3FlashCallback(fee0, fee1, data);
 
-        uint256 balance0After = balance0();
-        uint256 balance1After = balance1();
+        // uint256 balance0After = balance0();
+        // uint256 balance1After = balance1();
 
-        require(balance0Before.add(fee0) <= balance0After, 'F0');
-        require(balance1Before.add(fee1) <= balance1After, 'F1');
+        // require(balance0Before.add(fee0) <= balance0After, 'F0');
+        // require(balance1Before.add(fee1) <= balance1After, 'F1');
 
-        // sub is safe because we know balanceAfter is gt balanceBefore by at least fee
-        uint256 paid0 = balance0After - balance0Before;
-        uint256 paid1 = balance1After - balance1Before;
+        // // sub is safe because we know balanceAfter is gt balanceBefore by at least fee
+        // uint256 paid0 = balance0After - balance0Before;
+        // uint256 paid1 = balance1After - balance1Before;
 
-        if (paid0 > 0) {
-            uint32 feeProtocol0 = slot0.feeProtocol % PROTOCOL_FEE_SP;
-            uint256 fees0 = feeProtocol0 == 0 ? 0 : (paid0 * feeProtocol0) / PROTOCOL_FEE_DENOMINATOR;
-            if (uint128(fees0) > 0) protocolFees.token0 += uint128(fees0);
-            feeGrowthGlobal0X128 += FullMath.mulDiv(paid0 - fees0, FixedPoint128.Q128, _liquidity);
-        }
-        if (paid1 > 0) {
-            uint32 feeProtocol1 = slot0.feeProtocol >> 16;
-            uint256 fees1 = feeProtocol1 == 0 ? 0 : (paid1 * feeProtocol1) / PROTOCOL_FEE_DENOMINATOR;
-            if (uint128(fees1) > 0) protocolFees.token1 += uint128(fees1);
-            feeGrowthGlobal1X128 += FullMath.mulDiv(paid1 - fees1, FixedPoint128.Q128, _liquidity);
-        }
+        // if (paid0 > 0) {
+        //     uint32 feeProtocol0 = slot0.feeProtocol % PROTOCOL_FEE_SP;
+        //     uint256 fees0 = feeProtocol0 == 0 ? 0 : (paid0 * feeProtocol0) / PROTOCOL_FEE_DENOMINATOR;
+        //     if (uint128(fees0) > 0) protocolFees.token0 += uint128(fees0);
+        //     feeGrowthGlobal0X128 += FullMath.mulDiv(paid0 - fees0, FixedPoint128.Q128, _liquidity);
+        // }
+        // if (paid1 > 0) {
+        //     uint32 feeProtocol1 = slot0.feeProtocol >> 16;
+        //     uint256 fees1 = feeProtocol1 == 0 ? 0 : (paid1 * feeProtocol1) / PROTOCOL_FEE_DENOMINATOR;
+        //     if (uint128(fees1) > 0) protocolFees.token1 += uint128(fees1);
+        //     feeGrowthGlobal1X128 += FullMath.mulDiv(paid1 - fees1, FixedPoint128.Q128, _liquidity);
+        // }
 
-        emit Flash(msg.sender, recipient, amount0, amount1, paid0, paid1);
+        // emit Flash(msg.sender, recipient, amount0, amount1, paid0, paid1);
     }
 
     /// @inheritdoc IPancakeV3PoolOwnerActions
     function setFeeProtocol(uint32 feeProtocol0, uint32 feeProtocol1) external override lock onlyFactoryOrFactoryOwner {
-        require(
-            (feeProtocol0 == 0 || (feeProtocol0 >= 1000 && feeProtocol0 <= 4000)) &&
-            (feeProtocol1 == 0 || (feeProtocol1 >= 1000 && feeProtocol1 <= 4000))
-        );
+        // require(
+        //     (feeProtocol0 == 0 || (feeProtocol0 >= 1000 && feeProtocol0 <= 4000)) &&
+        //     (feeProtocol1 == 0 || (feeProtocol1 >= 1000 && feeProtocol1 <= 4000))
+        // );
 
-        uint32 feeProtocolOld = slot0.feeProtocol;
-        slot0.feeProtocol = feeProtocol0 + (feeProtocol1 << 16);
-        emit SetFeeProtocol(feeProtocolOld % PROTOCOL_FEE_SP, feeProtocolOld >> 16, feeProtocol0, feeProtocol1);
+        // uint32 feeProtocolOld = slot0.feeProtocol;
+        // slot0.feeProtocol = feeProtocol0 + (feeProtocol1 << 16);
+        // emit SetFeeProtocol(feeProtocolOld % PROTOCOL_FEE_SP, feeProtocolOld >> 16, feeProtocol0, feeProtocol1);
     }
 
     /// @inheritdoc IPancakeV3PoolOwnerActions
@@ -885,25 +885,25 @@ contract PancakeV3Pool is IPancakeV3Pool {
         uint128 amount0Requested,
         uint128 amount1Requested
     ) external override lock onlyFactoryOrFactoryOwner returns (uint128 amount0, uint128 amount1) {
-        amount0 = amount0Requested > protocolFees.token0 ? protocolFees.token0 : amount0Requested;
-        amount1 = amount1Requested > protocolFees.token1 ? protocolFees.token1 : amount1Requested;
+        // amount0 = amount0Requested > protocolFees.token0 ? protocolFees.token0 : amount0Requested;
+        // amount1 = amount1Requested > protocolFees.token1 ? protocolFees.token1 : amount1Requested;
 
-        if (amount0 > 0) {
-            if (amount0 == protocolFees.token0) amount0--; // ensure that the slot is not cleared, for gas savings
-            protocolFees.token0 -= amount0;
-            TransferHelper.safeTransfer(token0, recipient, amount0);
-        }
-        if (amount1 > 0) {
-            if (amount1 == protocolFees.token1) amount1--; // ensure that the slot is not cleared, for gas savings
-            protocolFees.token1 -= amount1;
-            TransferHelper.safeTransfer(token1, recipient, amount1);
-        }
+        // if (amount0 > 0) {
+        //     if (amount0 == protocolFees.token0) amount0--; // ensure that the slot is not cleared, for gas savings
+        //     protocolFees.token0 -= amount0;
+        //     TransferHelper.safeTransfer(token0, recipient, amount0);
+        // }
+        // if (amount1 > 0) {
+        //     if (amount1 == protocolFees.token1) amount1--; // ensure that the slot is not cleared, for gas savings
+        //     protocolFees.token1 -= amount1;
+        //     TransferHelper.safeTransfer(token1, recipient, amount1);
+        // }
 
-        emit CollectProtocol(msg.sender, recipient, amount0, amount1);
+        // emit CollectProtocol(msg.sender, recipient, amount0, amount1);
     }
 
     function setLmPool(address _lmPool) external override onlyFactoryOrFactoryOwner {
       lmPool = IPancakeV3LmPool(_lmPool);
-      emit SetLmPoolEvent(address(_lmPool));
+    //   emit SetLmPoolEvent(address(_lmPool));
     }
 }

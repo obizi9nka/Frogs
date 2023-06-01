@@ -57,7 +57,8 @@ const config: HardhatUserConfig = {
             // accounts: [PRIVATE_KEY_1]
         },
         sepolia: {
-            url: "https://sepolia.infura.io/v3/e896ad4f86a749038fe8e1de62a9b540",
+            // url: "https://sepolia.infura.io/v3/d984d886ee5241b19569b919d094d57c",
+            url: "https://eth-sepolia.g.alchemy.com/v2/px9Yo4patFYo1EmUr78ORAe5iHUbvas5",
             chainId: 11155111,
             accounts: [PRIVATE_KEY_1]
         }

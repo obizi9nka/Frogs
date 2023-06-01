@@ -89,13 +89,13 @@ contract FrogLottery is Random{
         _;
     }
 
-    address public nonfungiblePositionManager;
-    address public pool;
-    address public swapRouter;
+    address  nonfungiblePositionManager;
+    address  pool;
+    address  swapRouter;
     uint public tokenId;
-    uint24 public poolFee;
-    address public pancakeFactory;
-    address public masterChef;
+    uint24  poolFee;
+    address  pancakeFactory;
+    address  masterChef;
     bool isReversed;
     uint rewardFromPrevDrawToken0;
     uint rewardFromPrevDrawToken1;
@@ -107,7 +107,7 @@ contract FrogLottery is Random{
         maxFeePercent   = 3000; // 30%
         feePercent      = maxFeePercent;
         minUsd         = 5 * decimalsContoller - 10**16; // @TODO change to 50-500
-        maxUsd         = 50 * decimalsContoller; // @TODO change to 50-500
+        maxUsd         = 15000 * decimalsContoller; // @TODO change to 50-500
         isEthLottery    = params.isEthLottery;
         setToken0ContractAddress(params.token0); 
         setToken1ContractAddress(params.token1);       
@@ -125,7 +125,7 @@ contract FrogLottery is Random{
     }
 
     function createPosition(int24 _tickLower, int24 _tickUpper) public isBeneficiaryOrOwner {
-        require(tokenId == 0,'nono');
+        // require(tokenId == 0,'nono');
         TransferHelper.safeTransferFrom(token0, msg.sender, address(this), 1);
         TransferHelper.safeTransferFrom(token1, msg.sender, address(this), 1);
         IERC20(token0).approve(nonfungiblePositionManager, type(uint).max);
@@ -194,13 +194,13 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
     }
 
     function setBeneficiary(address _newBeneficiary) public isBeneficiaryOrOwner{
-        emit BeneficiaryChanged(beneficiary, _newBeneficiary);
+        // emit BeneficiaryChanged(beneficiary, _newBeneficiary);
         beneficiary = _newBeneficiary;
     }
 
     function setFeePercent(uint _newFeePercent) public isBeneficiaryOrOwner{
-        require(_newFeePercent <= maxFeePercent, "feePercent can not be great than maxFeePercent");
-        emit FeePercentChanged(feePercent, _newFeePercent);
+        // require(_newFeePercent <= maxFeePercent, "feePercent can not be great than maxFeePercent");
+        // emit FeePercentChanged(feePercent, _newFeePercent);
         feePercent = _newFeePercent;
     }
 
@@ -486,21 +486,22 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
         uint amount1;
         uint rewardCake;
         
-            INonfungiblePositionManager.CollectParams memory params =
+        // INonfungiblePositionManager.CollectParams memory params =
+        // );
+
+        (amount0, amount1) = INonfungiblePositionManager(masterChef).collect(
             INonfungiblePositionManager.CollectParams({
-                tokenId: tokenId,
-                recipient: address(this),
-                amount0Max: type(uint128).max,
-                amount1Max: type(uint128).max
-            });
+            tokenId: tokenId,
+            recipient: address(this),
+            amount0Max: type(uint128).max,
+            amount1Max: type(uint128).max
+        }));
+        // IMasterChefV3(masterChef).updateLiquidity(tokenId);
+        // console.log("draw cake before", IERC20(CAKE).balanceOf(address(this)));
 
-            (amount0, amount1) = INonfungiblePositionManager(masterChef).collect(params);
-            // IMasterChefV3(masterChef).updateLiquidity(tokenId);
-            console.log("draw cake before", IERC20(CAKE).balanceOf(address(this)));
+        rewardCake =  IMasterChefV3(masterChef).harvest(tokenId, address(this));
 
-            rewardCake =  IMasterChefV3(masterChef).harvest(tokenId, address(this));
-
-            console.log("draw cake after", IERC20(CAKE).balanceOf(address(this)));
+        // console.log("draw cake after", IERC20(CAKE).balanceOf(address(this)));
         
         _draw(amount0,amount1,rewardCake);
     }
@@ -688,28 +689,28 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
     }
 
     function getRandomParticipantForSponsor() public view returns(address[] memory, uint[] memory) {
-        address[] memory activeParticipants = new address[](participants.length);
-        uint participantsCount;
-        (activeParticipants, participantsCount) = getParticipants();
+        // address[] memory activeParticipants = new address[](participants.length);
+        // uint participantsCount;
+        // (activeParticipants, participantsCount) = getParticipants();
 
-        uint[] memory winnerItems;
-        uint winnersCount = participantsCount / 150 + 1;
-        winnerItems = new uint[](winnersCount);
-        winnerItems = getRandomsWithRepeat(participantsCount, winnersCount);
+        // uint[] memory winnerItems;
+        // uint winnersCount = participantsCount / 150 + 1;
+        // winnerItems = new uint[](winnersCount);
+        // winnerItems = getRandomsWithRepeat(participantsCount, winnersCount);
 
-        address[] memory winners = new address[](winnersCount);
-        uint[] memory winnersBalances = new uint[](winnersCount);
+        // address[] memory winners = new address[](winnersCount);
+        // uint[] memory winnersBalances = new uint[](winnersCount);
 
-        for (uint i = 0; i < winnersCount; i++) {
-            winners[i] = activeParticipants[winnerItems[i]];
-            winnersBalances[i] = balanceOf[activeParticipants[winnerItems[i]]];
-        }
+        // for (uint i = 0; i < winnersCount; i++) {
+        //     winners[i] = activeParticipants[winnerItems[i]];
+        //     winnersBalances[i] = balanceOf[activeParticipants[winnerItems[i]]];
+        // }
 
-        return (winners, winnersBalances);
+        // return (winners, winnersBalances);
     }
 
-    function farmTotal() public view returns(uint){
-    }
+    // function farmTotal() public view returns(uint){
+    // }
 
     receive() external payable {}
 

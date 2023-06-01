@@ -1,7 +1,7 @@
 
 const utils = require("./main");
+import { ethers } from "hardhat";
 import { deployAll } from "../test/fixtures/fixtures";
-
 const prefix = 'localhost_'
 
 async function main() {

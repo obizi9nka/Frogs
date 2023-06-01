@@ -67,7 +67,8 @@ contract FrogFactory {
             cake: CAKE
         });
 
-        address newLottery = deploy(params);
+        address newLottery = address(new FrogLottery(params));
+
         
         console.log('frog factory: newLottery', newLottery);
         lotteries[token0][token1][poolFee] = newLottery;
@@ -76,9 +77,9 @@ contract FrogFactory {
         IFrogReferal(frogReferalAddress).registerNewLottery(newLottery);
     }
 
-    function deploy(IFrog.DeployLotteryParams memory params) internal returns (address newLottery) {
-        newLottery = address(new FrogLottery(params));
-        // IFrogSponsorFactoryCut(frogSponsorFactory).createNewSponsor(params, newLottery);        
-    }
+    // function deploy(IFrog.DeployLotteryParams memory params) internal returns (address newLottery) {
+    //     newLottery = address(new FrogLottery(params));
+    //     // IFrogSponsorFactoryCut(frogSponsorFactory).createNewSponsor(params, newLottery);        
+    // }
 
 }

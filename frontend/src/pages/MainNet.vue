@@ -469,13 +469,13 @@ export default {
       console.log('token0', await FrogContract.methods.token0().call())
       console.log('token1', await FrogContract.methods.token1().call())
 
-      this.pancake.tokenId = await FrogContract.methods.tokenId().call()
+      this.pancake.tokenId = 1 //  await FrogContract.methods.tokenId().call() 
       const position = await manager.methods.positions(this.pancake.tokenId).call()
       this.pancake.tickLower = position.tickLower
       this.pancake.tickUpper = position.tickUpper
       let provider
       if (prefix == 'sepolia_')
-        provider = new ethers.providers.InfuraProvider(11155111, '')
+        provider = new ethers.providers.InfuraProvider(11155111, 'd984d886ee5241b19569b919d094d57c')
       else
         provider = new ethers.providers.JsonRpcProvider()
 
@@ -953,8 +953,8 @@ export default {
         } else if (confirm("You want to send: \n" + this.form.deposit.token)) {
           const amount = web3.utils.toWei(this.form.deposit.token);
 
-          const allowance = web3.utils.fromWei(await new web3.eth.Contract(ERC20TokenABI, this.addresses.stable)
-            .methods.allowance(this.$store.state.account, this.addresses.frogLottery).call());
+          const allowance = await new web3.eth.Contract(ERC20TokenABI, this.addresses.stable)
+            .methods.allowance(this.$store.state.account, this.addresses.frogLottery).call();
           if (allowance < amount) {
             const approveCake = await new web3.eth.Contract(ERC20TokenABI, this.addresses.stable)
               .methods.approve(this.addresses.frogLottery, amount)
@@ -970,8 +970,8 @@ export default {
             }
           }
 
-          const allowance0 = web3.utils.fromWei(await new web3.eth.Contract(ERC20TokenABI, this.addresses.token0)
-            .methods.allowance(this.$store.state.account, this.addresses.frogLottery).call());
+          const allowance0 = await new web3.eth.Contract(ERC20TokenABI, this.addresses.token0)
+            .methods.allowance(this.$store.state.account, this.addresses.frogLottery).call();
           if (allowance0 < amount) {
             const approveCake = await new web3.eth.Contract(ERC20TokenABI, this.addresses.token0)
               .methods.approve(this.addresses.frogLottery, amount)

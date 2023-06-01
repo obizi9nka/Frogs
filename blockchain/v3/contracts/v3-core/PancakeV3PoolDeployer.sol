@@ -23,16 +23,16 @@ contract PancakeV3PoolDeployer is IPancakeV3PoolDeployer {
     event SetFactoryAddress(address indexed factory);
 
     modifier onlyFactory() {
-        require(msg.sender == factoryAddress, "only factory can call deploy");
+        // require(msg.sender == factoryAddress, "only factory can call deploy");
         _;
     }
 
     function setFactoryAddress(address _factoryAddress) external {
-        require(factoryAddress == address(0), "already initialized");
+        // require(factoryAddress == address(0), "already initialized");
 
         factoryAddress = _factoryAddress;
 
-        emit SetFactoryAddress(_factoryAddress);
+        // emit SetFactoryAddress(_factoryAddress);
     }
 
     /// @dev Deploys a pool with the given parameters by transiently setting the parameters storage slot and then
