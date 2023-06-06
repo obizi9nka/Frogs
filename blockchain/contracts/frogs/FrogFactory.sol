@@ -59,7 +59,7 @@ contract FrogFactory {
             beneficiary: beneficiary, 
             pool: pool, 
             nonfungiblePositionManager: nonfungiblePositionManager, 
-            swapRouter: swapRouter, 
+            router: swapRouter, 
             pancakeFactory: pancakeFactory, 
             stable: stable,
             isReversed: !(tokenA < tokenB),

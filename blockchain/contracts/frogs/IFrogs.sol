@@ -11,7 +11,7 @@ interface IFrog {
         address beneficiary; 
         address pool; 
         address nonfungiblePositionManager; 
-        address swapRouter; 
+        address router; 
         address pancakeFactory; 
         address stable;
         bool isReversed;

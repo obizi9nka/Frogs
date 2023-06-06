@@ -6,7 +6,7 @@ import { ethers } from 'hardhat';
 import json from "../artifacts/contracts/frogs/FrogLottery.sol/FrogLottery.json";
 import jsonPool from "../artifacts/contracts/v3-core/PancakeV3Pool.sol/PancakeV3Pool.json"
 import { ERC20Token, FrogFactory, FrogLottery, FrogReferal, MasterChefV3, TBnb, TCake } from "../typechain-types";
-import { NonfungiblePositionManager, SwapRouter, PancakeV3Factory, PancakeV3Pool, FrogSponsorFactory, PancakeV3LmPoolDeployer, PancakeV3PoolDeployer } from "../v3/typechain-types";
+import { NonfungiblePositionManager, SwapRouter, PancakeV3Factory, PancakeV3Pool, FrogSponsorFactory, SmartRouter, PancakeV3LmPoolDeployer, PancakeV3PoolDeployer } from "../v3/typechain-types";
 import BN from 'bignumber.js'
 
 import _config from "../scripts/json/constants.json"
@@ -139,12 +139,26 @@ export async function main() {
   await nonfungiblePositionManager.deployed();
   console.log(1)
 
+
+
   // ==================
   //       Router
   // ==================
-  const SwapRouter = await hre.ethers.getContractFactory('SwapRouter');
-  const router = await SwapRouter.deploy(pancakeV3PoolDeployer.address, pancakeFactory.address, wbnb.address) as SwapRouter
+  const SmartRouterHelper = await ethers.getContractFactory("SmartRouterHelper");
+  const smartRouterHelper = await SmartRouterHelper.deploy();
+  await smartRouterHelper.deployed();
+
+  const SmartRouter = await hre.ethers.getContractFactory('SmartRouter', {
+    libraries: {
+      SmartRouterHelper: smartRouterHelper.address,
+    }
+  });
+
+  const router = await SmartRouter.deploy(ethers.constants.AddressZero, pancakeV3PoolDeployer.address, pancakeFactory.address, nonfungiblePositionManager.address, ethers.constants.AddressZero, ethers.constants.AddressZero, wbnb.address) as SmartRouter
   await router.deployed();
+  // const SwapRouter = await hre.ethers.getContractFactory('SwapRouter');
+  // const router = await SwapRouter.deploy(pancakeV3PoolDeployer.address, pancakeFactory.address, wbnb.address) as SwapRouter
+  // await router.deployed();
   console.log(1)
 
 
@@ -283,12 +297,15 @@ export async function main() {
   await utils.saveAddress(prefix + "USDC", usdc.address)
   await utils.saveAddress(prefix + "USDT", usdt.address)
   await utils.saveAddress(prefix + "BUSD", busd.address)
+  await utils.saveAddress(prefix + "CAKE", cake.address)
+  await utils.saveAddress(prefix + "WBNB", wbnb.address)
   await utils.saveAddress(prefix + "FrogReferal", referal.address)
   await utils.saveAddress(prefix + "PancakeFactory", pancakeFactory.address)
   await utils.saveAddress(prefix + "Pool_busd_usdt", pool_busd_usdt.address)
   await utils.saveAddress(prefix + "Pool_busd_usdc", pool_busd_usdc.address)
   await utils.saveAddress(prefix + "Pool_usdt_usdc", pool_usdt_usdc.address)
   await utils.saveAddress(prefix + "NonfungiblePositionManager", nonfungiblePositionManager.address)
+  await utils.saveAddress(prefix + "MC", mc.address)
   await utils.saveAddress(prefix + "SwapRouter", router.address)
   await utils.saveAddress(prefix + "FrogFactory", factory.address)
   await utils.saveAddress(prefix + "Lottery_busd_usdt", lottery_busd_usdt.address)

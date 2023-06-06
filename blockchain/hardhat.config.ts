@@ -42,14 +42,14 @@ const config: HardhatUserConfig = {
         },
         tbsc: {
             url: "https://data-seed-prebsc-1-s1.binance.org:8545",
-            chainId: 97,
+            // chainId: 97,
             accounts: [PRIVATE_KEY_1],
         },
-        mainnet: {
+        bsc: {
             url: "https://bsc-dataseed.binance.org/",
-            chainId: 56,
-            gasPrice: 20000000000,
-            // accounts: [PRIVATE_KEY_1],
+            // chainId: 56,
+            // gasPrice: 20000000000,
+            accounts: [PRIVATE_KEY_1],
         },
         linea: {
             url: "https://rpc.goerli.linea.build",

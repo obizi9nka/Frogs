@@ -151,7 +151,7 @@ contract PancakeV3Pool is IPancakeV3Pool {
         (bool success, bytes memory data) = token0.staticcall(
             abi.encodeWithSelector(IERC20Minimal.balanceOf.selector, address(this))
         );
-        require(success && data.length >= 32);
+        require(success && data.length >= 32, 'pool balance0');
         return abi.decode(data, (uint256));
     }
 
@@ -624,10 +624,11 @@ contract PancakeV3Pool is IPancakeV3Pool {
         uint160 sqrtPriceLimitX96,
         bytes calldata data
     ) external override returns (int256 amount0, int256 amount1) {
+        console.log('swap in pool start');
         require(amountSpecified != 0, 'AS');
 
         Slot0 memory slot0Start = slot0;
-
+        console.log(1);
         require(slot0Start.unlocked, 'LOK');
         require(
             zeroForOne
@@ -635,6 +636,7 @@ contract PancakeV3Pool is IPancakeV3Pool {
                 : sqrtPriceLimitX96 > slot0Start.sqrtPriceX96 && sqrtPriceLimitX96 < TickMath.MAX_SQRT_RATIO,
             'SPL'
         );
+        console.log(1);
 
         slot0.unlocked = false;
 
@@ -646,10 +648,12 @@ contract PancakeV3Pool is IPancakeV3Pool {
             tickCumulative: 0,
             computedLatestObservation: false
         });
+        console.log(1);
 
         if (address(lmPool) != address(0)) {
           lmPool.accumulateReward(cache.blockTimestamp);
         }
+        console.log(1);
 
         bool exactInput = amountSpecified > 0;
 
@@ -662,6 +666,7 @@ contract PancakeV3Pool is IPancakeV3Pool {
             protocolFee: 0,
             liquidity: cache.liquidityStart
         });
+        console.log(1);
 
         // continue swapping as long as we haven't used the entire input/output and haven't reached the price limit
         while (state.amountSpecifiedRemaining != 0 && state.sqrtPriceX96 != sqrtPriceLimitX96) {
@@ -758,6 +763,7 @@ contract PancakeV3Pool is IPancakeV3Pool {
                 state.tick = TickMath.getTickAtSqrtRatio(state.sqrtPriceX96);
             }
         }
+        console.log(1);
 
         // update tick and write an oracle entry if the tick change
         if (state.tick != slot0Start.tick) {
@@ -779,12 +785,14 @@ contract PancakeV3Pool is IPancakeV3Pool {
             // otherwise just update the price
             slot0.sqrtPriceX96 = state.sqrtPriceX96;
         }
+        console.log(1);
 
         // update liquidity if it changed
         if (cache.liquidityStart != state.liquidity) liquidity = state.liquidity;
 
         uint128 protocolFeesToken0 = 0;
         uint128 protocolFeesToken1 = 0;
+        console.log(1);
 
         // update fee growth global and, if necessary, protocol fees
         // overflow is acceptable, protocol has to withdraw before it hits type(uint128).max fees
@@ -797,10 +805,12 @@ contract PancakeV3Pool is IPancakeV3Pool {
             if (state.protocolFee > 0) protocolFees.token1 += state.protocolFee;
             protocolFeesToken1 = state.protocolFee;
         }
+        console.log(1);
 
         (amount0, amount1) = zeroForOne == exactInput
             ? (amountSpecified - state.amountSpecifiedRemaining, state.amountCalculated)
             : (state.amountCalculated, amountSpecified - state.amountSpecifiedRemaining);
+        console.log(1);
 
         // do the transfers and collect payment
         if (zeroForOne) {
@@ -816,9 +826,11 @@ contract PancakeV3Pool is IPancakeV3Pool {
             IPancakeV3SwapCallback(msg.sender).pancakeV3SwapCallback(amount0, amount1, data);
             require(balance1Before.add(uint256(amount1)) <= balance1(), 'IIA');
         }
+        console.log(1);
 
         emit Swap(msg.sender, recipient, amount0, amount1, state.sqrtPriceX96, state.liquidity, state.tick, protocolFeesToken0, protocolFeesToken1);
         slot0.unlocked = true;
+        console.log('swap in pool end');
     }
 
     /// @inheritdoc IPancakeV3PoolActions

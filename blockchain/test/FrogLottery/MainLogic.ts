@@ -12,11 +12,6 @@ let mainLogic
 describe("FrogLottery MainLogic", function () {
     mainLogic = async (isEthLottery: boolean) => {
         const decimals = BigInt(10 * 10 ** 18)
-        // 1.300000000000000000
-        // 0.649674999999155752
-        // 102.474568424912758913
-        // 522.620298966930423808
-        // 1024.745684249127550976
         let all: allContractsFromDeploy;
         let lottery: FrogLottery;
         this.beforeAll(async () => {
@@ -40,6 +35,7 @@ describe("FrogLottery MainLogic", function () {
             for (const key in _all) {
                 console.log(key, _all[key].address)
             }
+
             await lottery.deposit(all.busd.address, BigInt(5 * 1e18));
             const { message, v, r, s } = await sig(['address'], [acct2.address], acct1)
             await lottery.connect(acct2).registerBeforeDeposit(message, v, r, s, all.usdt.address, decimals)

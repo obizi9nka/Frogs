@@ -14,11 +14,89 @@ import "../v3-interfaces/LiquidityAmounts.sol";
 import "../v3-interfaces/TickMath.sol";
 import "../v3-interfaces/IPancakeV3Factory.sol";
 import "../v3-interfaces/SafeCast.sol";
+// import "../v3-interfaces/IV3SwapRouter.sol";
 
 import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
-import '@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol';
+// import '@uniswap/v3-periphery/contracts/interfaces/IV3SwapRouter.sol';
 import "../masterchef/interfaces/IMasterChefV3.sol";
 // import "../v3-interfaces/SqrtPriceMath.sol";
+interface IPancakeV3SwapCallback {
+    /// @notice Called to `msg.sender` after executing a swap via IPancakeV3Pool#swap.
+    /// @dev In the implementation you must pay the pool tokens owed for the swap.
+    /// The caller of this method must be checked to be a PancakeV3Pool deployed by the canonical PancakeV3Factory.
+    /// amount0Delta and amount1Delta can both be 0 if no tokens were swapped.
+    /// @param amount0Delta The amount of token0 that was sent (negative) or must be received (positive) by the pool by
+    /// the end of the swap. If positive, the callback must send that amount of token0 to the pool.
+    /// @param amount1Delta The amount of token1 that was sent (negative) or must be received (positive) by the pool by
+    /// the end of the swap. If positive, the callback must send that amount of token1 to the pool.
+    /// @param data Any data passed through by the caller via the IPancakeV3PoolActions#swap call
+    function pancakeV3SwapCallback(
+        int256 amount0Delta,
+        int256 amount1Delta,
+        bytes calldata data
+    ) external;
+}
+interface IV3SwapRouter is IPancakeV3SwapCallback {
+    struct ExactInputSingleParams {
+        address tokenIn;
+        address tokenOut;
+        uint24 fee;
+        address recipient;
+        uint256 amountIn;
+        uint256 amountOutMinimum;
+        uint160 sqrtPriceLimitX96;
+    }
+
+    /// @notice Swaps `amountIn` of one token for as much as possible of another token
+    /// @dev Setting `amountIn` to 0 will cause the contract to look up its own balance,
+    /// and swap the entire amount, enabling contracts to send tokens before calling this function.
+    /// @param params The parameters necessary for the swap, encoded as `ExactInputSingleParams` in calldata
+    /// @return amountOut The amount of the received token
+    function exactInputSingle(ExactInputSingleParams calldata params) external payable returns (uint256 amountOut);
+
+    struct ExactInputParams {
+        bytes path;
+        address recipient;
+        uint256 amountIn;
+        uint256 amountOutMinimum;
+    }
+
+    /// @notice Swaps `amountIn` of one token for as much as possible of another along the specified path
+    /// @dev Setting `amountIn` to 0 will cause the contract to look up its own balance,
+    /// and swap the entire amount, enabling contracts to send tokens before calling this function.
+    /// @param params The parameters necessary for the multi-hop swap, encoded as `ExactInputParams` in calldata
+    /// @return amountOut The amount of the received token
+    function exactInput(ExactInputParams calldata params) external payable returns (uint256 amountOut);
+
+    struct ExactOutputSingleParams {
+        address tokenIn;
+        address tokenOut;
+        uint24 fee;
+        address recipient;
+        uint256 amountOut;
+        uint256 amountInMaximum;
+        uint160 sqrtPriceLimitX96;
+    }
+
+    /// @notice Swaps as little as possible of one token for `amountOut` of another token
+    /// that may remain in the router after the swap.
+    /// @param params The parameters necessary for the swap, encoded as `ExactOutputSingleParams` in calldata
+    /// @return amountIn The amount of the input token
+    function exactOutputSingle(ExactOutputSingleParams calldata params) external payable returns (uint256 amountIn);
+
+    struct ExactOutputParams {
+        bytes path;
+        address recipient;
+        uint256 amountOut;
+        uint256 amountInMaximum;
+    }
+
+    /// @notice Swaps as little as possible of one token for `amountOut` of another along the specified path (reversed)
+    /// that may remain in the router after the swap.
+    /// @param params The parameters necessary for the multi-hop swap, encoded as `ExactOutputParams` in calldata
+    /// @return amountIn The amount of the input token
+    function exactOutput(ExactOutputParams calldata params) external payable returns (uint256 amountIn);
+}
 
 import "./IFrogs.sol";
 
@@ -91,8 +169,8 @@ contract FrogLottery is Random{
 
     address  nonfungiblePositionManager;
     address  pool;
-    address  swapRouter;
-    uint public tokenId;
+    address  smartRouter;
+    uint public tokenId; // bsc id = 116119
     uint24  poolFee;
     address  pancakeFactory;
     address  masterChef;
@@ -106,7 +184,7 @@ contract FrogLottery is Random{
         beneficiary     = params.beneficiary;
         maxFeePercent   = 3000; // 30%
         feePercent      = maxFeePercent;
-        minUsd         = 5 * decimalsContoller - 10**16; // @TODO change to 50-500
+        minUsd         = 1 * decimalsContoller - 10**16; // @TODO change to 50-500
         maxUsd         = 15000 * decimalsContoller; // @TODO change to 50-500
         isEthLottery    = params.isEthLottery;
         setToken0ContractAddress(params.token0); 
@@ -114,7 +192,7 @@ contract FrogLottery is Random{
         setFrogReferalAddress(params.frogReferalAddress);
         nonfungiblePositionManager = params.nonfungiblePositionManager;
         pool = params.pool;
-        swapRouter = params.swapRouter;
+        smartRouter = params.router;
         poolFee = params.poolFee;
         pancakeFactory = params.pancakeFactory;
         masterChef = params.masterChef;
@@ -221,25 +299,27 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
 
     function swapExactInputSingle(address tokenIn, address tokenOut, uint256 amountIn) internal returns (uint256 amountOut) {
         // msg.sender must approve this contract
+        console.log('swapExactInputSingle');
 
         TransferHelper.safeTransferFrom(tokenIn, msg.sender, address(this), amountIn);
 
-        TransferHelper.safeApprove(tokenIn, address(swapRouter), amountIn);
+        TransferHelper.safeApprove(tokenIn, address(smartRouter), amountIn);
 
-        ISwapRouter.ExactInputSingleParams memory params =
-            ISwapRouter.ExactInputSingleParams({
+        IV3SwapRouter.ExactInputSingleParams memory params =
+            IV3SwapRouter.ExactInputSingleParams({
                 tokenIn: tokenIn,
                 tokenOut: tokenOut,
                 fee: poolFee,
                 recipient: msg.sender,
-                deadline: block.timestamp,
                 amountIn: amountIn,
                 amountOutMinimum: 0,
                 sqrtPriceLimitX96: 0
             });
 
         // The call to `exactInputSingle` executes the swap.
-        amountOut = ISwapRouter(swapRouter).exactInputSingle(params);
+        amountOut = IV3SwapRouter(smartRouter).exactInputSingle(params);
+        console.log('swapExactInputSingle end ', amountOut);
+
     }
 
     function deposit(address token, uint amount) public payable returns (bool success){

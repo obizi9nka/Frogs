@@ -3,7 +3,7 @@ import { ethers } from 'hardhat';
 import json from "../../artifacts/contracts/frogs/FrogLottery.sol/FrogLottery.json";
 import jsonPool from "../../artifacts/contracts/v3-core/PancakeV3Pool.sol/PancakeV3Pool.json"
 import { ERC20Token, FrogFactory, FrogLottery, FrogReferal, MasterChefV3, TBnb, TCake } from "../../typechain-types";
-import { NonfungiblePositionManager, SwapRouter, PancakeV3Factory, PancakeV3Pool, FrogSponsorFactory, PancakeV3LmPoolDeployer, PancakeV3PoolDeployer } from "../../v3/typechain-types";
+import { NonfungiblePositionManager, SwapRouter, PancakeV3Factory, PancakeV3Pool, FrogSponsorFactory, PancakeV3LmPoolDeployer, PancakeV3PoolDeployer, SmartRouter } from "../../v3/typechain-types";
 import { BigNumber } from "ethers";
 import BN from 'bignumber.js'
 import { TickMath } from "@uniswap/v3-sdk"
@@ -152,11 +152,20 @@ export async function deployAll() {
 
     await nonfungiblePositionManager.deployed();
 
+    const SmartRouterHelper = await ethers.getContractFactory("SmartRouterHelper");
+    const smartRouterHelper = await SmartRouterHelper.deploy();
+    await smartRouterHelper.deployed();
+
     // ==================
     //       Router
     // ==================
-    const SwapRouter = await hre.ethers.getContractFactory('SwapRouter');
-    const router = await SwapRouter.deploy(pancakeV3PoolDeployer.address, pancakeFactory.address, wbnb.address) as SwapRouter
+    const SmartRouter = await hre.ethers.getContractFactory('SmartRouter', {
+        libraries: {
+            SmartRouterHelper: smartRouterHelper.address,
+        }
+    });
+
+    const router = await SmartRouter.deploy(ethers.constants.AddressZero, pancakeV3PoolDeployer.address, pancakeFactory.address, nonfungiblePositionManager.address, ethers.constants.AddressZero, ethers.constants.AddressZero, wbnb.address) as SmartRouter
     await router.deployed();
 
     // ==================

@@ -141,10 +141,10 @@
                 <h3>Total Farm: {{ frog.farmTotal }}</h3>
               </div>
               <div>
-                <h3>Your Reward0: {{ frog.user.rewardOfToken0 }}</h3>
+                <h3>Your {{ frog.token0.symbol }}: {{ frog.user.rewardOfToken0 }}</h3>
               </div>
               <div>
-                <h3>Your Reward1: {{ frog.user.rewardOfToken1 }}</h3>
+                <h3>Your {{ frog.token1.symbol }}: {{ frog.user.rewardOfToken1 }}</h3>
               </div>
               <div>
                 <h3>Your RewardCake: {{ frog.user.rewardOfCake }}</h3>
@@ -156,10 +156,10 @@
                 <h3>Your Percent: {{ frog.referalInfo.percent }}</h3>
               </div>
               <div>
-                <h3>Your Referal Reward0: {{ frog.user.referalReward0 }}</h3>
+                <h3>Your Referal {{ frog.token0.symbol }}: {{ frog.user.referalReward0 }}</h3>
               </div>
               <div>
-                <h3>Your Referal Reward1: {{ frog.user.referalReward1 }}</h3>
+                <h3>Your Referal {{ frog.token1.symbol }}: {{ frog.user.referalReward1 }}</h3>
               </div>
               <div>
                 <h3>Your Referal RewardCake: {{ frog.user.referalRewardCake }}</h3>
@@ -365,6 +365,14 @@ export default {
         maxUsd: 0,
         nowIn: 0,
         beneficiaryAmount: 0,
+        token0: {
+          address: '',
+          symbol: ''
+        },
+        token1: {
+          address: '',
+          symbol: ''
+        },
         user: {
           deposit: 0,
           balance: 0,
@@ -398,7 +406,7 @@ export default {
         token1: constants.addresses[prefix + 'USDT'],
         stable: constants.addresses[prefix + 'USDC'],
         cake: constants.addresses[prefix + 'CAKE'],
-        wbnb: constants.addresses[prefix + 'CAKE'],
+        wbnb: constants.addresses[prefix + 'WBNB'],
         pool_token0_stable: constants.addresses[prefix + 'Pool_busd_usdc'],
         pool_token1_stable: constants.addresses[prefix + 'Pool_usdt_usdc'],
         pool_token0_token1: constants.addresses[prefix + 'Pool_busd_usdt'],
@@ -455,10 +463,6 @@ export default {
   },
   methods: {
     async updateParams() {
-      // console.log(this.addresses.token0)
-      // console.log(this.addresses.token1)
-      // console.log(constants.addresses[prefix + 'BUSD'])
-      // console.log(constants.addresses[prefix + 'USDT'])
       const web3 = new Web3(window.ethereum)
 
       // let poolName = this.tokenSelcted == 2 ? 'Pool_usdt_usdc' : 'Pool_busd_usdt'
@@ -466,21 +470,25 @@ export default {
       const manager = new web3.eth.Contract(PositionManager.abi, this.addresses.manager)
       const FrogContract = new web3.eth.Contract(FrogContractABI, this.addresses.frogLottery);
 
-      console.log('token0', await FrogContract.methods.token0().call())
-      console.log('token1', await FrogContract.methods.token1().call())
+      this.frog.token0.address = await FrogContract.methods.token0().call()
+      this.frog.token1.address = await FrogContract.methods.token1().call()
+
+      this.frog.token0.symbol = await (new web3.eth.Contract(ERC20TokenABI, this.frog.token0.address)).methods.symbol().call()
+      this.frog.token1.symbol = await (new web3.eth.Contract(ERC20TokenABI, this.frog.token1.address)).methods.symbol().call()
+
 
       this.pancake.tokenId = 1 //  await FrogContract.methods.tokenId().call() 
       const position = await manager.methods.positions(this.pancake.tokenId).call()
       this.pancake.tickLower = position.tickLower
       this.pancake.tickUpper = position.tickUpper
       let provider
-      if (prefix == 'sepolia_')
-        provider = new ethers.providers.InfuraProvider(11155111, 'd984d886ee5241b19569b919d094d57c')
-      else
+      if (prefix == 'localhost_')
         provider = new ethers.providers.JsonRpcProvider()
+      else if (prefix == 'sepolia_')
+        provider = new ethers.providers.InfuraProvider(11155111, 'd984d886ee5241b19569b919d094d57c')
+      else if (prefix == 'bsc_')
+        provider = new ethers.providers.InfuraProvider(1, 'd984d886ee5241b19569b919d094d57c')
 
-      // console.log('price', 1 / getPrice(1, BigInt(1857259621983179994159796290), 18, 18))
-      // console.log('price', 1 / getPrice(1, (await pool_token0_token1.methods.slot0().call()).sqrtPriceX96, 18, 18))
       const pool_token0_stable = new web3.eth.Contract(PoolAbi.abi, this.addresses.pool_token0_stable)
       const pool_token1_stable = new web3.eth.Contract(PoolAbi.abi, this.addresses.pool_token1_stable)
 
@@ -488,15 +496,11 @@ export default {
       const data1 = await pool_token0_stable.methods.slot0().call()
       const data2 = await pool_token1_stable.methods.slot0().call()
 
-      console.log('pool_token0_token1 tick', data.tick)
-      console.log('pool_token0_stable tick', data1.tick)
-      console.log('pool_token1_stable tick', data2.tick)
 
       this.pancake.isReversed_pool_busd_usdt = await pool_token0_token1.methods.token0().call() != this.addresses.token0
       this.pancake.isReversed_pool_busd_usdc = await pool_token0_stable.methods.token0().call() != this.addresses.token0
       this.pancake.isReversed_pool_usdt_usdc = await pool_token1_stable.methods.token0().call() != this.addresses.token1
 
-      console.log(this.pancake.isReversed_pool_busd_usdt, "this.pancake.isReversed_pool_busd_usdt");
       this.pancake.currentTick = data.tick
 
       this.pancake.sqrtPriceX96_token0_token1 = data.sqrtPriceX96
@@ -506,9 +510,6 @@ export default {
       token0PerToken1 = this.pancake.isReversed_pool_busd_usdt ? 1 / token0PerToken1 : token0PerToken1
       const token1PerToken0 = 1 / token0PerToken1
 
-      // console.log('pool_busd_usdt', BigNumber((await pool_token0_token1.methods.slot0().call()).sqrtPriceX96).pow(2).div(BigInt(2 ** 192)).toString())
-      // console.log('pool_busd_usdc', BigNumber((await pool_token0_stable.methods.slot0().call()).sqrtPriceX96).pow(2).div(BigInt(2 ** 192)).toString())
-      // console.log('pool_usdt_usdc', BigNumber((await pool_token1_stable.methods.slot0().call()).sqrtPriceX96).pow(2).div(BigInt(2 ** 192)).toString())
 
       // if (this.tokenSelcted == 0)
       //   token0PerToken1 = 1 / token0PerToken1
@@ -518,8 +519,6 @@ export default {
 
       this.pancake.rates.t0_t1 = token0PerToken1.toFixed(4)
       this.pancake.rates.t1_t0 = token1PerToken0.toFixed(4)
-      // console.log(this.pancake.sqrtPriceX96_token0_stable)
-      // console.log(this.pancake.sqrtPriceX96_token1_stable)
       const p1 = (this.getPrice(1, this.pancake.sqrtPriceX96_token0_stable, 18, 18)).toFixed(4)
       const p2 = (this.getPrice(1, this.pancake.sqrtPriceX96_token1_stable, 18, 18)).toFixed(4)
       this.pancake.rates.t0_stbl = this.pancake.isReversed_pool_busd_usdc ? 1 / p1 : p1
@@ -574,15 +573,14 @@ export default {
           })
 
         const frog = new web3.eth.Contract(FrogContractABI, this.addresses.frogLottery)
+        // console.log(await frog.methods.tokenId().call())
         let firstPrice = this.pancake.isReversed_pool_busd_usdc ? 1 / this.getPrice(1, this.pancake.sqrtPriceX96_token0_stable, 18, 18) : this.getPrice(1, this.pancake.sqrtPriceX96_token0_stable, 18, 18)
         let secndPrice = this.pancake.isReversed_pool_usdt_usdc ? 1 / this.getPrice(1, this.pancake.sqrtPriceX96_token1_stable, 18, 18) : this.getPrice(1, this.pancake.sqrtPriceX96_token1_stable, 18, 18)
 
         frog.methods.depositOf(this.$store.state.account).call()
           .then(async balance => {
             this.frog.user.deposit = balance.toString()
-            console.log(BigInt(this.pancake.sqrtPriceX96_token0_token1), this.pancake.currentTick, this.pancake.tickLower, this.pancake.tickUpper, this.frog.user.deposit, false)
             const data = await this.calculateAmountsForLiquidity(BigInt(this.pancake.sqrtPriceX96_token0_token1), this.pancake.currentTick, this.pancake.tickLower, this.pancake.tickUpper, this.frog.user.deposit, false)
-            console.log(data)
 
             this.pancake.table.deposit_token0 = web3.utils.fromWei(data.amount0)
             this.pancake.table.deposit_token1 = web3.utils.fromWei(data.amount1)
@@ -694,7 +692,6 @@ export default {
       const contract = new ethers.Contract(this.addresses.frogLottery, FrogContractABI, new ethers.providers.Web3Provider(window.ethereum))
       const victories = await contract.queryFilter(contract.filters.Victory())
 
-      console.log('victories', victories)
       for (const _victory of victories) {
         const data = _victory.args
 
@@ -717,7 +714,6 @@ export default {
       var _draws = [];
       // @TODO how to find Draw Event?!?!
       const draws = await contract.queryFilter(contract.filters.Draw())
-      console.log('draws', draws)
 
       for (const _draw of draws) {
         const data = _draw.args
@@ -747,7 +743,7 @@ export default {
       // const referalInfo = await FrogReferal.methods.refererOf(this.$store.state.account.toLowerCase()).call()
       const data = await axios.post(`${backendUrl}/getUser`, { wallet: this.$store.state.account.toLowerCase() })
       if (data.data.user == null) {
-        this.frog.referalInfo.referer = '-11'
+        this.frog.referalInfo.referer = '-111'
         this.frog.referalInfo.percent = -11
       } else {
         this.frog.referalInfo.referer = data.data.referer.wallet
@@ -761,7 +757,6 @@ export default {
       let secndPrice = this.pancake.isReversed_pool_usdt_usdc ? 1 / this.getPrice(1, this.pancake.sqrtPriceX96_token1_stable, 18, 18) : this.getPrice(1, this.pancake.sqrtPriceX96_token1_stable, 18, 18)
       let firstPart;
       let secndPart;
-      console.log(firstPrice, secndPrice)
       switch (this.tokenSelcted) {
         case 0:
           firstPart = (firstPrice) * (this.form.deposit.token / 2) //
@@ -776,19 +771,8 @@ export default {
           this.form.depositUsdvalue += secndPart
           break;
         case 2:
-          // console.log(this.getPrice(1, this.pancake.sqrtPriceX96_token0_stable, 18, 18))
-          // console.log(this.getPrice(1, this.pancake.sqrtPriceX96_token1_stable, 18, 18))
-          // console.log(this.getPrice(1, this.pancake.sqrtPriceX96_token0_token1, 18, 18))
-          // console.log(this.pancake.rates.t0_stbl)
-          // console.log(this.pancake.rates.t1_stbl)
-          // console.log(1 / this.pancake.rates.t0_stbl)
-          // console.log(1 / this.pancake.rates.t1_stbl)
-          // console.log(1 / this.getPrice(1, this.pancake.sqrtPriceX96_token0_stable, 18, 18), this.form.deposit.token / 2 * 1 / this.pancake.rates.t0_stbl)
-          // console.log(1 / this.getPrice(1, this.pancake.sqrtPriceX96_token1_stable, 18, 18), this.form.deposit.token / 2 * 1 / this.pancake.rates.t1_stbl)
           firstPart = (firstPrice) * (this.form.deposit.token / 2 * (1 / this.pancake.rates.t0_stbl)) //
           secndPart = (secndPrice) * (this.form.deposit.token / 2 * (1 / this.pancake.rates.t1_stbl)) //
-          // console.log(firstPart)
-          // console.log(secndPart)
           this.form.depositUsdvalue = firstPart
           this.form.depositUsdvalue += secndPart
           break;
@@ -830,7 +814,6 @@ export default {
         }
       }
       const amountIn = BigInt(100000 * 10 ** 18)
-      console.log(amountIn, token0) // 99999.999999999991611392
       const allowance0 = web3.utils.fromWei(await new web3.eth.Contract(ERC20TokenABI, token0)
         .methods.allowance(this.$store.state.account, router.options.address).call());
       if (allowance0 < amountIn) {
@@ -847,25 +830,6 @@ export default {
           return
         }
       }
-
-      // const allowance1 = web3.utils.fromWei(await new web3.eth.Contract(ERC20TokenABI, token1)
-      //   .methods.allowance(this.$store.state.account, router.options.address).call());
-      // if (allowance1 < amountIn) {
-      //   const approveCake = await new web3.eth.Contract(ERC20TokenABI, token1)
-      //     .methods.approve(router.options.address, amountIn)
-      //     .send({
-      //       from: this.$store.state.account
-      //     })
-      //     .on('sending', () => {
-      //       this.showModal('Waiting for confirmation')
-      //     })
-      //   if (approveCake.status != true) {
-      //     this.showModal('Something went wrong with tCake approve!')
-      //     return
-      //   }
-      // }
-
-      console.log(allowance0)
 
       await router.methods.exactInputSingle({
         tokenIn: token0,
@@ -893,6 +857,7 @@ export default {
     async deposit() {
       const web3 = new Web3(window.ethereum)
       const FrogContract = new web3.eth.Contract(FrogContractABI, this.addresses.frogLottery)
+      console.log(FrogContract)
       var errors = [];
       let tokenForDepositAddress;
       let tokenBalance
@@ -917,26 +882,17 @@ export default {
           break;
         }
       }
-      console.log('tokenForDepositAddress', tokenForDepositAddress)
-      console.log(tokenBalance, this.form.deposit.token)
 
       if (tokenBalance < parseFloat(this.form.deposit.token)) {
         errors.push("Not enough tokens")
       }
-      // console.log(BigInt(this.pancake.sqrtPriceX96_token0_token1), this.pancake.tickLower, this.pancake.tickUpper, BigNumber(this.frog.user.deposit).plus(this.frog.user.balance).plus(this.frog.user.withdraw).toString())
       const data = await this.calculateAmountsForLiquidity(BigInt(this.pancake.sqrtPriceX96_token0_token1), this.pancake.currentTick, this.pancake.tickLower, this.pancake.tickUpper, BigInt(this.frog.user.deposit) + BigInt(this.frog.user.balance) + BigInt(this.frog.user.withdraw), true)
       const price = this.pancake.isReversed_pool_busd_usdt ? 1 / this.getPrice(1, this.pancake.sqrtPriceX96_token0_token1, 18, 18) : this.getPrice(1, this.pancake.sqrtPriceX96_token0_token1, 18, 18)
-
-      console.log(price, data)
-      // 522620298966930423808
-      // 25487249999999663021
 
       const token0 = BigNumber(price * data.amount0).div(BigInt(10 ** 18))
       const token1 = BigNumber(1 / price * data.amount1).div(BigInt(10 ** 18))
       const futureBalance = BigNumber(token0.plus(token1))  //(this.frog.user.balance + this.frog.user.deposit - this.frog.user.withdraw) * (this.pancake.rates.lpcake * this.pancake.rates.cakeusdt + this.pancake.rates.lpbnb * this.pancake.rates.bnbusdt)
       const deposit = BigNumber(this.form.depositUsdvalue)
-      console.log(futureBalance.toString())
-      console.log(deposit.toString())
       if (futureBalance.plus(deposit) < this.frog.minUsd || futureBalance.plus(deposit) > this.frog.maxUsd) {
         errors.push('Amount of balance must be in $' + this.frog.minUsd + ' .. $' + this.frog.maxUsd + "|" + `${futureBalance}` + `  ${deposit}`)
       }
@@ -946,33 +902,32 @@ export default {
 
         const FrogReferal = new web3.eth.Contract(FrogReferalABI, this.addresses.frogReferal)
         const isPartisipant = await FrogReferal.methods.alreadyParticipant(this.$store.state.account).call()
-        console.log(isPartisipant, "isPartisipant")
         const condition = '-11'
         if (this.frog.referalInfo.referer == condition) {
           this.showModal('Not a referal')
         } else if (confirm("You want to send: \n" + this.form.deposit.token)) {
           const amount = web3.utils.toWei(this.form.deposit.token);
 
-          const allowance = await new web3.eth.Contract(ERC20TokenABI, this.addresses.stable)
-            .methods.allowance(this.$store.state.account, this.addresses.frogLottery).call();
-          if (allowance < amount) {
-            const approveCake = await new web3.eth.Contract(ERC20TokenABI, this.addresses.stable)
-              .methods.approve(this.addresses.frogLottery, amount)
-              .send({
-                from: this.$store.state.account
-              })
-              .on('sending', () => {
-                this.showModal('Waiting for confirmation')
-              })
-            if (approveCake.status != true) {
-              this.showModal('Something went wrong with tCake approve!')
-              return
-            }
-          }
+          // const allowance = await new web3.eth.Contract(ERC20TokenABI, this.addresses.stable)
+          //   .methods.allowance(this.$store.state.account, this.addresses.frogLottery).call();
+          // if (allowance < amount) {
+          //   const approveCake = await new web3.eth.Contract(ERC20TokenABI, this.addresses.stable)
+          //     .methods.approve(this.addresses.frogLottery, amount)
+          //     .send({
+          //       from: this.$store.state.account
+          //     })
+          //     .on('sending', () => {
+          //       this.showModal('Waiting for confirmation')
+          //     })
+          //   if (approveCake.status != true) {
+          //     this.showModal('Something went wrong with tCake approve!')
+          //     return
+          //   }
+          // }
 
           const allowance0 = await new web3.eth.Contract(ERC20TokenABI, this.addresses.token0)
             .methods.allowance(this.$store.state.account, this.addresses.frogLottery).call();
-          if (allowance0 < amount) {
+          if (BigInt(allowance0) < BigInt(amount)) {
             const approveCake = await new web3.eth.Contract(ERC20TokenABI, this.addresses.token0)
               .methods.approve(this.addresses.frogLottery, amount)
               .send({
@@ -987,9 +942,9 @@ export default {
             }
           }
 
-          const allowance1 = web3.utils.fromWei(await new web3.eth.Contract(ERC20TokenABI, this.addresses.token1)
-            .methods.allowance(this.$store.state.account, this.addresses.frogLottery).call());
-          if (allowance1 < amount) {
+          const allowance1 = await new web3.eth.Contract(ERC20TokenABI, this.addresses.token1)
+            .methods.allowance(this.$store.state.account, this.addresses.frogLottery).call();
+          if (BigInt(allowance1) < BigInt(amount)) {
             const approveCake = await new web3.eth.Contract(ERC20TokenABI, this.addresses.token1)
               .methods.approve(this.addresses.frogLottery, amount)
               .send({
@@ -1009,7 +964,6 @@ export default {
           // const amountToken1 = web3.utils.toWei(this.form.deposit.bnb.toString().substring(0, 20));
 
           // 10.000000000000000000
-          console.log(tokenForDepositAddress, this.tokenSelcted, amount)
           if (isPartisipant) {
             await FrogContract.methods.deposit(
               tokenForDepositAddress,
@@ -1294,9 +1248,7 @@ export default {
       const web3 = new Web3(window.ethereum)
       const FrogContract = new web3.eth.Contract(FrogContractABI, this.addresses.frogLottery);
 
-      // console.log('request')
       const data = await FrogContract.methods.calculateAmountsForLiquidity(sqrtPriceX96, BigInt(currentTick), BigInt(tickLower), BigInt(tickUpper), BigInt(liquidity), isMinus).call()
-      // console.log('respond')
       if (this.pancake.isReversed_pool_busd_usdt)
         return { amount0: data.amount1, amount1: data.amount0 }
       else
