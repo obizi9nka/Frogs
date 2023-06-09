@@ -79,7 +79,6 @@ contract NonfungiblePositionManager is
         address _tokenDescriptor_
     ) ERC721Permit('Pancake V3 Positions NFT-V1', 'PCS-V3-POS', '1') PeripheryImmutableState(_deployer, _factory, _WETH9) {
         _tokenDescriptor = _tokenDescriptor_;
-
     }
 
     /// @inheritdoc INonfungiblePositionManager
@@ -105,6 +104,8 @@ contract NonfungiblePositionManager is
         Position memory position = _positions[tokenId];
         require(position.poolId != 0, 'Invalid token ID');
         PoolAddress.PoolKey memory poolKey = _poolIdToPoolKey[position.poolId];
+        console.log("positions");
+        console.log(poolKey.token0, poolKey.token1, poolKey.fee);
         return (
             position.nonce,
             position.operator,
@@ -126,6 +127,7 @@ contract NonfungiblePositionManager is
         poolId = _poolIds[pool];
         if (poolId == 0) {
             _poolIds[pool] = (poolId = _nextPoolId++);
+            console.log('in manager for positions() adds', poolKey.token0, poolKey.token1);
             _poolIdToPoolKey[poolId] = poolKey;
         }
     }
@@ -144,7 +146,7 @@ contract NonfungiblePositionManager is
         )
     {
         IPancakeV3Pool pool;
-        console.log(params.token0, params.token1, params.fee);
+        console.log('mint in manager', params.token0, params.token1, params.fee);
         (liquidity, amount0, amount1, pool) = addLiquidity(
             AddLiquidityParams({
                 token0: params.token0,
@@ -159,12 +161,13 @@ contract NonfungiblePositionManager is
                 amount1Min: params.amount1Min
             })
         );
-        tokenId = _nextId++;
+        _mint(params.recipient, (tokenId = _nextId++));
 
         bytes32 positionKey = PositionKey.compute(address(this), params.tickLower, params.tickUpper);
         (, uint256 feeGrowthInside0LastX128, uint256 feeGrowthInside1LastX128, , ) = pool.positions(positionKey);
 
         // idempotent set
+        console.log('manager poolKey add', params.token0, params.token1, tokenId);
         uint80 poolId =
             cachePoolKey(
                 address(pool),
@@ -183,8 +186,6 @@ contract NonfungiblePositionManager is
             tokensOwed0: 0,
             tokensOwed1: 0
         });
-        _mint(params.recipient, tokenId);
-        // _safeMint(params.recipient, tokenId);
 
         emit IncreaseLiquidity(tokenId, liquidity, amount0, amount1);
     }

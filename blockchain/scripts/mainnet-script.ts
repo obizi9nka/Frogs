@@ -88,8 +88,8 @@ export async function deploy(tokens: Tokens, pancakeAddresses: PancakeAddresses,
 
     const lottery_busd_usdt = new ethers.Contract(await factory.lotteries(busd.address, usdt.address, fee), FrogLottery_json.abi, acct1) as FrogLottery
 
-    await executeFunc(busd.approve(lottery_busd_usdt.address, 1))
-    await executeFunc(usdt.approve(lottery_busd_usdt.address, 1))
+    await executeFunc(busd.approve(lottery_busd_usdt.address, ethers.constants.MaxUint256))
+    await executeFunc(usdt.approve(lottery_busd_usdt.address, ethers.constants.MaxUint256))
 
     const positionData = await pool_busd_usdt.slot0()
     const tickSpacing = await pool_busd_usdt.tickSpacing()

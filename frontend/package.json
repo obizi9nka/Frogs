@@ -10,7 +10,6 @@
   "dependencies": {
     "@metamask/eth-sig-util": "^5.0.2",
     "@prisma/client": "^4.14.0",
-    "@rainbow-me/rainbowkit": "^1.0.1",
     "@uniswap/v3-periphery": "^1.4.0",
     "@uniswap/v3-sdk": "^3.9.0",
     "axios": "^1.2.2",
@@ -22,7 +21,6 @@
     "vue": "^3.2.13",
     "vue-router": "^4.0.3",
     "vuex": "^4.0.0",
-    "wagmi": "^1.0.9",
     "web3": "^1.8.1"
   },
   "devDependencies": {

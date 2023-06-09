@@ -308,7 +308,7 @@ import factoryAbi from '../../../blockchain/artifacts/contracts/frogs/FrogFactor
 import referalAbi from "../../../blockchain/artifacts/contracts/frogs/FrogReferal.sol/FrogReferal.json"
 import PoolAbi from "../../../blockchain/artifacts/contracts/v3-core/PancakeV3Pool.sol/PancakeV3Pool.json"
 import PositionManager from "../../../blockchain/artifacts/contracts/v3-periphery/NonfungiblePositionManager.sol/NonfungiblePositionManager.json"
-import Router from "../../../blockchain/artifacts/contracts/v3-periphery/SwapRouter.sol/SwapRouter.json"
+import Router from "../../../blockchain/artifacts/contracts/router/SmartRouter.sol/SmartRouter.json"
 
 // import bnbAbi from '../../contracts/frogs/ERC20.sol/ERC20Token.json'
 // import lotteryAbi from '../../contracts/frogs/FrogLottery.sol/FrogLottery.json'
@@ -320,7 +320,7 @@ import Router from "../../../blockchain/artifacts/contracts/v3-periphery/SwapRou
 import BigNumber from 'bignumber.js';
 
 
-const prefix = config.prefix
+let prefix = config.prefix
 
 const ERC20TokenABI = bnbAbi.abi
 
@@ -477,7 +477,7 @@ export default {
       this.frog.token1.symbol = await (new web3.eth.Contract(ERC20TokenABI, this.frog.token1.address)).methods.symbol().call()
 
 
-      this.pancake.tokenId = 1 //  await FrogContract.methods.tokenId().call() 
+      this.pancake.tokenId = await FrogContract.methods.tokenId().call()
       const position = await manager.methods.positions(this.pancake.tokenId).call()
       this.pancake.tickLower = position.tickLower
       this.pancake.tickUpper = position.tickUpper
@@ -542,9 +542,8 @@ export default {
           this.frog.maxUsd = parseFloat(web3.utils.fromWei(maxUsd))
         });
 
-      setTimeout(this.updateParams, 20000)
+      setTimeout(this.updateParams, 10000)
     },
-
     async updateBalances() {
       if (this.$store.state.account) {
         const web3 = new Web3(window.ethereum)
@@ -581,7 +580,6 @@ export default {
           .then(async balance => {
             this.frog.user.deposit = balance.toString()
             const data = await this.calculateAmountsForLiquidity(BigInt(this.pancake.sqrtPriceX96_token0_token1), this.pancake.currentTick, this.pancake.tickLower, this.pancake.tickUpper, this.frog.user.deposit, false)
-
             this.pancake.table.deposit_token0 = web3.utils.fromWei(data.amount0)
             this.pancake.table.deposit_token1 = web3.utils.fromWei(data.amount1)
             this.pancake.table.deposit_token0_usd = parseFloat(BigNumber(data.amount0).div(BigInt(10 ** 18)).multipliedBy(firstPrice).toNumber()) // parseFloat(this.getPrice(BigNumber(data.amount0).div(BigInt(10 ** 18)).toNumber(), this.pancake.sqrtPriceX96_token0_stable, 18, 18))
@@ -591,7 +589,9 @@ export default {
         frog.methods.balanceOf(this.$store.state.account).call()
           .then(async balance => {
             this.frog.user.balance = balance.toString()
+            console.log(this.pancake.sqrtPriceX96_token0_token1, this.pancake.currentTick, this.pancake.tickLower, this.pancake.tickUpper, this.frog.user.balance)
             const data = await this.calculateAmountsForLiquidity(this.pancake.sqrtPriceX96_token0_token1, this.pancake.currentTick, this.pancake.tickLower, this.pancake.tickUpper, this.frog.user.balance, false)
+            console.log(data)
             this.pancake.table.balance_token0 = web3.utils.fromWei(data.amount0)
             this.pancake.table.balance_token1 = web3.utils.fromWei(data.amount1)
             this.pancake.table.balance_token0_usd = parseFloat(BigNumber(data.amount0).div(BigInt(10 ** 18)).multipliedBy(firstPrice).toNumber()) // parseFloat(this.getPrice(BigNumber(data.amount0).div(BigInt(10 ** 18)).toNumber(), this.pancake.sqrtPriceX96_token0_stable, 18, 18))
@@ -667,10 +667,10 @@ export default {
       //   this.frog.owner = owner
       //   this.isOwner = owner.toLowerCase() === this.$store.state.account.toLowerCase()
       // })
-      FrogContract.methods.beneficiary().call().then(beneficiary => {
-        this.frog.beneficiary = beneficiary
-        this.isBeneficiary = beneficiary.toLowerCase() === this.$store.state.account.toLowerCase()
-      })
+      // FrogContract.methods.beneficiary().call().then(beneficiary => {
+      //   this.frog.beneficiary = beneficiary
+      //   this.isBeneficiary = beneficiary.toLowerCase() === this.$store.state.account.toLowerCase()
+      // })
 
       // Table Of Participants
       const participants = await FrogContract.methods.getParticipants().call()
@@ -689,8 +689,11 @@ export default {
 
       // Table Of Winners
       var _victories = [];
+      console.log(1)
       const contract = new ethers.Contract(this.addresses.frogLottery, FrogContractABI, new ethers.providers.Web3Provider(window.ethereum))
-      const victories = await contract.queryFilter(contract.filters.Victory())
+      console.log(1)
+      const victories = await contract.queryFilter(contract.filters.Victory(), 28892520)
+      console.log(victories)
 
       for (const _victory of victories) {
         const data = _victory.args
@@ -709,6 +712,7 @@ export default {
         _victories.push(victory)
       }
       this.frog.victories = _victories;
+      console.log(_victories)
 
       // Table Of Draws
       var _draws = [];
@@ -737,20 +741,21 @@ export default {
         _draws.push(draw)
       }
       this.frog.draws = _draws;
+      console.log(_draws)
       // Referal
       // const FrogReferal = new web3.eth.Contract(FrogReferalABI, this.addresses.frogReferal)
 
       // const referalInfo = await FrogReferal.methods.refererOf(this.$store.state.account.toLowerCase()).call()
       const data = await axios.post(`${backendUrl}/getUser`, { wallet: this.$store.state.account.toLowerCase() })
       if (data.data.user == null) {
-        this.frog.referalInfo.referer = '-111'
+        this.frog.referalInfo.referer = '-11'
         this.frog.referalInfo.percent = -11
       } else {
         this.frog.referalInfo.referer = data.data.referer.wallet
         this.frog.referalInfo.percent = data.data.user.percent / 100
       }
 
-      setTimeout(this.updateParticipants, 20000)
+      setTimeout(this.updateParticipants, 30000)
     },
     async formDepositRate() {
       let firstPrice = this.pancake.isReversed_pool_busd_usdc ? 1 / this.getPrice(1, this.pancake.sqrtPriceX96_token0_stable, 18, 18) : this.getPrice(1, this.pancake.sqrtPriceX96_token0_stable, 18, 18)
@@ -796,6 +801,9 @@ export default {
     },
     async swap(token0, token1) {
       const web3 = new Web3(window.ethereum)
+      // const provider = new ethers.providers.Web3Provider(window.ethereum)
+      // await provider.send("eth_requestAccounts", []);
+      // const signer = provider.getSigner()
       const router = new web3.eth.Contract(Router.abi, this.addresses.router)
 
       let tokenBalance
@@ -813,9 +821,9 @@ export default {
           break;
         }
       }
-      const amountIn = BigInt(100000 * 10 ** 18)
-      const allowance0 = web3.utils.fromWei(await new web3.eth.Contract(ERC20TokenABI, token0)
-        .methods.allowance(this.$store.state.account, router.options.address).call());
+      const amountIn = BigInt(1 * 10 ** 18)
+      const allowance0 = await new web3.eth.Contract(ERC20TokenABI, token0)
+        .methods.allowance(this.$store.state.account, router.options.address).call();
       if (allowance0 < amountIn) {
         const approveCake = await new web3.eth.Contract(ERC20TokenABI, token0)
           .methods.approve(router.options.address, amountIn)
@@ -831,16 +839,20 @@ export default {
         }
       }
 
-      await router.methods.exactInputSingle({
+      const params = {
         tokenIn: token0,
         tokenOut: token1,
         fee: this.addresses.fee,
         recipient: this.$store.state.account,
-        deadline: 100000000000,
         amountIn,
         amountOutMinimum: 0,
         sqrtPriceLimitX96: 0
-      })
+      }
+
+      // [token0, token1, 100, this.$store.state.account, 10000, 0, 0]
+      // await router.exactInputSingle(params)
+
+      await router.methods.exactInputSingle(params)
         .send({
           from: this.$store.state.account
         })
@@ -853,6 +865,7 @@ export default {
         .on('receipt', (receipt) => {
           this.showModal('Swap complete!')
         })
+      console.log(1)
     },
     async deposit() {
       const web3 = new Web3(window.ethereum)
@@ -882,7 +895,6 @@ export default {
           break;
         }
       }
-
       if (tokenBalance < parseFloat(this.form.deposit.token)) {
         errors.push("Not enough tokens")
       }
@@ -902,7 +914,7 @@ export default {
 
         const FrogReferal = new web3.eth.Contract(FrogReferalABI, this.addresses.frogReferal)
         const isPartisipant = await FrogReferal.methods.alreadyParticipant(this.$store.state.account).call()
-        const condition = '-11'
+        const condition = '-111'
         if (this.frog.referalInfo.referer == condition) {
           this.showModal('Not a referal')
         } else if (confirm("You want to send: \n" + this.form.deposit.token)) {
@@ -1273,6 +1285,24 @@ export default {
         this.updateParams()
         this.updateParticipants()
       });
+
+      // window.ethereum.on('chainChanged', async (chainId) => {
+      //   chainId = parseInt(chainId)
+      //   console.log('chainId', chainId, 'prefix', prefix)
+      //   switch (chainId) {
+      //     case 31337:
+      //       prefix = 'localhost_'
+      //       break;
+      //     case 1:
+      //       prefix = 'bsc_'
+      //       break;
+      //     case 11155111:
+      //       prefix = 'sepolia_'
+      //       break;
+      //   }
+      //   console.log('prefix', prefix)
+      //   this.$forceUpdate()
+      // });
     }
 
 

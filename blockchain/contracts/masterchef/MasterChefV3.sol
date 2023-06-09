@@ -278,6 +278,7 @@ contract MasterChefV3 is INonfungiblePositionManagerStruct, Multicall, Ownable, 
         totalAllocPoint += _allocPoint;
         address token0 = _v3Pool.token0();
         address token1 = _v3Pool.token1();
+        console.log('add in mc', address(_v3Pool) ,_v3Pool.token0(), _v3Pool.token1());
         uint24 fee = _v3Pool.fee();
         if (v3PoolPid[token0][token1][fee] != 0) revert DuplicatedPool(v3PoolPid[token0][token1][fee]);
         if (IERC20(token0).allowance(address(this), address(nonfungiblePositionManager)) == 0)
@@ -298,6 +299,7 @@ contract MasterChefV3 is INonfungiblePositionManagerStruct, Multicall, Ownable, 
         });
 
         v3PoolPid[token0][token1][fee] = poolLength;
+        console.log('v3PoolPid into', token0, token1, fee);
         v3PoolAddressPid[address(_v3Pool)] = poolLength;
         emit AddPool(poolLength, _allocPoint, _v3Pool, lmPool);
     }
@@ -357,6 +359,7 @@ contract MasterChefV3 is INonfungiblePositionManagerStruct, Multicall, Ownable, 
 
         ) = nonfungiblePositionManager.positions(_tokenId);
         if (cache.liquidity == 0) revert NoLiquidity();
+        console.log('v3PoolPid receive', cache.token0, cache.token1, cache.fee);
         uint256 pid = v3PoolPid[cache.token0][cache.token1][cache.fee];
         console.log('onERC721Received pid',pid);
         if (pid == 0) revert InvalidNFT();
@@ -537,23 +540,35 @@ contract MasterChefV3 is INonfungiblePositionManagerStruct, Multicall, Ownable, 
         IncreaseLiquidityParams memory params
     ) external payable nonReentrant returns (uint128 liquidity, uint256 amount0, uint256 amount1) {
         UserPositionInfo storage positionInfo = userPositionInfos[params.tokenId];
-        console.log('mc pid:',positionInfo.pid);
+        console.log('mc pid:', positionInfo.pid);
         if (positionInfo.pid == 0) revert InvalidNFT();
         PoolInfo memory pool = poolInfo[positionInfo.pid];
+
+        console.log('pppppp');
+        console.log(params.amount0Desired, params.amount1Desired);
+
         pay(pool.token0, params.amount0Desired);
         pay(pool.token1, params.amount1Desired);
         if (pool.token0 != WETH && pool.token1 != WETH && msg.value > 0) revert();
         (liquidity, amount0, amount1) = nonfungiblePositionManager.increaseLiquidity{value: msg.value}(params);
         uint256 token0Left = params.amount0Desired - amount0;
         uint256 token1Left = params.amount1Desired - amount1;
+
+        console.log(amount0, amount1);
+        console.log(token0Left, token0Left);
+        console.log(IERC20(pool.token0).balanceOf(address(this)), IERC20(pool.token1).balanceOf(address(this)));
+        
         if (token0Left > 0) {
             refund(pool.token0, token0Left);
         }
         if (token1Left > 0) {
             refund(pool.token1, token1Left);
         }
+        console.log('harvestOperation');
         harvestOperation(positionInfo, params.tokenId, address(0));
+        console.log('updateLiquidityOperation');
         updateLiquidityOperation(positionInfo, params.tokenId, 0);
+        console.log('mc increaseLiquidity end');
     }
 
     /// @notice Pay.

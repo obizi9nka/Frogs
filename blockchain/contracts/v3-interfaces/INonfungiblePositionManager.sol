@@ -6,7 +6,9 @@ interface INonfungiblePositionManager{
     event DecreaseLiquidity(uint256 indexed tokenId, uint128 liquidity, uint256 amount0, uint256 amount1);
     event Collect(uint256 indexed tokenId, address recipient, uint256 amount0, uint256 amount1);
 
-   function positions(uint256 tokenId)
+    function safeTransferFrom(address from, address to, uint256 tokenId) external;
+
+    function positions(uint256 tokenId)
         external
         view
         returns (

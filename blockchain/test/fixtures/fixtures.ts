@@ -184,7 +184,7 @@ export async function deployAll() {
 
     await pancakeFactory.setLmPoolDeployer(LMPoolDeployer.address)
     await mc.setLMPoolDeployer(LMPoolDeployer.address);
-    await mc.add(1780, pool_busd_usdt.address, false);
+    await mc.add(1780, pool_busd_usdt.address, true);
 
     const tokenCakeAmount = BigInt(1e28)
 
@@ -251,8 +251,8 @@ export async function deployAll() {
     const __tickUpper = __positionData.tick - __positionData.tick % __tickSpacing + __tickSpacing * 100
 
     let params = {
-        token0: busd.address,
-        token1: usdt.address,
+        token0: isReversed_pool_busd_usdt ? usdt.address : busd.address,
+        token1: isReversed_pool_busd_usdt ? busd.address : usdt.address,
         fee,
         tickLower,
         tickUpper,
@@ -265,8 +265,8 @@ export async function deployAll() {
     }
 
     let _params = {
-        token0: busd.address,
-        token1: usdc.address,
+        token0: isReversed_pool_busd_usdc ? usdc.address : busd.address,
+        token1: isReversed_pool_busd_usdc ? busd.address : usdc.address,
         fee,
         tickLower: _tickLower,
         tickUpper: _tickUpper,
@@ -279,8 +279,8 @@ export async function deployAll() {
     }
 
     let paramsStable = {
-        token0: usdt.address,
-        token1: usdc.address,
+        token0: isReversed_pool_usdt_usdc ? usdc.address : usdt.address,
+        token1: isReversed_pool_usdt_usdc ? usdt.address : usdc.address,
         fee,
         tickLower: __tickLower,
         tickUpper: __tickUpper,

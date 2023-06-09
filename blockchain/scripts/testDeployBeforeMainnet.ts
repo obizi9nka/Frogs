@@ -4,10 +4,11 @@ import { ethers } from 'hardhat';
 import secret from "../secrets.json"
 import { PancakeAddresses, Tokens, deploy } from "./mainnet-script";
 const addresses = constants.addresses as any
-const fee = 500;
-const prefix = 'tbsc_'
+const fee = 100;
+// const prefix = 'tbsc_'
 // const prefix = 'sepolia_test_before_mainnet_'
-const _prefix = 'sepolia_'
+const prefix = 'localhost_'
+const _prefix = 'localhost_'
 
 const factory = '0x0BFbCF9fa4f9C56B0F40a671Ad40E0805A091865'
 const smartRouter = '0x9a489505a00cE272eAa5e07Dba6491314CaE3796'
