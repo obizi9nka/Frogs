@@ -1,0 +1,206 @@
+@import "https://fonts.googleapis.com/css?family=Press+Start+2P";
+
+* {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.change-background {
+    background-color: #ebebeb;
+}
+
+.inactive {
+    color: rgba(5, 5, 5, 0.3);
+}
+
+.nav-link.nav-active {
+    background-color: #f8f8f7;
+    color: #151514;
+}
+
+.nav-link:hover {
+    border-color: #151514;
+}
+
+.line {
+    background-color: rgba(5, 5, 5, 0.15);
+}
+
+.footer-line {
+    background-color: rgba(5, 5, 5, 0.15);
+}
+
+.navigation {
+    border-bottom: 1px solid rgba(5, 5, 5, 0.15);
+}
+
+.footer {
+    border-top: 1px solid rgba(5, 5, 5, 0.15);
+}
+
+.text-transp {
+    color: rgba(5, 5, 5, 0.5);
+}
+
+.text-notransp {
+    color: rgba(5, 5, 5, 1);
+}
+
+.d-none {
+    display: none;
+}
+
+hr {
+    display: block;
+    height: 1px;
+    border: 0;
+    border-top: 1px dotted #ccc;
+    margin: 1em 0;
+    padding: 0;
+}
+
+.disabled-button {
+    background-color: #ccc;
+}
+
+.w-input-dark {
+    color: #fff;
+}
+
+.text-field-dark {
+    background-color: #454545;
+}
+
+.fireworks {
+    background-size: cover;
+    background-position: 50% 50%;
+    background-repeat: no-repeat;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.button-max {
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: color(display-p3 0.945 0.62 0.286);
+    transition: background-color 500ms cubic-bezier(.6, .6, 0, 1);
+}
+
+.button-max:hover {
+    color: color(display-p3 0.756 0.395 0.023);
+}
+
+.add-liq {
+    font-weight: 600;
+    font-size: 15px;
+    text-decoration: none;
+}
+
+.remove-liq {
+    font-weight: 600;
+    font-size: 15px;
+    text-decoration: none;
+    color: #e57161;
+}
+
+.dd-menu {
+    display: none;
+    cursor: pointer;
+}
+
+.back-button {
+    cursor: pointer;
+}
+
+.swal2-image {
+    padding: 30px;
+}
+
+.button-mam {
+    margin-bottom: 4px;
+    border-radius: 20px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    padding-left: 12px;
+    padding-right: 12px;
+    background-color: #050505;
+    border: 1.5px solid;
+    border-color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: #fff;
+    transition: background-color 500ms cubic-bezier(.6, .6, 0, 1);
+}
+
+.button-mam-active {
+    background-color: #fff;
+    color: #050505;
+}
+
+.button-mam:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+.button-mam-active:hover {
+    background-color: #fff;
+}
+
+.liq-button {
+    padding: 5px 18px;
+    font-size: 14px;
+}
+
+@media screen and (min-width: 992px) {
+    .grid-grid {
+        grid-template-columns: 1.1fr 1.1fr 0.8fr;
+    }
+}
+
+.confirm-container-html {
+    z-index: 1;
+    justify-content: normal;
+    margin: 0;
+    padding: 0;
+    font-size: initial;
+    text-align: initial;
+}
+
+.confirm-container {
+    padding: 0;
+    border: none;
+    font-size: unset;
+    color: unset;
+}
+
+.balance-link {
+    color: white;
+    text-decoration-style: dotted;
+    text-decoration-color: white;
+}
+
+input,
+.text-field-wrapper {
+    box-shadow: none;
+}
+
+.fro-fro {
+    min-height: 70px;
+    font-family: "Press Start 2P";
+    font-size: 15px;
+    background-color: color(display-p3 0.945 0.62 0.286);
+}
+
+.fro-fro-disabled {
+    min-height: 70px;
+    font-family: "Press Start 2P";
+    font-size: 15px;
+    background-color: #ccc;
+}

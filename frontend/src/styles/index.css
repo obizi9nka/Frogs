@@ -1,0 +1,202 @@
+@import "https://fonts.googleapis.com/css?family=Press+Start+2P";
+
+.gigaTransform {
+    transform: translate3d(0px, 0px, 0px) scale3d(1.1, 1.1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skew(0deg, 0deg);
+    transform-style: preserve-3d;
+    background-color: rgb(251, 238, 157);
+    z-index: 901;
+}
+
+.pointer {
+    cursor: pointer;
+}
+
+* {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.inactive {
+    color: rgba(5, 5, 5, 0.3) !important;
+}
+
+.change-background-1 {
+    background-color: #c7eeb4 !important;
+    -webkit-transition: background-color 500ms linear;
+    -ms-transition: background-color 500ms linear;
+    transition: background-color 500ms linear;
+}
+
+.change-background-2 {
+    background-color: #91da6c !important;
+    -webkit-transition: background-color 500ms linear;
+    -ms-transition: background-color 500ms linear;
+    transition: background-color 500ms linear;
+}
+
+.nav-link.nav-active {
+    background-color: #f8f8f7;
+    color: #151514;
+}
+
+.nav-link:hover {
+    border-color: #151514 !important;
+}
+
+.line {
+    background-color: rgba(5, 5, 5, 0.15) !important;
+}
+
+.footer-line {
+    background-color: rgba(5, 5, 5, 0.15) !important;
+}
+
+.navigation {
+    border-bottom: 1px solid rgba(5, 5, 5, 0.15) !important;
+}
+
+.footer {
+    border-top: 1px solid rgba(5, 5, 5, 0.15) !important;
+}
+
+.text-transp {
+    color: rgba(5, 5, 5, 0.5) !important;
+}
+
+.text-notransp {
+    color: rgba(5, 5, 5, 1) !important;
+}
+
+.d-none {
+    display: none;
+}
+
+.pixel-font {
+    font-family: "Press Start 2P" !important;
+}
+
+.swal2-title {
+    font-family: "Press Start 2P" !important;
+}
+
+.swal2-confirm {
+    font-family: "Press Start 2P" !important;
+    background-color: color(display-p3 0.945 0.62 0.286) !important;
+    color: black !important;
+}
+
+.fro-fro {
+    min-height: 70px !important;
+    font-family: "Press Start 2P" !important;
+    font-size: 15px !important;
+    background-color: color(display-p3 0.945 0.62 0.286) !important;
+}
+
+.footer-social-link:hover {
+    color: color(display-p3 0.945 0.62 0.286) !important;
+}
+
+.swal2-html-container {
+    text-align: left !important;
+}
+
+.navigation-login {
+    box-shadow: 0 4px 0 0 #050505;
+}
+
+hr {
+    display: block;
+    height: 1px;
+    border: 0;
+    border-top: 1px dotted #ccc;
+    margin: 1em 0;
+    padding: 0;
+}
+
+.button-max {
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: color(display-p3 0.945 0.62 0.286) !important;
+    transition: background-color 500ms cubic-bezier(.6, .6, 0, 1);
+}
+
+.button-max:hover {
+    color: color(display-p3 0.756 0.395 0.023) !important;
+}
+
+.section-actions {
+    max-width: 560px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+}
+
+.ref-code {
+    background-color: black;
+    padding: 25px 30px;
+    display: inline-block;
+    position: relative;
+    font-size: 1.75rem !important;
+}
+
+@media screen and (max-width: 991px) {
+    .ref-code {
+        font-size: 1rem !important;
+    }
+
+    .header__button {
+        display: none;
+    }
+}
+
+.invited>a {
+    border-color: #151514 !important;
+    border-color: #e2e2df;
+    color: #151514;
+}
+
+.left-finger {
+    font-size: 2.5rem !important;
+}
+
+.highlight {
+    background-color: color(display-p3 0.945 0.62 0.286) !important;
+}
+
+.highlight {
+    padding-left: .18em;
+    padding-right: .18em;
+    color: black;
+}
+
+h3,
+.h3 {
+    font-size: 1.75rem;
+    margin-bottom: 1.25rem;
+}
+
+@media (min-width: 768px) {
+
+    h3,
+    .h3 {
+        margin-top: 1.5rem;
+        margin-bottom: 1.25rem;
+        font-size: 1.75rem;
+    }
+}
+
+.invite-link {
+    color: color(display-p3 0.945 0.62 0.286) !important;
+}
+
+/* .btn-copy {
+    cursor: pointer;
+} */
+.fro-fro-disabled {
+    min-height: 70px !important;
+    font-family: "Press Start 2P" !important;
+    font-size: 15px !important;
+    background-color: #ccc !important;
+}

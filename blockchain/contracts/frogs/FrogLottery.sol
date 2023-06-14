@@ -171,7 +171,7 @@ contract FrogLottery is Random{
     address  pool;
     address  smartRouter;
     uint public tokenId; // bsc id = 116119
-    uint24  poolFee;
+    uint24 public poolFee;
     address  pancakeFactory;
     address  masterChef;
     bool isReversed;
