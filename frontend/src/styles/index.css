@@ -1,11 +1,11 @@
 @import "https://fonts.googleapis.com/css?family=Press+Start+2P";
 
-.gigaTransform {
+/* .gigaTransform {
     transform: translate3d(0px, 0px, 0px) scale3d(1.1, 1.1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skew(0deg, 0deg);
     transform-style: preserve-3d;
     background-color: rgb(251, 238, 157);
     z-index: 901;
-}
+} */
 
 .pointer {
     cursor: pointer;

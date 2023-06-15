@@ -12,7 +12,10 @@ import { ethers } from "ethers"
 import JSBI from "jsbi"
 import BigNumber from 'bignumber.js';
 import Web3 from "web3"
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/dist/ScrollTrigger';
 
+gsap.registerPlugin(ScrollTrigger)
 
 export const getConstants = (prefix: string | number | undefined) => {
 
@@ -190,4 +193,20 @@ export async function executeFunc(func: any, userAddress: string) {
         .on('receipt', () => {
             console.log('Your tokens sent to deposit!')
         })
+}
+
+export const gsapPopUp = (el: any, delay?: number, duration?: number, px?: string, start?: string) => {
+    gsap.fromTo(el, {
+        opacity: 0,
+        y: '+=40',
+    }, {
+        scrollTrigger: {
+            trigger: el,
+            start: start == undefined ? 'top 90%' : start
+        },
+        y: 0,
+        duration: duration == undefined ? 0.6 : duration,
+        opacity: 1,
+        delay: delay == undefined ? 0.1 : delay
+    })
 }

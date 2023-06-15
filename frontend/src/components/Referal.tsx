@@ -2,8 +2,8 @@ import { claimReferalReward } from "@/functions/claimReferalReward";
 import { Lines } from "./periphery/Lines";
 import { useWalletClient } from "wagmi";
 import { Router } from "./types/export";
-import { fromLiqToUsd } from "@/functions/utils";
-import { useEffect, useState } from "react";
+import { fromLiqToUsd, gsapPopUp } from "@/functions/utils";
+import { useEffect, useRef, useState } from "react";
 import axios, { AxiosResponse } from "axios";
 
 export function Referal({ constants, lotteryData }: DepositStuct) {
@@ -28,15 +28,13 @@ export function Referal({ constants, lotteryData }: DepositStuct) {
         }
     }, [data])
 
-    const [user, setuser] = useState<any>()
-    const [domen, setDomen] = useState('')
+    const [user, setuser] = useState<any>(undefined)
+    const [domen, setDomen] = useState('your referal link')
 
     const setURL = (wallet: string | undefined) => {
         const domen = typeof window != 'undefined' ? window.location.hostname : ''
         if (wallet)
             setDomen(domen)
-        else
-            setDomen('your referal link')
     }
 
 
@@ -67,22 +65,34 @@ export function Referal({ constants, lotteryData }: DepositStuct) {
         setFrogRewardsInUsd(reward0InUsd + reward1InUsd + rewardCakeInUsd)
     }
 
+    const blockInvite = useRef(null)
+
+
+    useEffect(() => {
+        gsapPopUp(blockInvite.current)
+
+    }, [])
+
     return (
         <div className="section-regular" id="ref">
             <Lines />
 
             <div className="container-x-small">
                 <div data-w-id="362479a4-ad8f-68b0-447f-d46739d7ca12" className="title-wrapper-center">
-                    <h2 className="h2-heading pixel-font">Invite</h2>
+                    <h2 className="h2-heading pixel-font" ref={blockInvite}>Invite</h2>
                 </div>
                 <div className="section-actions do-anim appear-slideInUp is-animated" id="invite-more">
                     <h3>Now you invited <span className="highlight">{user && user.invited} friends</span>. Invite more using your referral link below</h3>
-                    <div className="ref-code paragraph-large" style={{ display: 'inline-flex' }}><a href="#" id="invite-link" className="invite-link" style={{ textDecorationStyle: 'dotted', marginTop: 'auto', marginBottom: 'auto' }}>{user && domen + `/invite/0x...${user.wallet.slice(37.42)}`}</a>
+                    <div className="ref-code paragraph-large" style={{ display: 'inline-flex' }}><a href="#" id="invite-link" className="invite-link" style={{ textDecorationStyle: 'dotted', marginTop: 'auto', marginBottom: 'auto' }}>{user ? domen + `/invite/0x...${user.wallet.slice(37.42)}` : domen}</a>
                         <div style={{ display: "flex", justifyContent: "center", alignItems: "center", cursor: "pointer", userSelect: 'none', marginLeft: '10px' }} onClick={copyToClipboard}>
                             <img src="/img/copy.png" width={40} height={40} />
                         </div>
                     </div>
-                    <p className="left-finger animate__animated animate__pulse animate__infinite"><img src="/img/finger.svg" style={{ height: "45px", marginRight: "10px" }} /><img src="/img/finger.svg" style={{ height: "45px" }} /><img src="/img/finger.svg" style={{ height: "45px", marginLeft: "10px" }} /></p>
+                    <p className="left-finger animate__animated animate__pulse animate__infinite">
+                        <img src="/img/finger.svg" style={{ height: "45px", marginRight: "10px" }} />
+                        <img src="/img/finger.svg" style={{ height: "45px" }} />
+                        <img src="/img/finger.svg" style={{ height: "45px", marginLeft: "10px" }} />
+                    </p>
                     {frogRewardsInUsd > 0 ?
                         <div>
                             <button onClick={callClaimReferalReward} className="button-primary w-button fro-fro" style={{ marginBottom: "15px", width: "100%" }}>Claim ${frogRewardsInUsd.toString()}</button>

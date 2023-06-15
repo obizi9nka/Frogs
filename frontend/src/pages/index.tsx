@@ -7,10 +7,10 @@ import { Header } from '@/components/Header';
 import { Faq } from '@/components/Faq';
 import { Referal } from '@/components/Referal';
 import { Frog } from '@/components/Frog';
-import { abis, getConstants } from '@/functions/utils';
+import { abis, getConstants, gsapPopUp } from '@/functions/utils';
 import { RouterEnum } from '@/types/exports';
 import { ethers } from 'ethers';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi';
 
 export default function Home() {
@@ -107,6 +107,8 @@ export default function Home() {
     })
 
   }
+
+
 
   return (
     <div className="change-background change-background-1">

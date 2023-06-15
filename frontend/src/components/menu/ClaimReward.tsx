@@ -12,6 +12,7 @@ export function ClaimReward({ setRouter, constants, lotteryData }: DepositStuct 
     const [frogbalancesInUsd, setFrogbalancesInUsd] = useState({ balanceOf: 0, depositOf: 0, withdrawOf: 0 } as FrogBalances<number>)
     const [participants, setParticipants] = useState(-1)
     const [symbols, setSymbols] = useState({ token0: '', token1: '' } as any)
+    const [blockActive, setBlockActive] = useState(false)
 
     useEffect(() => {
         if (lotteryData?.frogBalances) {
@@ -67,7 +68,7 @@ export function ClaimReward({ setRouter, constants, lotteryData }: DepositStuct 
                                 <div data-w-id="362479a4-ad8f-68b0-447f-d46739d7ca18" className="faq-wrapper   "
                                     style={{ marginBottom: "30px" }}>
                                     <div data-hover="false" data-delay="0"
-                                        data-w-id="362479a4-ad8f-68b0-447f-d46739d7ca19" className="faq-item w-dropdown gigaTransform"
+                                        data-w-id="362479a4-ad8f-68b0-447f-d46739d7ca19" onClick={() => setBlockActive(!blockActive)} className={`faq-item w-dropdown frog-drop-down ${blockActive == true ? 'active' : ''}`}
                                         style={{ boxShadow: "0 4px 0 0 #050505" }}>
                                         <div className="faq-item-toggle w-dropdown-toggle">
                                             <div className="faq-title-wrapper">
@@ -77,7 +78,7 @@ export function ClaimReward({ setRouter, constants, lotteryData }: DepositStuct 
                                                 </div>
                                             </div>
                                         </div>
-                                        <nav className="faq-content w-dropdown-list " >
+                                        <nav className={`faq-content w-dropdown-list ${blockActive == true ? 'active142' : ''}`}>
                                             <div className="faq-tab-content">
                                                 <p
                                                     style={{ fontSize: '14px', display: 'flex', justifyContent: 'space-between' }}>
@@ -111,7 +112,7 @@ export function ClaimReward({ setRouter, constants, lotteryData }: DepositStuct 
                                 </div>
                                 <p style={{ display: "flex", justifyContent: "space-between" }}>
                                     <span>Participants</span>
-                                    <b>{lotteryData.participants.toString()}</b>
+                                    <b>{lotteryData.participants ? lotteryData.participants.toString() : ''}</b>
                                 </p>
                                 <p style={{ display: "flex", justifyContent: "space-between" }}>
                                     <span>Potential win&nbsp;

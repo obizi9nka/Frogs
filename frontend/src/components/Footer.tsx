@@ -1,8 +1,23 @@
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/dist/ScrollTrigger';
+import { gsapPopUp } from "@/functions/utils"
+import { useRef, useEffect } from 'react';
+
+gsap.registerPlugin(ScrollTrigger)
 export function Footer() {
+
+    const blockFooter1 = useRef(null)
+    const blockFooter2 = useRef(null)
+
+    useEffect(() => {
+        gsapPopUp(blockFooter1.current, 0.2, undefined, '-15px', 'top bottom')
+        gsapPopUp(blockFooter2.current, 0.2, undefined, '-15px', 'top bottom')
+    }, [])
+
     return (
         <div className="footer">
             <div className="container-regular">
-                <div data-w-id="0658bedc-d4e5-2d7e-8f4d-95a7680e6483" className="w-layout-grid footer-grid">
+                <div ref={blockFooter1} data-w-id="0658bedc-d4e5-2d7e-8f4d-95a7680e6483" className="w-layout-grid footer-grid">
                     <div id="w-node-_0658bedc-d4e5-2d7e-8f4d-95a7680e6484-680e6481" className="footer-left-wrapper">
                         <div>
                             <div className="margin-bottom-24">
@@ -43,7 +58,7 @@ export function Footer() {
                     </div>
                 </div>
                 <div data-w-id="0658bedc-d4e5-2d7e-8f4d-95a7680e64b4" className="footer-line"></div>
-                <div data-w-id="0658bedc-d4e5-2d7e-8f4d-95a7680e64b5" className="footer-justify">
+                <div ref={blockFooter2} data-w-id="0658bedc-d4e5-2d7e-8f4d-95a7680e64b5" className="footer-justify">
                     <p>© 2023 <span className="font-weight-medium">FrogsFi</span> {`> with 💚 from the swamp`}</p>
                     <div className="footer-socials">
                         <a href="https://discord.gg/sVY7RZ6eeJ" target="_blank" className="footer-social-link w-inline-block">

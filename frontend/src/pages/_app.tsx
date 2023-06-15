@@ -1,3 +1,4 @@
+import '@/styles/ref/animate.min.css'
 import '@rainbow-me/rainbowkit/styles.css';
 import '@/styles/globals.css'
 import '@/styles/flow.css'
