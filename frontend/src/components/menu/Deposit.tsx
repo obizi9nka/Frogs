@@ -1,21 +1,19 @@
 import { deposit } from "@/functions/deposit"
-import { getAbis } from "@/functions/utils"
+import { abis } from "@/functions/utils"
 import { useEffect, useState } from "react"
 import { useWalletClient } from "wagmi"
 import Web3 from "web3"
-import { RouterSetter } from "../types/export"
+import { Router } from "../types/export"
 import { RouterEnum } from "@/types/exports"
 
-const Abis = getAbis
-
-export function Deposit({ setRouter, constants, lotteryData }: DepositStuct & RouterSetter) {
+export function Deposit({ setRouter, constants, lotteryData }: DepositStuct & Router) {
     const { data } = useWalletClient()
 
 
     const [userInputDeposit, setUserInputDeposit] = useState({
         tokenAddressSelected: '',
         walletClient: data,
-        depositAmount: 0,
+        depositAmount: "0",
     } as UserInputDepositStruct)
 
     useEffect(() => {
@@ -38,7 +36,7 @@ export function Deposit({ setRouter, constants, lotteryData }: DepositStuct & Ro
     const getBalances = async (userAddress: string) => {
         const web3 = new Web3(data as any)
         const getBalance = async (tokenAddress: string) => {
-            const token = new web3.eth.Contract(Abis.ERC20 as any, tokenAddress)
+            const token = new web3.eth.Contract(abis.ERC20 as any, tokenAddress)
             const decimals = await token.methods.decimals().call()
             return (BigInt(await token.methods.balanceOf(userAddress).call()) / BigInt(10 ** decimals)).toString()
         }
@@ -68,7 +66,10 @@ export function Deposit({ setRouter, constants, lotteryData }: DepositStuct & Ro
                             <div>
                                 <div style={{ fontWeight: 'bold', display: 'inline' }}>STEP 2 OF 2</div> Add liquidity to the draw
                             </div>
-                            <img onClick={() => setRouter(RouterEnum.claimReward)} src="/icons/close-circle-outline.svg" className="info-potwin pointer" width={18} height={18} />
+                            {lotteryData.frogBalances && lotteryData.frogBalances.balanceOf + lotteryData.frogBalances.depositOf + lotteryData.frogBalances.withdrawOf + lotteryData.frogRewards.reward0 + lotteryData.frogRewards.reward1 + lotteryData.frogRewards.rewardCake > 0 ?
+                                <img onClick={() => setRouter(RouterEnum.claimReward)} src="/icons/close-circle-outline.svg" className="info-potwin pointer" width={18} height={18} />
+                                : <></>
+                            }
 
                         </div>
                         <hr style={{ marginBottom: "30px" }} />
@@ -79,12 +80,27 @@ export function Deposit({ setRouter, constants, lotteryData }: DepositStuct & Ro
                                 <Coin coin="USDC" balance={balances.stable} userInputDeposit={userInputDeposit} setUserInputDeposit={setUserInputDeposit} address={constants.stable} />
                             </div>
                             <div className="text-field-wrapper course-card__group" style={{ boxShadow: "none" }}>
-                                <input onChange={e => { userInputDeposit.depositAmount = parseInt(e.target.value); setUserInputDeposit({ ...userInputDeposit }) }} type="text" id="amountCurrencyDraw" className="text-field-plain w-input" style={{ maxWidth: '256px' }} value={userInputDeposit.depositAmount.toString()} />
+                                <input onChange={e => {
+                                    const regex = /^[0-9.\b]+$/; // регулярное выражение, разрешающее ввод только чисел
+                                    let v = e.target.value
+                                    const dot = v.indexOf('.')
+                                    const dotReverse = v.lastIndexOf('.')
+                                    if (regex.test(v) || v == '') {
+                                        if (v == '') {
+                                            userInputDeposit.depositAmount = '0'
+                                        } else if (dot > 0 && dot == dotReverse) {
+                                            userInputDeposit.depositAmount = v
+                                        } else {
+                                            userInputDeposit.depositAmount = parseFloat(v).toString()
+                                        }
+                                        setUserInputDeposit({ ...userInputDeposit })
+                                    }
+                                }} type="text" id="amountCurrencyDraw" className="text-field-plain w-input" style={{ maxWidth: '256px' }} value={userInputDeposit.depositAmount.toString()} />
                                 <span className="course-card__textField-add button-max" data-action="setMax" data-target="amountCurrencyDraw" data-valuemax="">MAX</span>
                             </div>
                         </form>
                         <div className="course-card-bottom-row">
-                            <button onClick={callDeposit} id="buttonAddDraw" className="button-primary w-button fro-fro" style={{ width: "100%" }}>Add $0 to draw</button>
+                            <button onClick={callDeposit} id="buttonAddDraw" className="button-primary w-button fro-fro" style={{ width: "100%" }}>Add ${userInputDeposit.depositAmount} to draw</button>
                         </div>
                     </div>
                 </div>

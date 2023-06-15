@@ -1,6 +1,7 @@
 import { RouterEnum } from "@/types/exports"
 import { Dispatch, SetStateAction } from "react"
 
-export type RouterSetter = {
+export type Router = {
+    Router?: RouterEnum
     setRouter: Dispatch<SetStateAction<RouterEnum>>
 } 

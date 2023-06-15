@@ -1,22 +1,17 @@
 import { RouterEnum } from "@/types/exports";
-import { RouterSetter } from "../types/export";
+import { Router } from "../types/export";
 import { useEffect, useState } from "react";
-import { fromLiqToUsd, getAbis, rateDeposit } from "@/functions/utils";
+import { fromLiqToUsd, abis, rateDeposit } from "@/functions/utils";
 import { useWalletClient } from "wagmi";
 import Web3 from "web3";
+import { claimReward } from "@/functions/claimReward";
 
-const abis = getAbis
-
-export function ClaimReward({ setRouter, constants, lotteryData }: DepositStuct & RouterSetter) {
+export function ClaimReward({ setRouter, constants, lotteryData }: DepositStuct & Router) {
     const { data } = useWalletClient()
 
     const [frogbalancesInUsd, setFrogbalancesInUsd] = useState({ balanceOf: 0, depositOf: 0, withdrawOf: 0 } as FrogBalances<number>)
     const [participants, setParticipants] = useState(-1)
     const [symbols, setSymbols] = useState({ token0: '', token1: '' } as any)
-
-    useEffect(() => {
-        getParticipants()
-    }, [])
 
     useEffect(() => {
         if (lotteryData?.frogBalances) {
@@ -37,14 +32,6 @@ export function ClaimReward({ setRouter, constants, lotteryData }: DepositStuct 
         setSymbols({ token0: symbol0, token1: symbol1 })
     }
 
-
-    const getParticipants = async () => {
-        const web3 = new Web3(data as any)
-        const FrogContract = new web3.eth.Contract(abis.FrogLottery, constants.frogLottery)
-
-        setParticipants((await FrogContract.methods.getParticipants().call()).counter)
-    }
-
     const convertFrogBalances = async () => {
         let balanceOfInUsd = await fromLiqToUsd(data, lotteryData.frogBalances.balanceOf, constants, lotteryData.poolKey)
         let depositOfInUsd = await fromLiqToUsd(data, lotteryData.frogBalances.depositOf, constants, lotteryData.poolKey)
@@ -59,6 +46,10 @@ export function ClaimReward({ setRouter, constants, lotteryData }: DepositStuct 
             depositOf: depositOfInUsd,
             withdrawOf: withdrawOfInUsd
         })
+    }
+
+    const callClaimReward = async () => {
+        await claimReward({ walletClient: data } as UserInputDepositStruct, constants)
     }
 
     return (
@@ -120,7 +111,7 @@ export function ClaimReward({ setRouter, constants, lotteryData }: DepositStuct 
                                 </div>
                                 <p style={{ display: "flex", justifyContent: "space-between" }}>
                                     <span>Participants</span>
-                                    <b>{participants}</b>
+                                    <b>{lotteryData.participants.toString()}</b>
                                 </p>
                                 <p style={{ display: "flex", justifyContent: "space-between" }}>
                                     <span>Potential win&nbsp;
@@ -151,7 +142,7 @@ export function ClaimReward({ setRouter, constants, lotteryData }: DepositStuct 
                                             </b>
                                         </p>
                                         <div className="course-card-bottom-row">
-                                            <button className="button-primary w-button fro-fro" style={{ width: "100%" }}>Claim
+                                            <button onClick={callClaimReward} className="button-primary w-button fro-fro" style={{ width: "100%" }}>Claim
                                                 Prizes</button>
                                         </div>
                                     </>

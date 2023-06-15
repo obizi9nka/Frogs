@@ -51,7 +51,7 @@ export const getConstants = (prefix: string | number | undefined) => {
 
 }
 
-export const getAbis = {
+export const abis = {
     ERC20: ERC20Token.abi as any,
     FrogLottery: FrogLottery.abi as any,
     FrogFactory: FrogFactory.abi as any,
@@ -61,7 +61,6 @@ export const getAbis = {
     Manager: NonfungiblePositionManager.abi as any,
     Router: Router.abi as any,
 }
-const abis = getAbis
 
 export async function calculateAmountsForLiquidity(sqrtPriceX96: any, currentTick: any, tickLower: any, tickUpper: any, liquidity: any, isMinus: boolean, frogContract: any) {
     const data = await frogContract.methods.calculateAmountsForLiquidity(sqrtPriceX96, BigInt(currentTick), BigInt(tickLower), BigInt(tickUpper), BigInt(liquidity), isMinus).call()
@@ -174,4 +173,21 @@ export async function fromLiqToAmount(walletClient: any, liquidity: BigInt, cons
 
     const amounts = await calculateAmountsForLiquidity(sqrtPriceX96, slot0.tick, position.tickLower, position.tickUpper, liquidity, true, FrogContract)
     return amounts;
-}   
+}
+
+export async function executeFunc(func: any, userAddress: string) {
+    func.send({
+        from: userAddress,
+        value: 0
+    })
+        .on('sending', () => {
+            console.log('Waiting for confirmation')
+        })
+        .on('error', (error: any) => {
+            if (error.code != 4001)
+                throw new Error('Transaction error: ' + JSON.stringify(error))
+        })
+        .on('receipt', () => {
+            console.log('Your tokens sent to deposit!')
+        })
+}

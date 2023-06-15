@@ -1,5 +1,5 @@
 import { ConnectButton as cb } from '@rainbow-me/rainbowkit';
-export function ConnectWallet() {
+export function ConnectWallet({ lotteryData }: DepositStuct) {
     return (
         <div className="container-regular">
             <div data-w-id="6f369299-dc14-2f93-d3cc-2248b1553a1c" className="collection-list-wrapper w-dyn-list">
@@ -12,14 +12,14 @@ export function ConnectWallet() {
                                     <span style={{ color: "rgba(5, 5, 5, 0.5)" }}><b>NEXT STEP</b> → Add liquidity</span>
                                 </div>
                                 <hr style={{ marginBottom: "30px" }} />
-                                <p style={{ display: "flex", justifyContent: "space-between" }}><span>Participants</span> <b>129</b></p>
+                                <p style={{ display: "flex", justifyContent: "space-between" }}><span>Participants</span> <b>{lotteryData.participants ? lotteryData.participants.toString() : '???'}</b></p>
                                 <p style={{ display: "flex", justifyContent: "space-between" }}><span>Your balance</span> <b>Not connected</b></p>
                                 <p style={{ display: "flex", justifyContent: "space-between" }}>
                                     <span style={{ display: "flex", alignItems: "center" }}>
                                         Potential win&nbsp;
                                         <img src="/icons/alert-circle-outline.svg" className="info-potwin" width={18} height={18} />
                                     </span>
-                                    <b>$505</b>
+                                    <b>$???</b>
                                 </p>
                                 <div className="course-card-bottom-row">
                                     <cb.Custom>

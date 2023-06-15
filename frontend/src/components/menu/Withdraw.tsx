@@ -1,11 +1,11 @@
 import { withdraw } from "@/functions/withdraw"
-import { RouterSetter } from "../types/export"
+import { Router } from "../types/export"
 import { RouterEnum } from "@/types/exports"
 import { useWalletClient } from "wagmi"
 import { useState, useEffect } from "react"
 
 
-export function Withdraw({ setRouter, constants, lotteryData }: DepositStuct & RouterSetter) {
+export function Withdraw({ setRouter, constants, lotteryData }: DepositStuct & Router) {
     const { data } = useWalletClient()
 
     const [userInputWithdraw, setUserInputWithdraw] = useState({

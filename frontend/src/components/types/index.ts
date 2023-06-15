@@ -8,7 +8,7 @@ type DepositStuct = {
 type UserInputDepositStruct = {
     tokenAddressSelected: string,
     walletClient: any,
-    depositAmount: number,
+    depositAmount: string,
 }
 
 type UserInputWithdrawStuct = {
@@ -39,6 +39,7 @@ type LotteyDataStruct = {
     frogBalances: FrogBalances,
     frogRewards: FrogReward,
     poolKey: PoolKey,
+    participants: bigint,
     minUsd: bigint,
     maxUsd: bigint,
     isLotteryReversed: boolean,

@@ -10,99 +10,9 @@ import { getConstants } from "@/functions/utils"
 import lottery_json from '../../../blockchain/artifacts/contracts/frogs/FrogLottery.sol/FrogLottery.json'
 import pool_json from "../../../blockchain/artifacts/contracts/v3-core/PancakeV3Pool.sol/PancakeV3Pool.json"
 import { RouterEnum } from '@/types/exports'
+import { Router } from "./types/export"
 
-export function Frog() {
-
-    const { address, isConnected } = useAccount()
-    const walletClient = useWalletClient()
-    const publicClient = usePublicClient()
-
-    const [Router, setRouter] = useState(RouterEnum.connectWallet)
-    const [lotteryData, setLotteryData] = useState({} as LotteyDataStruct)
-    const [constants, setConstants] = useState({} as ConstantsStruct)
-
-    useEffect(() => {
-        setRouter(isConnected ? RouterEnum.deposit : RouterEnum.connectWallet)
-    }, [isConnected])
-
-    useEffect(() => {
-        setConstants(getConstants(walletClient.data?.chain.id))
-    }, [walletClient.data?.chain.id])
-
-    const [interval, setIntervaL] = useState<any>()
-
-    useEffect(() => {
-        if (publicClient && constants.cake) {
-            clearInterval(interval)
-            getVariables()
-            const inter = setInterval(() => {
-                getVariables()
-            }, 10000)
-            setIntervaL(inter)
-        }
-
-    }, [constants])
-
-    const getVariables = async () => {
-        const provider = new ethers.BrowserProvider(publicClient)
-
-        const frog = new ethers.Contract(constants.frogLottery, lottery_json.abi, provider)
-        const pool = new ethers.Contract(constants.pool_token0_token1, pool_json.abi, provider)
-
-        const minUsd = await frog.minUsd()
-        const maxUsd = await frog.maxUsd()
-        const isLotteryReversed = (await frog.token0()) == constants.token1
-
-        const token0 = await frog.token0()
-        const token1 = await frog.token1()
-        let poolFee
-        try {
-            poolFee = await frog.poolFee()
-        } catch (error) {
-            console.log('poool fee not public')
-        }
-        if (poolFee == undefined)
-            poolFee = constants.fee
-
-        const depositOf = await frog.depositOf(address)
-        const balanceOf = await frog.balanceOf(address)
-        const withdrawOf = await frog.withdrawOf(address)
-
-        const reward0 = await frog.rewardOfToken0(address)
-        const reward1 = await frog.rewardOfToken1(address)
-        const rewardCake = await frog.rewardOfCake(address)
-        // console.log(depositOf + balanceOf + withdrawOf + reward0 + reward1 + rewardCake > 0)
-        if (depositOf + balanceOf + withdrawOf + reward0 + reward1 + rewardCake > 0) {
-            // console.log('RouterEnum.claimReward')
-            setRouter(RouterEnum.claimReward)
-
-        }
-
-        const sqrtPriceX96_token0_token1 = (await pool.slot0()).sqrtPriceX96
-
-        setLotteryData({
-            minUsd,
-            maxUsd,
-            isLotteryReversed,
-            frogRewards: {
-                reward0,
-                reward1,
-                rewardCake
-            },
-            poolKey: {
-                token0,
-                token1,
-                poolFee,
-            },
-            frogBalances: {
-                depositOf,
-                balanceOf,
-                withdrawOf,
-            },
-            sqrtPriceX96_token0_token1
-        })
-
-    }
+export function Frog({ Router, setRouter, constants, lotteryData }: DepositStuct & Router) {
 
     return (
         <div className="section-small" id="draw" style={{ paddingTop: "25px" }}>
@@ -114,7 +24,7 @@ export function Frog() {
                                 <h3 className="pixel-font">Join to win.<br />No chance to lose</h3>
                             </div>
                         </div>
-                        {Router == RouterEnum.connectWallet && <ConnectWallet />}
+                        {Router == RouterEnum.connectWallet && <ConnectWallet constants={constants} lotteryData={lotteryData} />}
                         {Router == RouterEnum.deposit && <Deposit setRouter={setRouter} constants={constants} lotteryData={lotteryData} />}
                         {Router == RouterEnum.withdraw && <Withdraw setRouter={setRouter} constants={constants} lotteryData={lotteryData} />}
                         {Router == RouterEnum.claimReward && <ClaimReward setRouter={setRouter} constants={constants} lotteryData={lotteryData} />}
