@@ -28,7 +28,7 @@ export function ClaimReward({ setRouter, constants, lotteryData }: DepositStuct 
         const token1 = new web3.eth.Contract(abis.ERC20, lotteryData.poolKey.token1)
 
         const symbol0 = await token0.methods.symbol().call()
-        const symbol1 = await token0.methods.symbol().call()
+        const symbol1 = await token1.methods.symbol().call()
 
         setSymbols({ token0: symbol0, token1: symbol1 })
     }
@@ -70,6 +70,7 @@ export function ClaimReward({ setRouter, constants, lotteryData }: DepositStuct 
                                     <div data-hover="false" data-delay="0"
                                         data-w-id="362479a4-ad8f-68b0-447f-d46739d7ca19" onClick={() => setBlockActive(!blockActive)} className={`faq-item w-dropdown frog-drop-down ${blockActive == true ? 'active' : ''}`}
                                         style={{ boxShadow: "0 4px 0 0 #050505" }}>
+                                        {/* <div style={{ position: 'absolute', height: "100px", width: '300px', top: '-200px', }} ></div> */}
                                         <div className="faq-item-toggle w-dropdown-toggle">
                                             <div className="faq-title-wrapper">
                                                 <div
@@ -84,25 +85,49 @@ export function ClaimReward({ setRouter, constants, lotteryData }: DepositStuct 
                                                     style={{ fontSize: '14px', display: 'flex', justifyContent: 'space-between' }}>
                                                     <span style={{ display: "flex", alignItems: "center" }}>On the way to
                                                         the draw&nbsp;
-                                                        <img src="/icons/alert-circle-outline.svg" className="info-potwin" style={{ opacity: '0.7' }} width={18} height={18} />
-                                                    </span> <b>${frogbalancesInUsd.depositOf.toString()}</b>
+                                                        <div className="tooltip" >
+                                                            <img src="/icons/alert-circle-outline.svg" className="info-potwin" style={{ opacity: '0.7' }} width={18} height={18} ></img>
+                                                            <div className="tooltip-text" >
+                                                                <div style={{ margin: '-3px 0px' }}>You have recently made a deposit of 30.001 USDT</div>
+                                                                <div style={{ margin: '-3px 0px' }}>(which is now equivalent to $30.001); Your assets</div>
+                                                                <div style={{ margin: '-3px 0px' }}>will be added to the draw on Monday 2:00 PM</div>
+                                                                <div style={{ margin: '-3px 0px' }}>UTC and will be converted in 2 assets (USDT and</div>
+                                                                <div style={{ margin: '-3px 0px' }}>BUSD) in proportion 1/2</div>
+                                                            </div>
+                                                        </div>                                                    </span> <b>${frogbalancesInUsd.depositOf.toString()}</b>
                                                 </p>
                                                 <p
                                                     style={{ fontSize: '14px', display: 'flex', justifyContent: 'space-between' }}>
                                                     <span style={{ display: "flex", alignItems: "center" }}>On the way to
                                                         withdrawal&nbsp;
-                                                        <img src="/icons/alert-circle-outline.svg" className="info-potwin" style={{ opacity: '0.7' }} width={18} height={18} />
+                                                        <div className="tooltip" >
+                                                            <img src="/icons/alert-circle-outline.svg" className="info-potwin" style={{ opacity: '0.7' }} width={18} height={18} ></img>
+                                                            <div className="tooltip-text">
+                                                                <div style={{ margin: '-3px 0px' }}>You have recently made a withdrawal request of</div>
+                                                                <div style={{ margin: '-3px 0px' }}>45.543 USDT (which is now equivalent to</div>
+                                                                <div style={{ margin: '-3px 0px' }}>$45.543); Your assets will be returned to your</div>
+                                                                <div style={{ margin: '-3px 0px' }}>wallet on Monday before 3:00 PM UTC in 2</div>
+                                                                <div style={{ margin: '-3px 0px' }}>different assets (USDT and BUSD)</div>
+                                                            </div>
+                                                        </div>
                                                     </span> <b>${frogbalancesInUsd.withdrawOf.toString()}</b>
                                                 </p>
                                                 <p
                                                     style={{ fontSize: '14px', display: 'flex', justifyContent: 'space-between' }}>
-                                                    <span style={{ display: "flex", alignItems: "center" }}>Staked in the
-                                                        draw&nbsp;
-                                                        <img src="/icons/alert-circle-outline.svg" className="info-potwin" style={{ opacity: '0.7' }} width={18} height={18} />
+                                                    <span style={{ display: "flex", alignItems: "center" }}>
+                                                        Staked in the draw
+                                                        <div className="tooltip" >
+                                                            <img src="/icons/alert-circle-outline.svg" className="info-potwin" style={{ opacity: '0.7' }} width={18} height={18} ></img>
+                                                            <div className="tooltip-text">
+                                                                <div style={{ margin: '-3px 0px' }}>You currently have 111.561 BUSD and 111.561</div>
+                                                                <div style={{ margin: '-3px 0px' }}>USDT staked in the draw (which is now equivalent</div>
+                                                                <div style={{ margin: '-3px 0px' }}>to $223.122)</div>
+                                                            </div>
+                                                        </div>
                                                     </span> <b>${frogbalancesInUsd.balanceOf.toString()}</b>
                                                 </p>
                                                 <div
-                                                    style={{ marginTop: "20px", display: 'flex', justifyContent: 'space-between' }}>
+                                                    style={{ marginTop: "15px", marginBottom: '5px', display: 'flex', justifyContent: 'space-between' }}>
                                                     <button onClick={() => setRouter(RouterEnum.deposit)} className="navigation-login liq-button " style={{ boxShadow: 'none' }}>Add liquidity</button>
                                                     <button onClick={() => setRouter(RouterEnum.withdraw)} className="navigation-login liq-button " style={{ boxShadow: 'none' }}>Remove</button>
                                                 </div>
@@ -124,21 +149,21 @@ export function ClaimReward({ setRouter, constants, lotteryData }: DepositStuct 
                                     <>
                                         <p style={{ display: "flex", justifyContent: "space-between" }}>
                                             <span><span>Prizes</span>🏆</span>
-                                            <b>{lotteryData.frogRewards && lotteryData.frogRewards.reward0.toString() + " "}
+                                            <b>{lotteryData.frogRewards && Web3.utils.fromWei(lotteryData.frogRewards.reward0.toString()) + " "}
                                                 {symbols.token0.toUpperCase()}
                                             </b>
                                         </p>
                                         <p style={{ display: "flex", justifyContent: "space-between" }}>
                                             <span></span>
                                             <b>
-                                                {lotteryData.frogRewards && lotteryData.frogRewards.reward1.toString() + " "}
+                                                {lotteryData.frogRewards && Web3.utils.fromWei(lotteryData.frogRewards.reward1.toString()) + " "}
                                                 {symbols.token1.toUpperCase()}
                                             </b>
                                         </p>
                                         <p style={{ display: "flex", justifyContent: "space-between" }}>
                                             <span></span>
                                             <b>
-                                                {lotteryData.frogRewards && lotteryData.frogRewards.rewardCake.toString() + " "}
+                                                {lotteryData.frogRewards && Web3.utils.fromWei(lotteryData.frogRewards.rewardCake.toString()) + " "}
                                                 CAKE
                                             </b>
                                         </p>

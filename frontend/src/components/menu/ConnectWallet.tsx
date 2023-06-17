@@ -14,13 +14,25 @@ export function ConnectWallet({ lotteryData }: DepositStuct) {
                                 <hr style={{ marginBottom: "30px" }} />
                                 <p style={{ display: "flex", justifyContent: "space-between" }}><span>Participants</span> <b>{lotteryData.participants ? lotteryData.participants.toString() : '???'}</b></p>
                                 <p style={{ display: "flex", justifyContent: "space-between" }}><span>Your balance</span> <b>Not connected</b></p>
-                                <p style={{ display: "flex", justifyContent: "space-between" }}>
-                                    <span style={{ display: "flex", alignItems: "center" }}>
-                                        Potential win&nbsp;
-                                        <img src="/icons/alert-circle-outline.svg" className="info-potwin" width={18} height={18} />
-                                    </span>
-                                    <b>$???</b>
-                                </p>
+                                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                    <div style={{ display: "flex", justifyContent: "start" }}>
+                                        <p >Potential win</p>
+                                        <div style={{ display: "flex", alignItems: "center" }}>
+                                            <div className="tooltip" >
+                                                <img src="/icons/alert-circle-outline.svg" className="info-potwin" width={18} height={18} ></img>
+                                                <div className="tooltip-text">
+                                                    <div style={{ margin: '-3px 0px' }}> The potential prize consists of the profit <br /></div>
+                                                    <div style={{ margin: '-3px 0px' }}> from the weekly APR pool and a prize from <br /></div>
+                                                    <div style={{ margin: '-3px 0px' }}> the FrogFi team </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p>
+                                        <b>$???</b>
+                                    </p>
+                                </div>
+
                                 <div className="course-card-bottom-row">
                                     <cb.Custom>
                                         {({ openConnectModal }) =>
@@ -33,6 +45,6 @@ export function ConnectWallet({ lotteryData }: DepositStuct) {
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     )
 }

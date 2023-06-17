@@ -2,7 +2,7 @@ import { claimReferalReward } from "@/functions/claimReferalReward";
 import { Lines } from "./periphery/Lines";
 import { useWalletClient } from "wagmi";
 import { Router } from "./types/export";
-import { fromLiqToUsd, gsapPopUp } from "@/functions/utils";
+import { fromAmountToUsd, fromLiqToUsd, gsapPopUp } from "@/functions/utils";
 import { useEffect, useRef, useState } from "react";
 import axios, { AxiosResponse } from "axios";
 
@@ -17,7 +17,7 @@ export function Referal({ constants, lotteryData }: DepositStuct) {
 
 
     useEffect(() => {
-        if (lotteryData?.frogBalances) {
+        if (lotteryData?.frogReferal) {
             convertFrogBalances()
         }
     }, [lotteryData])
@@ -54,13 +54,17 @@ export function Referal({ constants, lotteryData }: DepositStuct) {
     };
 
     const convertFrogBalances = async () => {
-        let reward0InUsd = await fromLiqToUsd(data, lotteryData.frogRewards.reward0, constants, lotteryData.poolKey)
-        let reward1InUsd = await fromLiqToUsd(data, lotteryData.frogRewards.reward1, constants, lotteryData.poolKey)
-        let rewardCakeInUsd = await fromLiqToUsd(data, lotteryData.frogRewards.rewardCake, constants, lotteryData.poolKey)
+        let reward0InUsd = await fromAmountToUsd(data, parseFloat(lotteryData.frogReferal.referalReward0.toString()), lotteryData.poolKey.token0, constants.stable, lotteryData.poolKey.poolFee)
+        let reward1InUsd = await fromAmountToUsd(data, parseFloat(lotteryData.frogReferal.referalReward1.toString()), lotteryData.poolKey.token1, constants.stable, lotteryData.poolKey.poolFee)
+        let rewardCakeInUsd = await fromAmountToUsd(data, parseFloat(lotteryData.frogReferal.referalRewardCake.toString()), constants.cake, constants.stable, lotteryData.poolKey.poolFee)
+        // let rewardCakeInUsd = 0
+        // console.log(lotteryData.frogRewards.reward0, lotteryData.frogRewards.reward1, lotteryData.frogRewards.rewardCake)
+        // console.log(reward0InUsd, reward1InUsd, rewardCakeInUsd)
 
         reward0InUsd = parseFloat((reward0InUsd / 1e18).toString())
         reward1InUsd = parseFloat((reward1InUsd / 1e18).toString())
         rewardCakeInUsd = parseFloat((rewardCakeInUsd / 1e18).toString())
+        console.log(reward0InUsd, reward1InUsd, rewardCakeInUsd)
 
         setFrogRewardsInUsd(reward0InUsd + reward1InUsd + rewardCakeInUsd)
     }
@@ -70,7 +74,6 @@ export function Referal({ constants, lotteryData }: DepositStuct) {
 
     useEffect(() => {
         gsapPopUp(blockInvite.current)
-
     }, [])
 
     return (

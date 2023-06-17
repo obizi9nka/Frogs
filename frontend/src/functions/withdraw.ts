@@ -1,12 +1,12 @@
 import Web3 from "web3";
-import { getAbis, getConstants, rateDeposit, calculateAmountsForLiquidity, getPrice, sigAddress, fromLiqToUsd } from "./utils";
+import { abis, getConstants, rateDeposit, calculateAmountsForLiquidity, getPrice, sigAddress, fromLiqToUsd, checkUsdFrogBalanceRange } from "./utils";
 import BigNumber from 'bignumber.js';
 import axios from "axios";
 
-const abis = getAbis
 
 export async function withdraw({ withdrawAmount, walletClient }: UserInputWithdrawStuct, { frogBalances, minUsd, maxUsd }: LotteyDataStruct, constants: ConstantsStruct) {
-    if (withdrawAmount <= 0) {
+
+    if (parseFloat(withdrawAmount) <= 0) {
         throw new Error("Withdraw must be > 0")
     }
     const web3 = new Web3(walletClient)
@@ -14,22 +14,27 @@ export async function withdraw({ withdrawAmount, walletClient }: UserInputWithdr
 
     const userAddress = walletClient?.account.address
 
-    if (frogBalances.depositOf + frogBalances.balanceOf - frogBalances.withdrawOf < withdrawAmount) {
+    if (frogBalances.depositOf + frogBalances.balanceOf - frogBalances.withdrawOf < parseFloat(withdrawAmount)) {
         throw new Error("Not enough LP")
     }
-    const token0 = await FrogContract.methods.token0().call()
-    const token1 = await FrogContract.methods.token1().call()
-    const poolFee = await FrogContract.methods.poolFee().call()
-    const usdValue = await fromLiqToUsd(walletClient, frogBalances.depositOf + frogBalances.balanceOf - frogBalances.withdrawOf - BigInt(withdrawAmount), constants, { token0, token1, poolFee })
 
-    const _minUsd = parseFloat((minUsd.toString() as any / (1e18.toString() as any)).toString())
-    const _maxUsd = parseFloat((maxUsd.toString() as any / (1e18.toString() as any)).toString())
-    const _usdValue = parseFloat((usdValue.toString() as any / (1e18.toString() as any)).toString())
-    if (_usdValue < _minUsd || _usdValue > _maxUsd) {
-        throw new Error('Amount of balance must be in $' + _minUsd + ' .. $' + _maxUsd + "|" + `${_usdValue}`)
-    }
+    const poolKey = await FrogContract.methods.poolKey().call()
 
-    if (confirm("You want to withdraw: \n" + withdrawAmount + " LP?")) {
+    // const token0 = await FrogContract.methods.token0().call()
+    // const token1 = await FrogContract.methods.token1().call()
+    // const poolFee = await FrogContract.methods.poolFee().call()
+    // const frogBalancesUsd = await fromLiqToUsd(walletClient, frogBalances.depositOf + frogBalances.balanceOf - frogBalances.withdrawOf, constants, { token0, token1, poolFee })
+    // const depositUsd = await fromAmountToUsd(walletClient, parseFloat(depositAmount), tokenAddressSelected, constants.stable, poolFee)
+
+    // if (frogBalancesUsd + depositUsd < parseInt((minUsd / BigInt(1e18)).toString()) || frogBalancesUsd + depositUsd > parseInt((maxUsd / BigInt(1e18)).toString())) {
+    //     throw new Error('Amount of balance must be in $' + minUsd + ' .. $' + maxUsd + "|" + `${frogBalancesUsd}` + ` ${frogBalancesUsd}`)
+    // }
+
+
+    const result = await checkUsdFrogBalanceRange(poolKey, { liquidity: frogBalances.depositOf + frogBalances.balanceOf - frogBalances.withdrawOf, amount: BigInt(withdrawAmount), walletClient }, { frogBalances, minUsd, maxUsd } as LotteyDataStruct, constants)
+    if (typeof result == typeof Error)
+        throw result
+    else {
         await FrogContract.methods.withdraw(
             withdrawAmount.toString()
         )
@@ -46,5 +51,7 @@ export async function withdraw({ withdrawAmount, walletClient }: UserInputWithdr
                 console.log('Your lp was sent to withdraw!')
             })
     }
+
+
 }
 

@@ -1,12 +1,9 @@
 
-const utils = require("./main");
 import { ethers } from "hardhat";
-import { deployAll } from "./fixtures/fixtures";
-const prefix = 'localhost_'
-import lottery from "../artifacts/contracts/frogs/FrogLottery.sol/FrogLottery.json"
+import lottery from "../../artifacts/contracts/frogs/FrogLottery.sol/FrogLottery.json"
 
-import constants from "./json/constants.json"
-import { FrogLottery } from "../typechain-types";
+import constants from "../json/constants.json"
+import { FrogLottery } from "../../typechain-types";
 
 async function main() {
   const [acct1] = await ethers.getSigners();

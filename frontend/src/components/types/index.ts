@@ -13,7 +13,7 @@ type UserInputDepositStruct = {
 
 type UserInputWithdrawStuct = {
     walletClient: any,
-    withdrawAmount: number
+    withdrawAmount: string
 }
 
 type FrogBalances<T = bigint> = {
@@ -28,6 +28,12 @@ type FrogReward<T = bigint> = {
     rewardCake: T
 }
 
+type FrogReferalReward<T = bigint> = {
+    referalReward0: T,
+    referalReward1: T,
+    referalRewardCake: T
+}
+
 type PoolKey = {
     token0: string,
     token1: string,
@@ -38,6 +44,7 @@ type PoolKey = {
 type LotteyDataStruct = {
     frogBalances: FrogBalances,
     frogRewards: FrogReward,
+    frogReferal: FrogReferalReward,
     poolKey: PoolKey,
     participants: bigint,
     minUsd: bigint,

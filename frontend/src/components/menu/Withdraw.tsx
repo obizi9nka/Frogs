@@ -3,6 +3,7 @@ import { Router } from "../types/export"
 import { RouterEnum } from "@/types/exports"
 import { useWalletClient } from "wagmi"
 import { useState, useEffect } from "react"
+import { checkUsdFrogBalanceRange } from "@/functions/utils"
 
 
 export function Withdraw({ setRouter, constants, lotteryData }: DepositStuct & Router) {
@@ -10,7 +11,7 @@ export function Withdraw({ setRouter, constants, lotteryData }: DepositStuct & R
 
     const [userInputWithdraw, setUserInputWithdraw] = useState({
         walletClient: data,
-        withdrawAmount: 0,
+        withdrawAmount: '0',
     } as UserInputWithdrawStuct)
 
     useEffect(() => {
@@ -18,9 +19,12 @@ export function Withdraw({ setRouter, constants, lotteryData }: DepositStuct & R
         setUserInputWithdraw({ ...userInputWithdraw })
     }, [data])
 
+    // const
+
     const callWithdraw = async () => {
         withdraw(userInputWithdraw, lotteryData, constants)
     }
+    const [isUserTryedInput, setisUserTryedInput] = useState(false)
 
     return (
         <div className="container-regular">
@@ -37,11 +41,39 @@ export function Withdraw({ setRouter, constants, lotteryData }: DepositStuct & R
                                 </div>
                                 <hr style={{ marginBottom: "30px" }} />
                                 <form>
-                                    <div className="text-field-wrapper course-card__group" style={{ boxShadow: "none", backgroundColor: "#eeeeee" }}>
-                                        <input onChange={(e) => { userInputWithdraw.withdrawAmount = parseInt(e.target.value); setUserInputWithdraw({ ...userInputWithdraw }) }} type="text" id="amountCurrencyDraw" className="text-field-plain w-input"
-                                            style={{ backgroundColor: 'inherit' }} placeholder="" />
+                                    <div className="text-field-wrapper course-card__group" style={{ boxShadow: "none" }}>
+                                        <input onChange={e => {
+                                            setisUserTryedInput(true)
+                                            const regex = /^[0-9.\b]+$/; // регулярное выражение, разрешающее ввод только чисел
+                                            let v = e.target.value
+                                            const dot = v.indexOf('.')
+                                            const dotReverse = v.lastIndexOf('.')
+                                            if (regex.test(v) || v == '') {
+                                                if (v == '') {
+                                                    userInputWithdraw.withdrawAmount = '0'
+                                                } else if (dot > 0 && dot == dotReverse) {
+                                                    userInputWithdraw.withdrawAmount = v
+                                                } else {
+                                                    userInputWithdraw.withdrawAmount = parseFloat(v).toString()
+                                                }
+                                                setUserInputWithdraw({ ...userInputWithdraw })
+                                            }
+                                        }} type="text" id="amountCurrencyDraw" className="text-field-plain w-input" value={userInputWithdraw.withdrawAmount.toString()} />
                                     </div>
+                                    {/* <div className="text-field-wrapper course-card__group" style={{ boxShadow: "none", backgroundColor: "#eeeeee" }}>
+                                        <input onChange={(e) => { userInputWithdraw.withdrawAmount = parseInt(e.target.value).toString(); setUserInputWithdraw({ ...userInputWithdraw }) }} type="text" id="amountCurrencyDraw" className="text-field-plain w-input"
+                                            style={{ backgroundColor: 'inherit' }} placeholder="" />
+                                    </div> */}
                                 </form>
+
+                                {/* {isUserTryedInput && BigInt(userInputWithdraw?.withdrawAmount as any * 1e18) < lotteryData.minUsd &&
+                                    < span style={{ color: "red" }}>
+                                        Amount should be not less than ${`${parseFloat(((lotteryData.minUsd?.toString() as any) / (BigInt(1e18).toString() as any)) as any)}`}
+                                    </span>}
+                                {isUserTryedInput && BigInt(userInputWithdraw?.withdrawAmount as any * 1e18) > lotteryData.maxUsd &&
+                                    < span style={{ color: "red" }}>
+                                        Amount should be less than ${`${parseFloat(((lotteryData.maxUsd?.toString() as any) / (BigInt(1e18).toString() as any)) as any)}`}
+                                    </span>} */}
 
                                 <div className="course-card-bottom-row" style={{ justifyContent: "center" }}>
                                     <a href="https://frogs.gitbook.io/frogsfi/welcome/how-it-works" target="_blank"
@@ -50,7 +82,7 @@ export function Withdraw({ setRouter, constants, lotteryData }: DepositStuct & R
                                 </div>
                                 <div className="course-card-bottom-row">
                                     <button onClick={callWithdraw} id="buttonAddDraw" className="button-primary w-button fro-fro"
-                                        style={{ width: "100%" }}>Remove $122.123</button>
+                                        style={{ width: "100%" }}>Remove ${userInputWithdraw.withdrawAmount}</button>
                                 </div>
                             </div>
                         </div>

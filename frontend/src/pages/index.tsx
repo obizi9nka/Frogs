@@ -36,35 +36,31 @@ export default function Home() {
   useEffect(() => {
     if (publicClient && constants.cake) {
       clearInterval(interval)
-      getVariables()
+      getVariables(true)
       const inter = setInterval(() => {
-        getVariables()
+        getVariables(false)
       }, 10000)
       setIntervaL(inter)
     }
 
-  }, [constants])
+  }, [constants, address])
 
-  const getVariables = async () => {
+  const getVariables = async (isRouter: boolean) => {
     const provider = new ethers.BrowserProvider(publicClient)
 
     const frog = new ethers.Contract(constants.frogLottery, abis.FrogLottery, provider)
+    const referal = new ethers.Contract(constants.frogReferal, abis.FrogReferal, provider)
     const pool = new ethers.Contract(constants.pool_token0_token1, abis.PancakeV3Pool, provider)
 
     const minUsd = await frog.minUsd()
     const maxUsd = await frog.maxUsd()
-    const isLotteryReversed = (await frog.token0()) == constants.token1
-
-    const token0 = await frog.token0()
-    const token1 = await frog.token1()
-    let poolFee
-    try {
-      poolFee = await frog.poolFee()
-    } catch (error) {
-      console.log('poool fee not public')
+    const _poolKey = await frog.poolKey()
+    const poolKey = {
+      token0: _poolKey.token0,
+      token1: _poolKey.token1,
+      poolFee: parseInt(_poolKey.poolFee),
     }
-    if (poolFee == undefined)
-      poolFee = constants.fee
+    const isLotteryReversed = poolKey.token0 == constants.token1
 
     const depositOf = await frog.depositOf(address)
     const balanceOf = await frog.balanceOf(address)
@@ -73,10 +69,14 @@ export default function Home() {
     const reward0 = await frog.rewardOfToken0(address)
     const reward1 = await frog.rewardOfToken1(address)
     const rewardCake = await frog.rewardOfCake(address)
-    // console.log(depositOf + balanceOf + withdrawOf + reward0 + reward1 + rewardCake > 0)
+
+    const referalReward0 = await referal.balance(poolKey.token0, address)
+    const referalReward1 = await referal.balance(poolKey.token1, address)
+    const referalRewardCake = await referal.balance(constants.cake, address)
+
     if (depositOf + balanceOf + withdrawOf + reward0 + reward1 + rewardCake > 0) {
-      // console.log('RouterEnum.claimReward')
-      setRouter(RouterEnum.claimReward)
+      if (isRouter)
+        setRouter(RouterEnum.claimReward)
     }
 
     const participants = (await frog.getParticipants()).counter
@@ -88,20 +88,21 @@ export default function Home() {
       maxUsd,
       isLotteryReversed,
       participants,
+      poolKey,
       frogRewards: {
         reward0,
         reward1,
         rewardCake
       },
-      poolKey: {
-        token0,
-        token1,
-        poolFee,
-      },
       frogBalances: {
         depositOf,
         balanceOf,
         withdrawOf,
+      },
+      frogReferal: {
+        referalReward0,
+        referalReward1,
+        referalRewardCake
       },
       sqrtPriceX96_token0_token1
     })

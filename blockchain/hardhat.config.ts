@@ -9,7 +9,7 @@ import { PRIVATE_KEY_1, bscscanApiKey, ethscanApiKey } from './secrets.json';
 
 
 const config: HardhatUserConfig = {
-    defaultNetwork: "hardhat",
+    defaultNetwork: "localhost",
     solidity: {
         compilers: [
             {

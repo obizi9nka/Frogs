@@ -17,7 +17,7 @@ contract FrogReferal is Ownable, IFrogReferal{
     address publicKey;
     address public CAKE;
 
-    mapping(address => mapping(address => uint)) public balance; // реферальные балансы участников лотерей
+    mapping(address => mapping(address => uint)) public balance; // реферальные балансы участников лотерей token => user => balance
     mapping(address => bool) public isLottery; // адреса зарегестрированных лотерей (регестрировать лотереи может только фабрика лотерей)
 
     event ReferalReward(address to, address lotteryAddress, uint reward);

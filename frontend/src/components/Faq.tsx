@@ -93,7 +93,7 @@ function Drop({ data, blockActive, index, setActive }: PropsInDrop) {
             </div>
             <nav className={`faq-content w-dropdown-list ${blockActive == index ? (index == faqRouter.zero ? 'active253' : index == faqRouter.four ? 'active140' : 'active84') : ''}`} >
                 <div className="faq-tab-content">
-                    <p className="paragraph-regular">
+                    <p className="paragraph-regular" style={{ userSelect: 'none' }}>
                         {data.answer}
                     </p>
                 </div>

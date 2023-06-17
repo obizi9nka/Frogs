@@ -107,4 +107,5 @@ app.listen(port, async () => {
         console.log("done:", drawNumber)
     })
     console.log(`Example app listening on port ${port}`)
+    console.log("prefix:", prefix)
 })

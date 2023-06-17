@@ -152,7 +152,9 @@ export async function fromAmountToUsd(walletClient: any, amount: number, tokenIn
 export async function fromLiqToUsd(walletClient: any, liquidity: BigInt, constants: ConstantsStruct, poolKey: PoolKey) {
     const web3 = new Web3(walletClient)
 
+    console.log('fromLiqToUsd liquidity', liquidity, poolKey)
     const poolAddress = await (new web3.eth.Contract(abis.PancakeV3Factory, constants.factory)).methods.getPool(poolKey.token0, poolKey.token1, poolKey.poolFee).call()
+    console.log(poolAddress)
     const sqrtPriceX96 = (await new web3.eth.Contract(abis.PancakeV3Pool, poolAddress).methods.slot0().call()).sqrtPriceX96
 
     const amounts = await fromLiqToAmount(walletClient, liquidity, constants, sqrtPriceX96)
@@ -209,4 +211,26 @@ export const gsapPopUp = (el: any, delay?: number, duration?: number, px?: strin
         opacity: 1,
         delay: delay == undefined ? 0.1 : delay
     })
+}
+
+export async function checkUsdFrogBalanceRange({ token0, token1, poolFee }: PoolKey, { liquidity, amount, tokenAddressSelected, walletClient }: any, { minUsd, maxUsd }: LotteyDataStruct, constants: ConstantsStruct) {
+    let frogBalancesUsd = 0
+    let deltaUsd = 0
+    if (tokenAddressSelected != undefined) {
+        deltaUsd = await fromAmountToUsd(walletClient, parseFloat(amount), tokenAddressSelected, constants.stable, poolFee)
+        frogBalancesUsd = await fromLiqToUsd(walletClient, liquidity, constants, { token0, token1, poolFee })
+    }
+    else {
+        frogBalancesUsd = await fromLiqToUsd(walletClient, liquidity + amount, constants, { token0, token1, poolFee })
+    }
+
+
+    const usdValue = frogBalancesUsd + deltaUsd
+
+    const _minUsd = parseFloat((minUsd.toString() as any / (1e18.toString() as any)).toString())
+    const _maxUsd = parseFloat((maxUsd.toString() as any / (1e18.toString() as any)).toString())
+    const _usdValue = parseFloat((usdValue.toString() as any / (1e18.toString() as any)).toString())
+    if (_usdValue < _minUsd || _usdValue > _maxUsd) {
+        return new Error('Amount of balance must be in $' + _minUsd + ' .. $' + _maxUsd + "|" + `${_usdValue}`)
+    }
 }

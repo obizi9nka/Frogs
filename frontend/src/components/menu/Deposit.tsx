@@ -11,10 +11,19 @@ export function Deposit({ setRouter, constants, lotteryData }: DepositStuct & Ro
 
 
     const [userInputDeposit, setUserInputDeposit] = useState({
-        tokenAddressSelected: '',
+        tokenAddressSelected: constants.token0,
         walletClient: data,
         depositAmount: "0",
     } as UserInputDepositStruct)
+
+    useEffect(() => {
+        userInputDeposit.tokenAddressSelected = lotteryData.poolKey?.token0
+        setUserInputDeposit({ ...userInputDeposit })
+    }, [lotteryData.poolKey?.token0])
+
+
+
+    const [isUserTryedInput, setisUserTryedInput] = useState(false)
 
     useEffect(() => {
         userInputDeposit.walletClient = data
@@ -22,9 +31,9 @@ export function Deposit({ setRouter, constants, lotteryData }: DepositStuct & Ro
     }, [data])
 
     useEffect(() => {
-        if (data?.account.address != undefined && constants.fee != undefined)
+        if (data?.account.address != undefined && lotteryData.poolKey?.poolFee != undefined)
             getBalances(data?.account.address)
-    }, [data?.account.address, constants])
+    }, [data?.account.address, lotteryData])
 
     const [balances, setBalances] = useState({
         token0: 0,
@@ -41,16 +50,16 @@ export function Deposit({ setRouter, constants, lotteryData }: DepositStuct & Ro
             return (BigInt(await token.methods.balanceOf(userAddress).call()) / BigInt(10 ** decimals)).toString()
         }
         setBalances({
-            token0: await getBalance(constants.token0),
-            token1: await getBalance(constants.token1),
+            token0: await getBalance(lotteryData.poolKey.token0),
+            token1: await getBalance(lotteryData.poolKey.token1),
             stable: await getBalance(constants.stable),
         })
     }
 
     const callDeposit = async () => {
         try {
-            console.log(constants, data)
             await deposit(userInputDeposit, lotteryData, constants)
+            // setRouter(RouterEnum.claimReward)
         } catch (error) {
             console.log(error)
         }
@@ -75,12 +84,13 @@ export function Deposit({ setRouter, constants, lotteryData }: DepositStuct & Ro
                         <hr style={{ marginBottom: "30px" }} />
                         <form>
                             <div className="course-card__group">
-                                <Coin coin="BUSD" balance={balances.token0} userInputDeposit={userInputDeposit} setUserInputDeposit={setUserInputDeposit} address={constants.token0} />
-                                <Coin coin="USDT" balance={balances.token1} userInputDeposit={userInputDeposit} setUserInputDeposit={setUserInputDeposit} address={constants.token1} />
+                                <Coin coin="BUSD" balance={balances.token0} userInputDeposit={userInputDeposit} setUserInputDeposit={setUserInputDeposit} address={lotteryData.poolKey?.token0} />
+                                <Coin coin="USDT" balance={balances.token1} userInputDeposit={userInputDeposit} setUserInputDeposit={setUserInputDeposit} address={lotteryData.poolKey?.token1} />
                                 <Coin coin="USDC" balance={balances.stable} userInputDeposit={userInputDeposit} setUserInputDeposit={setUserInputDeposit} address={constants.stable} />
                             </div>
-                            <div className="text-field-wrapper course-card__group" style={{ boxShadow: "none" }}>
+                            <div className="text-field-wrapper course-card__group" style={{ boxShadow: "none", borderColor: isUserTryedInput && (BigInt(userInputDeposit?.depositAmount as any * 1e18) < lotteryData.minUsd || BigInt(userInputDeposit?.depositAmount as any * 1e18) > lotteryData.maxUsd) ? 'red' : undefined }}>
                                 <input onChange={e => {
+                                    setisUserTryedInput(true)
                                     const regex = /^[0-9.\b]+$/; // регулярное выражение, разрешающее ввод только чисел
                                     let v = e.target.value
                                     const dot = v.indexOf('.')
@@ -95,10 +105,24 @@ export function Deposit({ setRouter, constants, lotteryData }: DepositStuct & Ro
                                         }
                                         setUserInputDeposit({ ...userInputDeposit })
                                     }
-                                }} type="text" id="amountCurrencyDraw" className="text-field-plain w-input" style={{ maxWidth: '256px' }} value={userInputDeposit.depositAmount.toString()} />
+                                }} type="text" id="amountCurrencyDraw" className="text-field-plain w-input" value={userInputDeposit.depositAmount.toString()} />
                                 <span className="course-card__textField-add button-max" data-action="setMax" data-target="amountCurrencyDraw" data-valuemax="">MAX</span>
                             </div>
+                            {isUserTryedInput && BigInt(userInputDeposit?.depositAmount as any * 1e18) < lotteryData.minUsd &&
+                                < span style={{ color: "red" }}>
+                                    Amount should be not less than ${`${parseFloat(((lotteryData.minUsd?.toString() as any) / (BigInt(1e18).toString() as any)) as any)}`}
+                                </span>}
+                            {isUserTryedInput && BigInt(userInputDeposit?.depositAmount as any * 1e18) > lotteryData.maxUsd &&
+                                < span style={{ color: "red" }}>
+                                    Amount should be less than ${`${parseFloat(((lotteryData.maxUsd?.toString() as any) / (BigInt(1e18).toString() as any)) as any)}`}
+                                </span>}
+
                         </form>
+                        <div className="course-card-bottom-row" style={{ justifyContent: "center" }}>
+                            <a className=" detalis" href="https://frogs.gitbook.io/frogsfi/welcome/how-it-works" target="_blank" >
+                                {"Check theprocess details ->"}
+                            </a>
+                        </div>
                         <div className="course-card-bottom-row">
                             <button onClick={callDeposit} id="buttonAddDraw" className="button-primary w-button fro-fro" style={{ width: "100%" }}>Add ${userInputDeposit.depositAmount} to draw</button>
                         </div>
@@ -122,7 +146,10 @@ function Coin({ coin, balance, userInputDeposit, setUserInputDeposit, address }:
                 </span>
             </label>
             <label className="course-card__radio">
-                <input onClick={e => { console.log(address); userInputDeposit.tokenAddressSelected = address; setUserInputDeposit({ ...userInputDeposit }) }} data-action="setMaxValue" type="radio" id={`cur${coin.toLowerCase()}`} name="currency" />
+                <input onClick={e => {
+                    userInputDeposit.tokenAddressSelected = address;
+                    setUserInputDeposit({ ...userInputDeposit })
+                }} data-action="setMaxValue" type="radio" id={`cur${coin.toLowerCase()}`} name="currency" checked={userInputDeposit.tokenAddressSelected == address} />
                 <span className="course-card__radioBox"></span>
             </label>
         </div>

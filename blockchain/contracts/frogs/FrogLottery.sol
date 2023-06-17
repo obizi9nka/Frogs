@@ -25,10 +25,10 @@ interface IPancakeV3SwapCallback {
     /// @dev In the implementation you must pay the pool tokens owed for the swap.
     /// The caller of this method must be checked to be a PancakeV3Pool deployed by the canonical PancakeV3Factory.
     /// amount0Delta and amount1Delta can both be 0 if no tokens were swapped.
-    /// @param amount0Delta The amount of token0 that was sent (negative) or must be received (positive) by the pool by
-    /// the end of the swap. If positive, the callback must send that amount of token0 to the pool.
-    /// @param amount1Delta The amount of token1 that was sent (negative) or must be received (positive) by the pool by
-    /// the end of the swap. If positive, the callback must send that amount of token1 to the pool.
+    /// @param amount0Delta The amount of poolKey.token0 that was sent (negative) or must be received (positive) by the pool by
+    /// the end of the swap. If positive, the callback must send that amount of poolKey.token0 to the pool.
+    /// @param amount1Delta The amount of poolKey.token1 that was sent (negative) or must be received (positive) by the pool by
+    /// the end of the swap. If positive, the callback must send that amount of poolKey.token1 to the pool.
     /// @param data Any data passed through by the caller via the IPancakeV3PoolActions#swap call
     function pancakeV3SwapCallback(
         int256 amount0Delta,
@@ -122,6 +122,12 @@ interface Deimals {
     function decimals() external view returns (uint8);
 }
 
+struct PoolKey {
+    address token0;
+    address token1;
+    uint24 poolFee;
+}
+
 
 contract FrogLottery is Random{
 
@@ -130,8 +136,6 @@ contract FrogLottery is Random{
 
     uint public drawNumber = 0;
 
-    address public token0;
-    address public token1;
     address public CAKE;
     address stableCoinAddress;
     address frogReferalAddress;
@@ -171,7 +175,7 @@ contract FrogLottery is Random{
     address  pool;
     address  smartRouter;
     uint public tokenId; // bsc id = 116119
-    uint24 public poolFee;
+    PoolKey public poolKey;
     address  pancakeFactory;
     address  masterChef;
     bool isReversed;
@@ -187,13 +191,11 @@ contract FrogLottery is Random{
         minUsd         = 1 * decimalsContoller - 10**16; // @TODO change to 50-500
         maxUsd         = 15000 * decimalsContoller; // @TODO change to 50-500
         isEthLottery    = params.isEthLottery;
-        setToken0ContractAddress(params.token0); 
-        setToken1ContractAddress(params.token1);       
+        poolKey = PoolKey(params.token0, params.token1, params.poolFee);
         setFrogReferalAddress(params.frogReferalAddress);
         nonfungiblePositionManager = params.nonfungiblePositionManager;
         pool = params.pool;
         smartRouter = params.router;
-        poolFee = params.poolFee;
         pancakeFactory = params.pancakeFactory;
         masterChef = params.masterChef;
         setStableCoinAddress(params.stable);
@@ -204,19 +206,19 @@ contract FrogLottery is Random{
 
     function createPosition(int24 _tickLower, int24 _tickUpper) public isBeneficiaryOrOwner {
         // require(tokenId == 0,'nono');
-        TransferHelper.safeTransferFrom(token0, msg.sender, address(this), 1);
-        TransferHelper.safeTransferFrom(token1, msg.sender, address(this), 1);
-        IERC20(token0).approve(nonfungiblePositionManager, type(uint).max);
-        IERC20(token1).approve(nonfungiblePositionManager, type(uint).max);
+        TransferHelper.safeTransferFrom(poolKey.token0, msg.sender, address(this), 1);
+        TransferHelper.safeTransferFrom(poolKey.token1, msg.sender, address(this), 1);
+        IERC20(poolKey.token0).approve(nonfungiblePositionManager, type(uint).max);
+        IERC20(poolKey.token1).approve(nonfungiblePositionManager, type(uint).max);
 
-        IERC20(token0).approve(masterChef, type(uint).max);
-        IERC20(token1).approve(masterChef, type(uint).max);
+        IERC20(poolKey.token0).approve(masterChef, type(uint).max);
+        IERC20(poolKey.token1).approve(masterChef, type(uint).max);
         
         INonfungiblePositionManager.MintParams memory params =
             INonfungiblePositionManager.MintParams({
-                token0: token0,
-                token1: token1,
-                fee: poolFee,
+                token0: poolKey.token0,
+                token1: poolKey.token1,
+                fee: poolKey.poolFee,
                 tickLower: _tickLower,
                 tickUpper: _tickUpper,
                 amount0Desired: 1,
@@ -227,13 +229,13 @@ contract FrogLottery is Random{
                 deadline: block.timestamp
             });
         // console.log('pool address', pool);
-        // console.log(IPancakeV3Pool(pool).token0(), token0);
-        // console.log(IPancakeV3Pool(pool).token1(), token1);
+        // console.log(IPancakeV3Pool(pool).poolKey.token0(), poolKey.token0);
+        // console.log(IPancakeV3Pool(pool).poolKey.token1(), poolKey.token1);
         (tokenId,,,) = INonfungiblePositionManager(nonfungiblePositionManager).mint(params);
 
         // возможно появиться ошибка если самый первый минт nft позиции прозошел с не отсортированными токенами 
         // и это никак не исправить так как в nonfungiblePositionManager маппинги _poolIdToPoolKey и _poolIds запривачены
-        // можно только в параметры это фукции передавать - нужно ли поменять token0 и token1 месами в params
+        // можно только в параметры это фукции передавать - нужно ли поменять poolKey.token0 и poolKey.token1 месами в params
 
         // (,,address _token0, address _token1,,,,,,,,) = INonfungiblePositionManager(nonfungiblePositionManager).positions(tokenId);
         INonfungiblePositionManager(nonfungiblePositionManager).safeTransferFrom(address(this), masterChef, tokenId);
@@ -261,18 +263,7 @@ contract FrogLottery is Random{
         return (result, counter);
     }
 
-    // @TODO add Event(?)
-function setToken0ContractAddress(address _cakeContractAddress) public isBeneficiaryOrOwner {
-        token0 = _cakeContractAddress;
-    }
-
-    // @TODO add Event(?)
-    function setToken1ContractAddress(address _address) public isBeneficiaryOrOwner {
-        token1 = _address;
-    }
-
-    // @TODO add Event(?)
-    function setStableCoinAddress(address _address) public isBeneficiaryOrOwner {
+function setStableCoinAddress(address _address) public isBeneficiaryOrOwner {
         stableCoinAddress = _address;
     }
 
@@ -319,7 +310,7 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
             IV3SwapRouter.ExactInputSingleParams({
                 tokenIn: tokenIn,
                 tokenOut: tokenOut,
-                fee: poolFee,
+                fee: poolKey.poolFee,
                 recipient: msg.sender,
                 amountIn: amountIn,
                 amountOutMinimum: 0,
@@ -342,38 +333,38 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
         uint amountTokenA;
         uint amountTokenB;
         {
-        if(token == token0){
+        if(token == poolKey.token0){
             // console.log(1);
             amountTokenA = amount / 2;
-            amountTokenB = swapExactInputSingle(token0, token1, amountTokenA);
+            amountTokenB = swapExactInputSingle(poolKey.token0, poolKey.token1, amountTokenA);
         }
-        else if(token == token1){
+        else if(token == poolKey.token1){
             // console.log(2);
             amountTokenB = amount / 2;
-            amountTokenA = swapExactInputSingle(token1, token0, amountTokenB);
+            amountTokenA = swapExactInputSingle(poolKey.token1, poolKey.token0, amountTokenB);
         }
         else {
             // console.log(3);
-            amountTokenA = swapExactInputSingle(token, token0, amount / 2);
-            amountTokenB = swapExactInputSingle(token, token1, amount / 2);
+            amountTokenA = swapExactInputSingle(token, poolKey.token0, amount / 2);
+            amountTokenB = swapExactInputSingle(token, poolKey.token1, amount / 2);
         }
         }
         // (uint amountToken0, uint amountToken1) = isReversed ? (amountTokenB, amountTokenA) : (amountTokenA, amountTokenB);
         (uint amountToken0, uint amountToken1) = (amountTokenB, amountTokenA);
         // console.log("rrrrrr", amountToken0, amountToken1);
         // console.log('one');
-        // console.log(getPriceWithDecimalsContoller(token0, 10**18));
-        // console.log(getPriceWithDecimalsContoller(token1, 10**18));
+        // console.log(getPriceWithDecimalsContoller(poolKey.poolKey.token0, 10**18));
+        // console.log(getPriceWithDecimalsContoller(poolKey.token1, 10**18));
 
         
         uint128 liquidity;
         uint amountA;
         uint amountB;
-        TransferHelper.safeTransferFrom(token0, msg.sender, address(this), amountToken0);
-        TransferHelper.safeTransferFrom(token1, msg.sender, address(this), amountToken1);
+        TransferHelper.safeTransferFrom(poolKey.token0, msg.sender, address(this), amountToken0);
+        TransferHelper.safeTransferFrom(poolKey.token1, msg.sender, address(this), amountToken1);
 
-        // TransferHelper.safeTransferFrom(token0, msg.sender, address(this), isReversed ? amountToken1 : amountToken0);
-        // TransferHelper.safeTransferFrom(token1, msg.sender, address(this), isReversed ? amountToken0 : amountToken1);
+        // TransferHelper.safeTransferFrom(poolKey.poolKey.token0, msg.sender, address(this), isReversed ? amountToken1 : amountToken0);
+        // TransferHelper.safeTransferFrom(poolKey.token1, msg.sender, address(this), isReversed ? amountToken0 : amountToken1);
 
         if(isEthLottery){
             
@@ -408,7 +399,7 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
             // console.log(1);
         }
         {
-        (address _token0, address _token1) = isReversed ? (token1,token0) : (token0,token1);
+        (address _token0, address _token1) = isReversed ? (poolKey.token1,poolKey.token0) : (poolKey.token0,poolKey.token1);
         uint futureBalanceUsd = getPriceWithDecimalsContoller(_token0, uint128(amount0_active)) + getPriceWithDecimalsContoller(_token1, uint128(amount1_active));
         uint depositUsd = getPriceWithDecimalsContoller(_token0, uint128(amount0)) + getPriceWithDecimalsContoller(_token1, uint128(amount1));
 
@@ -427,26 +418,23 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
             emit NewParticipant(msg.sender);
         }
         if(amountToken0 > amount0){
-            // console.log(token0, amountToken0 - amount0);
-            // console.log(amountToken0, amount0);
-            // console.log(IERC20(token0).balanceOf(address(this)));
             uint value = amountToken0 - amount0;
-            uint balance = IERC20(token0).balanceOf(address(this));
+            uint balance = IERC20(poolKey.token0).balanceOf(address(this));
             if(balance < value)
                 value = balance;
             if(value > 0)
-                TransferHelper.safeTransfer(token0, msg.sender, value);
+                TransferHelper.safeTransfer(poolKey.token0, msg.sender, value);
         }
         if(amountToken1 > amount1){
-            // console.log(token1, amountToken1 - amount1);
+            // console.log(poolKey.token1, amountToken1 - amount1);
             // console.log(amountToken1, amount1);
-            // console.log(IERC20(token1).balanceOf(address(this)));
+            // console.log(IERC20(poolKey.token1).balanceOf(address(this)));
             uint value = amountToken1 - amount1;
-            uint balance = IERC20(token1).balanceOf(address(this));
+            uint balance = IERC20(poolKey.token1).balanceOf(address(this));
             if(balance < value)
                 value = balance;
             if(value > 0)
-                TransferHelper.safeTransfer(token1, msg.sender, value);
+                TransferHelper.safeTransfer(poolKey.token1, msg.sender, value);
         }
 
         // 100000000007518
@@ -477,7 +465,7 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
             }
             (amount0_active, amount1_active) = calculateAmountsForLiquidity(sqrtPriceX96,currentTick,tickLower,tickUpper, int256(liquidity),true);
             (amount0_in, amount1_in) = calculateAmountsForLiquidity(sqrtPriceX96,currentTick,tickLower,tickUpper, int256(_amount),true);
-            (address _token0, address _token1) = isReversed ? (token1,token0) : (token0,token1);
+            (address _token0, address _token1) = isReversed ? (poolKey.token1,poolKey.token0) : (poolKey.token0,poolKey.token1);
 
             uint futureBalanceUsd = getPriceWithDecimalsContoller(_token0, uint128(amount0_active)) + getPriceWithDecimalsContoller(_token1, uint128(amount1_active));
             uint withdrawUsd = getPriceWithDecimalsContoller(_token0, uint128(amount0_in)) + getPriceWithDecimalsContoller(_token1, uint128(amount1_in));
@@ -492,13 +480,13 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
         require(rewardOfToken0[msg.sender] > 0 || rewardOfToken1[msg.sender] > 0 || rewardOfCake[msg.sender] > 0, 'Reward is empty');
 
         if(rewardOfToken0[msg.sender] > 0){
-            require(IERC20(token0).transfer(msg.sender, rewardOfToken0[msg.sender]),"Transfer faild0");
+            require(IERC20(poolKey.token0).transfer(msg.sender, rewardOfToken0[msg.sender]),"Transfer faild0");
             rewardFromPrevDrawToken0 -= rewardOfToken0[msg.sender];
             rewardOfToken0[msg.sender] = 0;
         }
 
         if(rewardOfToken1[msg.sender] > 0){
-            require(IERC20(token1).transfer(msg.sender, rewardOfToken1[msg.sender]),"Transfer faild1");
+            require(IERC20(poolKey.token1).transfer(msg.sender, rewardOfToken1[msg.sender]),"Transfer faild1");
             rewardFromPrevDrawToken1 -= rewardOfToken1[msg.sender];
             rewardOfToken1[msg.sender] = 0;
         }
@@ -531,7 +519,7 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
     }
 
     function getPriceWithDecimalsContoller(address tokenIn, uint128 amount) public view returns (uint amountOut) {
-        address _pool = IPancakeV3Factory(pancakeFactory).getPool(tokenIn,stableCoinAddress,poolFee);
+        address _pool = IPancakeV3Factory(pancakeFactory).getPool(tokenIn,stableCoinAddress,poolKey.poolFee);
         (, int24 tick,,,,,) = IPancakeV3Pool(_pool).slot0();
         uint8 decimals = Deimals(stableCoinAddress).decimals();
 
@@ -554,14 +542,14 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
 
                     if(isEthLottery){
                         // (uint amount0, uint amount1) = IPancakeRouter02(pancakeRouterAddress).removeLiquidityETH(
-                        //     token0,
+                        //     poolKey.token0,
                         //     withdrawOf[user],
                         //     lpToken0 * withdrawOf[user] / 10000 * 9900 / lpDecimals,
                         //     lpToken1 * withdrawOf[user] / 10000 * 9900 / lpDecimals,
                         //     address(this),
                         //     block.timestamp + 20 minutes
                         // );
-                        // IERC20(token0).transfer(user,amount0);
+                        // IERC20(poolKey.token0).transfer(user,amount0);
                         // payable(user).transfer(amount1 / power);
                     }
                     else {
@@ -586,8 +574,8 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
                         (uint amount0Collect, uint amount1Collect) = INonfungiblePositionManager(masterChef).collect(paramsCollect);
                         // console.log('wihdraw busd', amount0Collect);
                         // console.log('wihdraw usdt', amount1Collect);
-                        IERC20(token0).transfer(user,amount0Collect);
-                        IERC20(token1).transfer(user,amount1Collect);
+                        IERC20(poolKey.token0).transfer(user,amount0Collect);
+                        IERC20(poolKey.token1).transfer(user,amount1Collect);
                     }
                     
 
@@ -719,7 +707,7 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
         if (liquidityDelta != 0) {
             if (currentTick < tickLower) {
                 // current tick is below the passed range; liquidity can only become in range by crossing from left to
-                // right, when we'll need _more_ token0 (it's becoming more valuable) so user must provide it
+                // right, when we'll need _more_ poolKey.token0 (it's becoming more valuable) so user must provide it
                 _amount0 = getAmount0Delta(
                     TickMath.getSqrtRatioAtTick(tickLower),
                     TickMath.getSqrtRatioAtTick(tickUpper),
@@ -744,7 +732,7 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
 
             } else {
                 // current tick is above the passed range; liquidity can only become in range by crossing from right to
-                // left, when we'll need _more_ token1 (it's becoming more valuable) so user must provide it
+                // left, when we'll need _more_ poolKey.token1 (it's becoming more valuable) so user must provide it
                 _amount1 = getAmount1Delta(
                     TickMath.getSqrtRatioAtTick(tickLower),
                     TickMath.getSqrtRatioAtTick(tickUpper),
@@ -773,16 +761,16 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
     }
 
     function afterDraw(IFrogReferal.ReferersRewardInfo[] memory data, uint referersReward0, uint referersReward1, uint referersRewardCake) public {
-        uint balance0 = IERC20(token0).balanceOf(address(this)) - rewardFromPrevDrawToken0;
-        uint balance1 = IERC20(token1).balanceOf(address(this)) - rewardFromPrevDrawToken1;
+        uint balance0 = IERC20(poolKey.token0).balanceOf(address(this)) - rewardFromPrevDrawToken0;
+        uint balance1 = IERC20(poolKey.token1).balanceOf(address(this)) - rewardFromPrevDrawToken1;
         // console.log("afterDraw cake prev", IERC20(CAKE).balanceOf(address(this)), rewardFromPrevDrawCake);
         uint balanceCake = IERC20(CAKE).balanceOf(address(this)) - rewardFromPrevDrawCake;
 
-        IFrogReferal(frogReferalAddress).accrueRewardFromWinningReferral(data, token0, token1);
+        IFrogReferal(frogReferalAddress).accrueRewardFromWinningReferral(data, poolKey.token0, poolKey.token1);
 
 
-        IERC20(token0).transfer(frogReferalAddress, referersReward0);
-        IERC20(token1).transfer(frogReferalAddress, referersReward1);
+        IERC20(poolKey.token0).transfer(frogReferalAddress, referersReward0);
+        IERC20(poolKey.token1).transfer(frogReferalAddress, referersReward1);
         IERC20(CAKE).transfer(frogReferalAddress, referersRewardCake);
         // console.log(balance0);
         // console.log(balance1);
@@ -795,9 +783,9 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
 
 
         // console.log(1);
-        IERC20(token0).transfer(beneficiary, balance0 - referersReward0);
+        IERC20(poolKey.token0).transfer(beneficiary, balance0 - referersReward0);
         // console.log(1);
-        IERC20(token1).transfer(beneficiary, balance1 - referersReward1);
+        IERC20(poolKey.token1).transfer(beneficiary, balance1 - referersReward1);
         // console.log(1);
         IERC20(CAKE).transfer(beneficiary, balanceCake - referersRewardCake);
         // console.log(1);
@@ -837,7 +825,7 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
     /// @param sqrtRatioBX96 Another sqrt price
     /// @param liquidity The amount of usable liquidity
     /// @param roundUp Whether to round the amount up or down
-    /// @return amount0 Amount of token0 required to cover a position of size liquidity between the two passed prices
+    /// @return amount0 Amount of poolKey.token0 required to cover a position of size liquidity between the two passed prices
     function _getAmount0Delta(
         uint160 sqrtRatioAX96,
         uint160 sqrtRatioBX96,
@@ -866,7 +854,7 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
     /// @param sqrtRatioBX96 Another sqrt price
     /// @param liquidity The amount of usable liquidity
     /// @param roundUp Whether to round the amount up, or down
-    /// @return amount1 Amount of token1 required to cover a position of size liquidity between the two passed prices
+    /// @return amount1 Amount of poolKey.token1 required to cover a position of size liquidity between the two passed prices
     function _getAmount1Delta(
         uint160 sqrtRatioAX96,
         uint160 sqrtRatioBX96,
@@ -881,11 +869,11 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
                 : FullMath.mulDiv(liquidity, sqrtRatioBX96 - sqrtRatioAX96, FixedPoint96.Q96);
     }
 
-    /// @notice Helper that gets signed token0 delta
+    /// @notice Helper that gets signed poolKey.token0 delta
     /// @param sqrtRatioAX96 A sqrt price
     /// @param sqrtRatioBX96 Another sqrt price
     /// @param liquidity The change in liquidity for which to compute the amount0 delta
-    /// @return amount0 Amount of token0 corresponding to the passed liquidityDelta between the two prices
+    /// @return amount0 Amount of poolKey.token0 corresponding to the passed liquidityDelta between the two prices
     function getAmount0Delta(
         uint160 sqrtRatioAX96,
         uint160 sqrtRatioBX96,
@@ -897,11 +885,11 @@ function setToken0ContractAddress(address _cakeContractAddress) public isBenefic
                 : _getAmount0Delta(sqrtRatioAX96, sqrtRatioBX96, uint128(liquidity), true).toInt256();
     }
 
-    /// @notice Helper that gets signed token1 delta
+    /// @notice Helper that gets signed poolKey.token1 delta
     /// @param sqrtRatioAX96 A sqrt price
     /// @param sqrtRatioBX96 Another sqrt price
     /// @param liquidity The change in liquidity for which to compute the amount1 delta
-    /// @return amount1 Amount of token1 corresponding to the passed liquidityDelta between the two prices
+    /// @return amount1 Amount of poolKey.token1 corresponding to the passed liquidityDelta between the two prices
     function getAmount1Delta(
         uint160 sqrtRatioAX96,
         uint160 sqrtRatioBX96,

@@ -1,11 +1,57 @@
 @import "https://fonts.googleapis.com/css?family=Press+Start+2P";
 
-/* .gigaTransform {
-    transform: translate3d(0px, 0px, 0px) scale3d(1.1, 1.1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skew(0deg, 0deg);
-    transform-style: preserve-3d;
-    background-color: rgb(251, 238, 157);
-    z-index: 901;
-} */
+
+/* стили для контейнера */
+.tooltip {
+    position: relative;
+    display: inline-block;
+    margin-left: 6px;
+}
+
+/* стили для текста подсказки */
+.tooltip-text {
+    overflow: visible;
+    font-size: 0.85em;
+    font-weight: 500;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    position: absolute;
+    bottom: calc(100% + 4px);
+    /* расстояние между контейнером и текстом */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #1a1a1a;
+    width: max-content;
+    color: #fff;
+    padding: 6px;
+    border-radius: 4px;
+    z-index: 11;
+    /* чтобы текст был наверху */
+}
+
+/* стили для стрелки */
+.tooltip-text::after {
+    content: "";
+    position: absolute;
+    bottom: -16px;
+    left: 50%;
+    margin-left: -10px;
+    border-width: 10px;
+    border-style: solid;
+    border-color: #1a1a1a transparent transparent transparent;
+}
+
+/* стили для показа текста при наведении */
+.tooltip:hover .tooltip-text {
+    visibility: visible;
+    opacity: .96;
+}
+
+
+.detalis {
+    color: color(display-p3 0.945 0.62 0.286);
+}
 
 .pointer {
     cursor: pointer;

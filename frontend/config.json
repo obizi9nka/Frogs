@@ -3,6 +3,6 @@
     "backendUrl_replaceMe": "https://frogs-api.test-mvp.ru",
     "prefix_replaceMe2": "sepolia_test_before_mainnet_",
     "prefix_replaceMe1": "sepolia_",
-    "prefix": "bsc_",
-    "prefix_replaceMe": "localhost_"
+    "prefix_replaceMe": "bsc_",
+    "prefix": "localhost_"
 }

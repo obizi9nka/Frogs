@@ -78,11 +78,13 @@ export async function deployAll() {
     await pancakeFactory.createPool(busd.address, usdt.address, fee)
     await pancakeFactory.createPool(busd.address, usdc.address, fee)
     await pancakeFactory.createPool(usdt.address, usdc.address, fee)
+    await pancakeFactory.createPool(cake.address, usdc.address, fee)
 
 
     const pool_busd_usdt = new ethers.Contract(await pancakeFactory.getPool(busd.address, usdt.address, fee), jsonPool.abi, acct1) as PancakeV3Pool
     const pool_busd_usdc = new ethers.Contract(await pancakeFactory.getPool(busd.address, usdc.address, fee), jsonPool.abi, acct1) as PancakeV3Pool
     const pool_usdt_usdc = new ethers.Contract(await pancakeFactory.getPool(usdt.address, usdc.address, fee), jsonPool.abi, acct1) as PancakeV3Pool
+    const pool_cake_usdc = new ethers.Contract(await pancakeFactory.getPool(cake.address, usdc.address, fee), jsonPool.abi, acct1) as PancakeV3Pool
 
     // отдаешь х - получаешь y
     function encodePriceSqrt(reserve1: any, reserve0: any): BN {
@@ -112,23 +114,31 @@ export async function deployAll() {
             token0: 1,
             token1: 1
         },
+        cake_usdc: {
+            token0: 1,
+            token1: 1,
+        }
     }
 
     const price_busd_usdt = await pool_busd_usdt.token0() == busd.address ? BigInt(encodePriceSqrt(rates.busd_usdt.token0, rates.busd_usdt.token1).toNumber()) : BigInt(encodePriceSqrt(rates.busd_usdt.token1, rates.busd_usdt.token0).toNumber()) // 2x1
     const price_busd_stable = await pool_busd_usdc.token0() == busd.address ? BigInt(encodePriceSqrt(rates.busd_usdc.token0, rates.busd_usdc.token1).toNumber()) : BigInt(encodePriceSqrt(rates.busd_usdc.token1, rates.busd_usdc.token0).toNumber()) // 2x1
     const price_usdt_stable = await pool_usdt_usdc.token0() == usdt.address ? BigInt(encodePriceSqrt(rates.usdt_usdc.token0, rates.usdt_usdc.token1).toNumber()) : BigInt(encodePriceSqrt(rates.usdt_usdc.token1, rates.usdt_usdc.token0).toNumber()) // 2x1
+    const price_cake_stable = await pool_cake_usdc.token0() == cake.address ? BigInt(encodePriceSqrt(rates.cake_usdc.token0, rates.cake_usdc.token1).toNumber()) : BigInt(encodePriceSqrt(rates.cake_usdc.token1, rates.cake_usdc.token0).toNumber()) // 2x1
 
     await pool_busd_usdt.initialize(price_busd_usdt)
     await pool_busd_usdc.initialize(price_busd_stable)
     await pool_usdt_usdc.initialize(price_usdt_stable)
+    await pool_cake_usdc.initialize(price_cake_stable)
 
     const isReversed_pool_busd_usdt = await pool_busd_usdt.token0() != busd.address
     const isReversed_pool_busd_usdc = await pool_busd_usdc.token0() != busd.address
     const isReversed_pool_usdt_usdc = await pool_usdt_usdc.token0() != usdt.address
+    const isReversed_pool_cake_usdc = await pool_cake_usdc.token0() != cake.address
 
     console.log(isReversed_pool_busd_usdt)
     console.log(isReversed_pool_busd_usdc)
     console.log(isReversed_pool_usdt_usdc)
+    console.log(isReversed_pool_cake_usdc)
 
     const sqrtPrice_pool_busd_usdt = (await pool_busd_usdt.slot0()).sqrtPriceX96
     const sqrtPrice_pool_busd_usdc = (await pool_busd_usdc.slot0()).sqrtPriceX96
@@ -224,31 +234,48 @@ export async function deployAll() {
     await usdc.connect(acct1).getTokens(TOKENS_VALUE_20);
     await usdc.connect(acct2).getTokens(TOKENS_VALUE_20);
 
+    await cake.connect(acct1).getTokens(TOKENS_VALUE_20);
+    await cake.connect(acct2).getTokens(TOKENS_VALUE_20);
+
+
     await usdc.connect(acct2).approve(nonfungiblePositionManager.address, TOKENS_VALUE_20)
     await usdt.connect(acct2).approve(nonfungiblePositionManager.address, TOKENS_VALUE_20)
     await busd.connect(acct2).approve(nonfungiblePositionManager.address, TOKENS_VALUE_20)
+    await cake.connect(acct2).approve(nonfungiblePositionManager.address, TOKENS_VALUE_20)
 
     await busd.approve(nonfungiblePositionManager.address, TOKENS_VALUE_20)
     await usdc.approve(nonfungiblePositionManager.address, TOKENS_VALUE_20)
     await usdt.approve(nonfungiblePositionManager.address, TOKENS_VALUE_20)
+    await cake.approve(nonfungiblePositionManager.address, TOKENS_VALUE_20)
 
+
+    // busd_usdt
     const positionData = await pool_busd_usdt.slot0()
     const tickSpacing = await pool_busd_usdt.tickSpacing()
 
     const tickLower = positionData.tick - positionData.tick % tickSpacing - tickSpacing * 100
     const tickUpper = positionData.tick - positionData.tick % tickSpacing + tickSpacing * 100
 
+    // busd_usdc
     const _positionData = await pool_busd_usdc.slot0()
     const _tickSpacing = await pool_busd_usdc.tickSpacing()
 
     const _tickLower = _positionData.tick - _positionData.tick % _tickSpacing - _tickSpacing * 100
     const _tickUpper = _positionData.tick - _positionData.tick % _tickSpacing + _tickSpacing * 100
 
+    //usdt_usdc
     const __positionData = await pool_usdt_usdc.slot0()
     const __tickSpacing = await pool_usdt_usdc.tickSpacing()
 
     const __tickLower = __positionData.tick - __positionData.tick % __tickSpacing - __tickSpacing * 100
     const __tickUpper = __positionData.tick - __positionData.tick % __tickSpacing + __tickSpacing * 100
+
+    //cake_usdc
+    const ___positionData = await pool_cake_usdc.slot0()
+    const ___tickSpacing = await pool_cake_usdc.tickSpacing()
+
+    const ___tickLower = ___positionData.tick - ___positionData.tick % ___tickSpacing - ___tickSpacing * 100
+    const ___tickUpper = ___positionData.tick - ___positionData.tick % ___tickSpacing + ___tickSpacing * 100
 
     let params = {
         token0: isReversed_pool_busd_usdt ? usdt.address : busd.address,
@@ -292,6 +319,20 @@ export async function deployAll() {
         deadline: 10000000000000
     }
 
+    let paramsCake = {
+        token0: isReversed_pool_cake_usdc ? usdc.address : cake.address,
+        token1: isReversed_pool_cake_usdc ? cake.address : usdc.address,
+        fee,
+        tickLower: ___tickLower,
+        tickUpper: ___tickUpper,
+        amount0Desired: BigInt(1e30 - 1e29),
+        amount1Desired: BigInt(1e30 - 1e29),
+        amount0Min: 1,
+        amount1Min: 1,
+        recipient: acct1.address,
+        deadline: 10000000000000
+    }
+
     // 2005104164790027959871634583966404
     // 191757530477355301479181766273477
 
@@ -301,9 +342,13 @@ export async function deployAll() {
     // params.token1 = usdc.address
     await nonfungiblePositionManager.mint(paramsStable)
 
-    params.token0 = busd.address
-    params.token1 = usdc.address
+    // params.token0 = busd.address
+    // params.token1 = usdc.address
     await nonfungiblePositionManager.mint(_params)
+
+
+    await nonfungiblePositionManager.mint(paramsCake)
+
 
     // console.log(await nonfungiblePositionManager.positions(1))
     // console.log(await pool_busd_usdt.liquidity())

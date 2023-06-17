@@ -470,8 +470,8 @@ export default {
       const manager = new web3.eth.Contract(PositionManager.abi, this.addresses.manager)
       const FrogContract = new web3.eth.Contract(FrogContractABI, this.addresses.frogLottery);
 
-      this.frog.token0.address = await FrogContract.methods.token0().call()
-      this.frog.token1.address = await FrogContract.methods.token1().call()
+      this.frog.token0.address = (await FrogContract.methods.poolKey().call()).token0
+      this.frog.token1.address = (await FrogContract.methods.poolKey().call()).token1
 
       this.frog.token0.symbol = await (new web3.eth.Contract(ERC20TokenABI, this.frog.token0.address)).methods.symbol().call()
       this.frog.token1.symbol = await (new web3.eth.Contract(ERC20TokenABI, this.frog.token1.address)).methods.symbol().call()
@@ -636,11 +636,11 @@ export default {
           })
 
         const FrogReferal = new web3.eth.Contract(FrogReferalABI, this.addresses.frogReferal)
-        await FrogReferal.methods.balance(await frog.methods.token0().call(), this.$store.state.account).call()
+        await FrogReferal.methods.balance((await frog.methods.poolKey().call()).token0, this.$store.state.account).call()
           .then(balance => {
             this.frog.user.referalReward0 = parseFloat(web3.utils.fromWei(balance))
           })
-        await FrogReferal.methods.balance(await frog.methods.token1().call(), this.$store.state.account).call()
+        await FrogReferal.methods.balance((await frog.methods.poolKey().call()).token1, this.$store.state.account).call()
           .then(balance => {
             this.frog.user.referalReward1 = parseFloat(web3.utils.fromWei(balance))
           })
@@ -877,13 +877,13 @@ export default {
       let sqrtPriceX96
       switch (this.tokenSelcted) {
         case 0: {
-          tokenForDepositAddress = this.pancake.isReversed_pool_busd_usdt ? await FrogContract.methods.token1().call() : await FrogContract.methods.token0().call()
+          tokenForDepositAddress = this.pancake.isReversed_pool_busd_usdt ? (await FrogContract.methods.poolKey().call()).token1 : (await FrogContract.methods.poolKey().call()).token0
           tokenBalance = parseFloat(this.wallet.token0)
           sqrtPriceX96 = this.pancake.sqrtPriceX96_token0_token1
           break;
         }
         case 1: {
-          tokenForDepositAddress = this.pancake.isReversed_pool_busd_usdt ? await FrogContract.methods.token0().call() : await FrogContract.methods.token1().call()
+          tokenForDepositAddress = this.pancake.isReversed_pool_busd_usdt ? (await FrogContract.methods.poolKey().call()).token0 : (await FrogContract.methods.poolKey().call()).token1
           tokenBalance = parseFloat(this.wallet.token1)
           sqrtPriceX96 = this.pancake.sqrtPriceX96_token0_token1
           break;
